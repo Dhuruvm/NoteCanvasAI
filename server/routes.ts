@@ -46,13 +46,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (req.file.mimetype === 'application/pdf') {
           console.log(`Processing PDF file: ${req.file.originalname}, size: ${req.file.buffer.length} bytes`);
           content = await extractTextFromPDF(req.file.buffer);
+          console.log(`PDF text extraction successful, extracted ${content.length} characters`);
         } else {
           content = req.file.buffer.toString('utf-8');
+          console.log(`Text file processed: ${content.length} characters`);
         }
       } catch (extractionError) {
         console.error(`File extraction failed for ${req.file.originalname}:`, extractionError);
         return res.status(400).json({ 
-          message: `Failed to process ${req.file.mimetype === 'application/pdf' ? 'PDF' : 'text'} file: ${extractionError instanceof Error ? extractionError.message : 'Unknown error'}` 
+          message: `Failed to process ${req.file.mimetype === 'application/pdf' ? 'PDF' : 'text'} file: ${extractionError instanceof Error ? extractionError.message : 'Unknown error'}`,
+          details: extractionError instanceof Error ? extractionError.message : 'Unknown error'
         });
       }
 
@@ -157,9 +160,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No processed content available for PDF generation" });
       }
 
+      // Validate processedContent structure
+      const processedContent = note.processedContent;
+      if (!processedContent || typeof processedContent !== 'object') {
+        return res.status(400).json({ message: "Invalid processed content format" });
+      }
+
       console.log(`Generating PDF for note ${noteId}: ${note.title}`);
 
-      const pdfBuffer = await generateNotePDF(note.processedContent as any, {
+      const pdfBuffer = await generateNotePDF(processedContent as any, {
         theme: (req.query.theme as any) || "default",
         fontSize: parseInt(req.query.fontSize as string) || 12,
         includeHeader: req.query.includeHeader !== "false",

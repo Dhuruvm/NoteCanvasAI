@@ -190,39 +190,47 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
 
     console.log(`Starting PDF text extraction, buffer size: ${buffer.length} bytes`);
 
-    // Use pdf2pic and tesseract for OCR-based text extraction as fallback
-    try {
-      // First try with pdf-lib for basic PDF structure validation
-      const { PDFDocument } = await import('pdf-lib');
-      const pdfDoc = await PDFDocument.load(buffer);
-      const pages = pdfDoc.getPages();
+    // Use pdf-parse for reliable text extraction
+    const pdfParse = (await import('pdf-parse')).default;
+    
+    const data = await pdfParse(buffer, {
+      // Options to improve extraction
+      normalizeWhitespace: true,
+      disableCombineTextItems: false
+    });
 
-      console.log(`PDF loaded with ${pages.length} pages using pdf-lib`);
+    console.log(`PDF text extracted successfully: ${data.numpages} pages, ${data.text.length} characters`);
 
-      // Try to extract text using a more reliable method
-      // For now, return helpful guidance since complex PDF text extraction
-      // requires native dependencies that may not be available in all environments
-      const extractedText = `PDF Document Analysis (${pages.length} pages)
-
-This PDF has been successfully processed and contains ${pages.length} page(s) of content.
-
-For optimal text extraction from complex PDFs, please:
-1. Copy and paste the text content directly from the PDF
-2. Or convert the PDF to a text file first
-3. Or use a PDF with selectable text (not scanned images)
-
-The PDF structure is valid and ready for manual content processing.`;
-
-      console.log(`PDF structure validated successfully`);
-      return extractedText;
-
-    } catch (libError) {
-      console.error("PDF processing failed:", libError);
-      throw new Error("Unable to process PDF file. Please ensure it's a valid, unencrypted PDF document.");
+    if (!data.text || data.text.trim().length === 0) {
+      throw new Error("No readable text found in PDF. This might be a scanned image or encrypted PDF.");
     }
+
+    // Clean up the extracted text
+    const cleanedText = data.text
+      .replace(/\s+/g, ' ') // Replace multiple whitespace with single space
+      .replace(/\n\s*\n/g, '\n\n') // Preserve paragraph breaks
+      .trim();
+
+    if (cleanedText.length < 10) {
+      throw new Error("PDF contains very little readable text. Please ensure it's not a scanned image.");
+    }
+
+    return cleanedText;
 
   } catch (error) {
     console.error("PDF extraction error:", error);
-    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('Invalid PDF structure')) {
+        throw new Error("The PDF file appears to be corrupted or encrypted.");
+      }
+      if (error.message.includes('password')) {
+        throw new Error("This PDF is password protected. Please provide an unencrypted PDF.");
+      }
+      throw new Error(`Failed to extract text from PDF: ${error.message}`);
+    }
+    
+    throw new Error("Failed to extract text from PDF: Unknown error occurred");
   }
 }
