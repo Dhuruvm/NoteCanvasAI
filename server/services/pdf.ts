@@ -1,7 +1,4 @@
-` tags.
 
-```
-<replit_final_file>
 import * as fs from "fs";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import type { ProcessedNote } from "@shared/schema";
