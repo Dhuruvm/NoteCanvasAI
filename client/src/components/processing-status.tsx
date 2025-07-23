@@ -44,27 +44,27 @@ export function ProcessingStatus({ status, title }: ProcessingStatusProps) {
 
   return (
     <Card className={`bg-gradient-to-r ${config.bgColor} border ${config.borderColor}`}>
-      <CardContent className="p-4">
-        <div className="flex items-center space-x-3">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           <div className={status === "completed" ? "text-accent" : status === "failed" ? "text-destructive" : "text-primary"}>
-            {config.icon}
+            <div className="w-4 h-4 sm:w-5 sm:h-5">{config.icon}</div>
           </div>
-          <div className="flex-1">
-            <p className={`text-sm font-medium ${
+          <div className="flex-1 min-w-0">
+            <p className={`text-xs sm:text-sm font-medium truncate ${
               status === "completed" ? "text-accent" : 
               status === "failed" ? "text-destructive" : 
               "text-primary"
             }`}>
               {title || config.title}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground truncate">
               {config.description}
             </p>
           </div>
         </div>
         {status === "processing" && (
-          <div className="mt-3">
-            <Progress value={config.progress} className="h-2" />
+          <div className="mt-2 sm:mt-3">
+            <Progress value={config.progress} className="h-1.5 sm:h-2" />
           </div>
         )}
       </CardContent>

@@ -102,45 +102,45 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Upload Section */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Upload className="w-5 h-5 text-primary mr-2" />
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="flex items-center text-base sm:text-lg">
+            <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-primary mr-2" />
             Input Content
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           <UploadZone
             onFileUpload={handleFileUpload}
             isUploading={uploadMutation.isPending}
           />
           
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-gray-700">
+          <div className="space-y-2 sm:space-y-3">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Or paste your text:
             </Label>
             <Textarea
               value={textContent}
               onChange={(e) => setTextContent(e.target.value)}
-              className="min-h-32 resize-none"
+              className="min-h-24 sm:min-h-32 resize-none text-sm"
               placeholder="Paste your notes, articles, or any text content here..."
             />
           </div>
           
-          <div className="flex gap-2">
-            <Button variant="outline" className="flex-1" disabled>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" className="w-full sm:flex-1" disabled>
               <Mic className="w-4 h-4 mr-2" />
-              Voice Input
+              <span className="text-sm">Voice Input</span>
             </Button>
             <Button
               onClick={handleGenerateNotes}
               disabled={processTextMutation.isPending || !textContent.trim()}
-              className="flex-1"
+              className="w-full sm:flex-1"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              {processTextMutation.isPending ? "Processing..." : "Generate Notes"}
+              <span className="text-sm">{processTextMutation.isPending ? "Processing..." : "Generate Notes"}</span>
             </Button>
           </div>
         </CardContent>
@@ -148,19 +148,19 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
 
       {/* AI Settings */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Sliders className="w-5 h-5 text-secondary mr-2" />
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="flex items-center text-base sm:text-lg">
+            <Sliders className="w-4 h-4 sm:w-5 sm:h-5 text-secondary mr-2" />
             AI Settings
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 sm:space-y-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Summary Style
             </Label>
             <Select value={summaryStyle} onValueChange={(value: any) => setSummaryStyle(value)}>
-              <SelectTrigger>
+              <SelectTrigger className="text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -173,10 +173,10 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
           </div>
           
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Detail Level
             </Label>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <Slider
                 value={detailLevel}
                 onValueChange={setDetailLevel}
@@ -185,14 +185,14 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
                 step={1}
                 className="flex-1"
               />
-              <span className="text-sm text-muted-foreground w-16">
+              <span className="text-xs sm:text-sm text-muted-foreground w-12 sm:w-16 text-right">
                 {detailLevel[0] === 5 ? "Detailed" : detailLevel[0] === 1 ? "Brief" : "Medium"}
               </span>
             </div>
           </div>
           
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium text-gray-700">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Include Examples
             </Label>
             <Switch

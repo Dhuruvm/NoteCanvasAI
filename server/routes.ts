@@ -59,6 +59,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         templateId: req.body.templateId || "academic",
       });
 
+      // Process in background for uploaded files too
+      processContentInBackground(note.id, content, { 
+        summaryStyle: req.body.templateId || "academic",
+        detailLevel: 3,
+        includeExamples: true 
+      });
+
       res.json({ noteId: note.id, message: "File uploaded successfully" });
     } catch (error) {
       console.error("Upload error:", error);

@@ -179,8 +179,15 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
     // Dynamic import to handle ES module compatibility
     const pdfParse = (await import('pdf-parse')).default;
     const data = await pdfParse(buffer);
-    return data.text;
+    
+    // Validate that we extracted text
+    if (!data || !data.text || data.text.trim().length === 0) {
+      throw new Error("No text content found in PDF");
+    }
+    
+    return data.text.trim();
   } catch (error) {
-    throw new Error(`Failed to extract text from PDF: ${error}`);
+    console.error("PDF extraction error:", error);
+    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
