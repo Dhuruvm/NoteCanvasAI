@@ -18,9 +18,9 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
   const { data: note, isLoading, error, refetch } = useQuery<Note>({
     queryKey: ["/api/notes", noteId],
     enabled: !!noteId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Refetch every 2 seconds while processing
-      return data?.status === "processing" ? 2000 : false;
+      return query.state.data?.status === "processing" ? 2000 : false;
     },
   });
 
@@ -67,16 +67,16 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && !note) {
     return (
       <div className="space-y-6">
         <ProcessingStatus status="processing" />
         <Card>
           <CardContent className="p-6">
             <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
             </div>
           </CardContent>
         </Card>

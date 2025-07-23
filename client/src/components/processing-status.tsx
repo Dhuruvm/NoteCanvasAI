@@ -46,8 +46,8 @@ export function ProcessingStatus({ status, title }: ProcessingStatusProps) {
     <Card className={`bg-gradient-to-r ${config.bgColor} border ${config.borderColor}`}>
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center space-x-2 sm:space-x-3">
-          <div className={status === "completed" ? "text-accent" : status === "failed" ? "text-destructive" : "text-primary"}>
-            <div className="w-4 h-4 sm:w-5 sm:h-5">{config.icon}</div>
+          <div className={status === "completed" ? "text-green-600 dark:text-green-400" : status === "failed" ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"}>
+            {config.icon}
           </div>
           <div className="flex-1 min-w-0">
             <p className={`text-xs sm:text-sm font-medium truncate ${
