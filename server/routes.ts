@@ -198,9 +198,15 @@ async function processContentInBackground(noteId: number, content: string, setti
   try {
     // Update status to processing
     await storage.updateNoteStatus(noteId, "processing");
+    console.log(`Starting AI processing for note ${noteId}, content length: ${content.length} chars`);
     
-    // Process with Gemini AI
-    const processedContent = await summarizeContentWithGemini(content, settings);
+    // Add timeout to prevent hanging (30 seconds)
+    const processingPromise = summarizeContentWithGemini(content, settings);
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('AI processing timeout after 30 seconds')), 30000);
+    });
+    
+    const processedContent = await Promise.race([processingPromise, timeoutPromise]);
     
     // Update note with processed content
     await storage.updateNoteContent(noteId, processedContent);
@@ -208,6 +214,31 @@ async function processContentInBackground(noteId: number, content: string, setti
     console.log(`Successfully processed note ${noteId}`);
   } catch (error) {
     console.error(`Failed to process note ${noteId}:`, error);
+    
+    // Create fallback content for failed processing
+    const fallbackContent = {
+      title: content.substring(0, 50) + "...",
+      keyConcepts: [
+        {
+          title: "Processing Error",
+          definition: error instanceof Error ? error.message : "AI processing failed"
+        }
+      ],
+      summaryPoints: [
+        {
+          heading: "Original Content",
+          points: [content.length > 500 ? content.substring(0, 500) + "..." : content]
+        }
+      ],
+      processFlow: [],
+      metadata: {
+        source: "error_fallback",
+        generatedAt: new Date().toISOString(),
+        style: settings.summaryStyle || "academic"
+      }
+    };
+    
+    await storage.updateNoteContent(noteId, fallbackContent);
     await storage.updateNoteStatus(noteId, "failed");
   }
 }

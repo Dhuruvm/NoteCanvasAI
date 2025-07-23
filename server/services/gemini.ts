@@ -28,22 +28,31 @@ Generate structured study notes following this format:
 
 Respond with JSON in the exact format specified by the schema.`;
 
+    // Limit content length for faster processing
+    const maxContentLength = 3000;
+    const trimmedContent = content.length > maxContentLength 
+      ? content.substring(0, maxContentLength) + "..."
+      : content;
+
     const userPrompt = `Please analyze and structure the following content into comprehensive study notes:
 
-${content}
+${trimmedContent}
 
 Generate the response following these guidelines:
-- Title should be clear and descriptive
-- Key concepts should include the most important terms with clear definitions
-- Summary points should be organized by topic with bullet points
+- Title should be clear and descriptive (max 10 words)
+- Key concepts should include 3-5 most important terms with clear definitions
+- Summary points should be organized by topic with bullet points (max 3 sections)
 - If there are any processes, procedures, or sequential steps, include them in processFlow
-- Make the content study-friendly and well-organized`;
+- Make the content study-friendly and well-organized
+- Keep responses concise and focused`;
 
+    // Use faster model for better performance
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      model: "gemini-2.5-flash",
       config: {
         systemInstruction: systemPrompt,
         responseMimeType: "application/json",
+
         responseSchema: {
           type: "object",
           properties: {
