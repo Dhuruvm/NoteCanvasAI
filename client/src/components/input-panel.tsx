@@ -1,0 +1,207 @@
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { UploadZone } from "./upload-zone";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Upload, Sliders, Mic, Sparkles } from "lucide-react";
+
+interface InputPanelProps {
+  onNoteCreated: (noteId: number) => void;
+}
+
+export function InputPanel({ onNoteCreated }: InputPanelProps) {
+  const [textContent, setTextContent] = useState("");
+  const [summaryStyle, setSummaryStyle] = useState<"academic" | "bulletPoints" | "mindMap" | "qna">("academic");
+  const [detailLevel, setDetailLevel] = useState([3]);
+  const [includeExamples, setIncludeExamples] = useState(true);
+
+  const { toast } = useToast();
+
+  const processTextMutation = useMutation({
+    mutationFn: async (data: { content: string; settings: any }) => {
+      const response = await apiRequest("POST", "/api/process", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      onNoteCreated(data.noteId);
+      toast({
+        title: "Processing Started",
+        description: "Your content is being processed with AI. This may take a few moments.",
+      });
+      setTextContent("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Processing Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Upload failed");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      onNoteCreated(data.noteId);
+      toast({
+        title: "File Uploaded",
+        description: "Your file has been uploaded and is being processed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFileUpload = (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("templateId", summaryStyle);
+    uploadMutation.mutate(formData);
+  };
+
+  const handleGenerateNotes = () => {
+    if (!textContent.trim()) {
+      toast({
+        title: "Content Required",
+        description: "Please enter some text content to generate notes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    processTextMutation.mutate({
+      content: textContent,
+      settings: {
+        summaryStyle,
+        detailLevel: detailLevel[0],
+        includeExamples,
+      },
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Upload Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Upload className="w-5 h-5 text-primary mr-2" />
+            Input Content
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <UploadZone
+            onFileUpload={handleFileUpload}
+            isUploading={uploadMutation.isPending}
+          />
+          
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">
+              Or paste your text:
+            </Label>
+            <Textarea
+              value={textContent}
+              onChange={(e) => setTextContent(e.target.value)}
+              className="min-h-32 resize-none"
+              placeholder="Paste your notes, articles, or any text content here..."
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" disabled>
+              <Mic className="w-4 h-4 mr-2" />
+              Voice Input
+            </Button>
+            <Button
+              onClick={handleGenerateNotes}
+              disabled={processTextMutation.isPending || !textContent.trim()}
+              className="flex-1"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              {processTextMutation.isPending ? "Processing..." : "Generate Notes"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* AI Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Sliders className="w-5 h-5 text-secondary mr-2" />
+            AI Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">
+              Summary Style
+            </Label>
+            <Select value={summaryStyle} onValueChange={(value: any) => setSummaryStyle(value)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="academic">Academic Style</SelectItem>
+                <SelectItem value="bulletPoints">Bullet Points</SelectItem>
+                <SelectItem value="mindMap">Mind Map Format</SelectItem>
+                <SelectItem value="qna">Q&A Format</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-gray-700">
+              Detail Level
+            </Label>
+            <div className="flex items-center space-x-4">
+              <Slider
+                value={detailLevel}
+                onValueChange={setDetailLevel}
+                max={5}
+                min={1}
+                step={1}
+                className="flex-1"
+              />
+              <span className="text-sm text-muted-foreground w-16">
+                {detailLevel[0] === 5 ? "Detailed" : detailLevel[0] === 1 ? "Brief" : "Medium"}
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium text-gray-700">
+              Include Examples
+            </Label>
+            <Switch
+              checked={includeExamples}
+              onCheckedChange={setIncludeExamples}
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
