@@ -138,6 +138,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notes/:id/pdf", async (req, res) => {
     try {
       const noteId = parseInt(req.params.id);
+      
+      if (isNaN(noteId)) {
+        return res.status(400).json({ message: "Invalid note ID" });
+      }
+
       const note = await storage.getNote(noteId);
       
       if (!note) {
@@ -148,18 +153,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Note processing not completed" });
       }
 
+      if (!note.processedContent) {
+        return res.status(400).json({ message: "No processed content available for PDF generation" });
+      }
+
+      console.log(`Generating PDF for note ${noteId}: ${note.title}`);
+
       const pdfBuffer = await generateNotePDF(note.processedContent as any, {
-        theme: req.query.theme as any || "default",
+        theme: (req.query.theme as any) || "default",
         fontSize: parseInt(req.query.fontSize as string) || 12,
         includeHeader: req.query.includeHeader !== "false",
       });
 
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error("Generated PDF buffer is empty");
+      }
+
+      console.log(`PDF generated successfully, size: ${pdfBuffer.length} bytes`);
+
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${note.title || 'notes'}.pdf"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(note.title || 'notes')}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length.toString());
       res.send(pdfBuffer);
     } catch (error) {
       console.error("PDF generation error:", error);
-      res.status(500).json({ message: "Failed to generate PDF" });
+      res.status(500).json({ message: `Failed to generate PDF: ${error instanceof Error ? error.message : 'Unknown error'}` });
     }
   });
 

@@ -31,23 +31,41 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
   }, [note]);
 
   const handleDownloadPDF = async () => {
-    if (!noteId) return;
+    if (!noteId || !note) return;
     
     try {
       const response = await fetch(`/api/notes/${noteId}/pdf`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${note?.title || 'notes'}.pdf`;
-        document.body.appendChild(a);
-        a.click();
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Download failed' }));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      
+      // Verify we got a PDF blob
+      if (blob.type !== 'application/pdf' && blob.size === 0) {
+        throw new Error('Invalid PDF file received');
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${note.title || 'notes'}.pdf`;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-      }
+      }, 100);
+      
     } catch (error) {
       console.error("Download failed:", error);
+      // You could add a toast notification here if you have one set up
+      alert(`PDF download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
