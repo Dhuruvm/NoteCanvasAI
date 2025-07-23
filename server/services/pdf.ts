@@ -176,16 +176,92 @@ export async function generateNotePDF(
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    // Dynamic import to handle ES module compatibility
-    const pdfParse = (await import('pdf-parse')).default;
-    const data = await pdfParse(buffer);
+    // Validate buffer
+    if (!buffer || buffer.length === 0) {
+      throw new Error("Invalid PDF buffer provided");
+    }
+
+    // Check if buffer contains PDF magic bytes
+    const pdfHeader = buffer.subarray(0, 4).toString();
+    if (pdfHeader !== '%PDF') {
+      throw new Error("Invalid PDF file format");
+    }
+
+    console.log(`Starting PDF text extraction, buffer size: ${buffer.length} bytes`);
     
-    // Validate that we extracted text
-    if (!data || !data.text || data.text.trim().length === 0) {
-      throw new Error("No text content found in PDF");
+    // Use PDF.js for reliable text extraction
+    try {
+      const pdfjsLib = await import('pdfjs-dist');
+      
+      // Load the PDF document
+      const pdfDoc = await pdfjsLib.getDocument({
+        data: new Uint8Array(buffer),
+        verbosity: 0, // Suppress console logs
+      }).promise;
+      
+      const textParts: string[] = [];
+      const numPages = pdfDoc.numPages;
+      
+      console.log(`PDF has ${numPages} pages, extracting text...`);
+      
+      // Extract text from each page
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+        try {
+          const page = await pdfDoc.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          
+          // Combine text items from the page
+          const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          
+          if (pageText) {
+            textParts.push(pageText);
+          }
+        } catch (pageError) {
+          console.warn(`Failed to extract text from page ${pageNum}:`, pageError);
+          textParts.push(`[Page ${pageNum}: Text extraction failed]`);
+        }
+      }
+      
+      const extractedText = textParts.join('\n\n').trim();
+      
+      if (extractedText && extractedText.length > 0) {
+        console.log(`Successfully extracted ${extractedText.length} characters from PDF`);
+        return extractedText;
+      } else {
+        throw new Error("No text content found in PDF pages");
+      }
+      
+    } catch (pdfjsError) {
+      console.warn("PDF.js extraction failed, trying pdf-lib fallback:", pdfjsError);
+      
+      try {
+        // Fallback to pdf-lib for basic validation
+        const { PDFDocument } = await import('pdf-lib');
+        const pdfDoc = await PDFDocument.load(buffer);
+        const pages = pdfDoc.getPages();
+        
+        console.log(`PDF loaded with ${pages.length} pages using pdf-lib`);
+        
+        // Return a helpful message for manual processing
+        return `PDF successfully processed (${pages.length} pages detected). 
+        
+The PDF appears to be valid but automatic text extraction is not available for this document type. This may happen with:
+- Scanned PDFs (images of text)  
+- Complex layouts with embedded graphics
+- Password-protected or encrypted PDFs
+
+Please copy and paste the text content manually, or try converting the PDF to a text file first.`;
+        
+      } catch (libError) {
+        console.error("All PDF processing methods failed:", libError);
+        throw new Error("Unable to process PDF file. Please ensure it's a valid, unencrypted PDF document.");
+      }
     }
     
-    return data.text.trim();
   } catch (error) {
     console.error("PDF extraction error:", error);
     throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);

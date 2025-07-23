@@ -42,14 +42,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let content: string;
       
-      if (req.file.mimetype === 'application/pdf') {
-        content = await extractTextFromPDF(req.file.buffer);
-      } else {
-        content = req.file.buffer.toString('utf-8');
+      try {
+        if (req.file.mimetype === 'application/pdf') {
+          console.log(`Processing PDF file: ${req.file.originalname}, size: ${req.file.buffer.length} bytes`);
+          content = await extractTextFromPDF(req.file.buffer);
+        } else {
+          content = req.file.buffer.toString('utf-8');
+        }
+      } catch (extractionError) {
+        console.error(`File extraction failed for ${req.file.originalname}:`, extractionError);
+        return res.status(400).json({ 
+          message: `Failed to process ${req.file.mimetype === 'application/pdf' ? 'PDF' : 'text'} file: ${extractionError instanceof Error ? extractionError.message : 'Unknown error'}` 
+        });
       }
 
-      if (!content.trim()) {
-        return res.status(400).json({ message: "Could not extract text from the uploaded file" });
+      if (!content || !content.trim()) {
+        return res.status(400).json({ message: "No readable content found in the uploaded file" });
       }
 
       // Create initial note

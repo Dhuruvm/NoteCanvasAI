@@ -55,13 +55,13 @@ export function UploadZone({ onFileUpload, isUploading }: UploadZoneProps) {
           )}
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             {isUploading
-              ? "Uploading..."
+              ? "Processing file..."
               : isDragActive
               ? "Drop file here"
-              : "Drop PDF files here"}
+              : "Drop PDF, TXT, or MD files"}
           </p>
           <p className="text-xs text-muted-foreground">
-            {isUploading ? "Please wait..." : "or click to browse"}
+            {isUploading ? "Extracting text and generating notes..." : "or click to browse (10MB max)"}
           </p>
         </div>
       </div>
