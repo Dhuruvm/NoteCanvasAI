@@ -176,8 +176,8 @@ export async function generateNotePDF(
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    // Use pdf-parse for text extraction
-    const pdfParse = require('pdf-parse');
+    // Dynamic import to handle ES module compatibility
+    const pdfParse = (await import('pdf-parse')).default;
     const data = await pdfParse(buffer);
     return data.text;
   } catch (error) {
