@@ -26,16 +26,16 @@ export async function generateAdvancedPDF(
   try {
     // Step 1: Create enhanced content structure (simplified for now)
     const enhancedStructure = await generateSimplifiedStructure(note);
-    
+
     // Step 2: Create visual design layout
     const visualLayout = await createVisualLayout(enhancedStructure, options);
-    
+
     // Step 3: Generate the PDF with enhanced design
     const pdfBytes = await createEnhancedPDF(note, visualLayout, options);
-    
+
     console.log('Advanced PDF generation completed successfully');
     return pdfBytes;
-    
+
   } catch (error) {
     console.error('Advanced PDF generation failed, falling back to basic PDF:', error);
     return await generateBasicPDF(note, options);
@@ -44,7 +44,7 @@ export async function generateAdvancedPDF(
 
 async function generateSimplifiedStructure(note: ProcessedNote): Promise<EnhancedContentStructure> {
   console.log('Generating simplified enhanced content structure...');
-  
+
   try {
     // Enhanced content structure without external API calls for now
     return {
@@ -62,7 +62,7 @@ async function generateSimplifiedStructure(note: ProcessedNote): Promise<Enhance
       },
       visualElements: extractVisualElements(note, {})
     };
-    
+
   } catch (error) {
     console.error('Content structure generation failed:', error);
     // Fallback to original structure
@@ -80,7 +80,7 @@ async function createVisualLayout(
   options: AdvancedPDFOptions
 ): Promise<VisualLayoutDesign> {
   console.log('Creating visual layout design...');
-  
+
   const colorSchemes = {
     blue: { primary: rgb(0.2, 0.4, 0.8), secondary: rgb(0.1, 0.3, 0.6), accent: rgb(0.9, 0.95, 1) },
     green: { primary: rgb(0.2, 0.6, 0.3), secondary: rgb(0.1, 0.4, 0.2), accent: rgb(0.9, 1, 0.95) },
@@ -89,7 +89,7 @@ async function createVisualLayout(
   };
 
   const colors = colorSchemes[options.colorScheme as keyof typeof colorSchemes] || colorSchemes.blue;
-  
+
   return {
     pageSize: { width: 595, height: 842 }, // A4
     margins: { top: 80, bottom: 80, left: 60, right: 60 },
@@ -106,35 +106,35 @@ async function createEnhancedPDF(
   options: AdvancedPDFOptions
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
-  
+
   // Embed fonts
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
-  
+
   let currentPage = pdfDoc.addPage([layout.pageSize.width, layout.pageSize.height]);
   let yPosition = layout.pageSize.height - layout.margins.top;
-  
+
   // Add header with design styling
   yPosition = await addEnhancedHeader(currentPage, note.title, layout, boldFont, yPosition);
-  
+
   // Add metadata section
   if (note.metadata?.aiModelsUsed?.includes('mixtral-8x7b-instruct')) {
     yPosition = await addEnhancedMetadata(currentPage, note, layout, regularFont, yPosition);
   }
-  
+
   // Add key concepts with visual styling
   yPosition = await addEnhancedKeyConcepts(currentPage, note.keyConcepts, layout, boldFont, regularFont, yPosition);
-  
+
   // Check if we need a new page
   if (yPosition < layout.margins.bottom + 200) {
     currentPage = pdfDoc.addPage([layout.pageSize.width, layout.pageSize.height]);
     yPosition = layout.pageSize.height - layout.margins.top;
   }
-  
+
   // Add summary points with enhanced formatting
   yPosition = await addEnhancedSummaryPoints(currentPage, note.summaryPoints, layout, boldFont, regularFont, yPosition);
-  
+
   // Add process flow if available
   if (note.processFlow && note.processFlow.length > 0) {
     if (yPosition < layout.margins.bottom + 150) {
@@ -143,7 +143,7 @@ async function createEnhancedPDF(
     }
     yPosition = await addEnhancedProcessFlow(currentPage, note.processFlow, layout, boldFont, regularFont, yPosition);
   }
-  
+
   // Add enhanced content if available
   if (note.enhancedContent) {
     if (yPosition < layout.margins.bottom + 100) {
@@ -152,11 +152,13 @@ async function createEnhancedPDF(
     }
     await addEnhancedContent(currentPage, note.enhancedContent, layout, regularFont, italicFont, yPosition);
   }
-  
+
   // Add footer with AI attribution
   addEnhancedFooter(pdfDoc, layout, regularFont);
-  
-  return await pdfDoc.save();
+
+  const pdfBytes = await pdfDoc.save();
+
+  return Buffer.from(pdfBytes);
 }
 
 async function addEnhancedHeader(
@@ -176,7 +178,7 @@ async function addEnhancedHeader(
     borderColor: layout.colors.primary,
     borderWidth: 1
   });
-  
+
   // Add title
   page.drawText(title, {
     x: layout.margins.left,
@@ -185,7 +187,7 @@ async function addEnhancedHeader(
     font,
     color: layout.colors.primary
   });
-  
+
   // Add decorative line
   page.drawLine({
     start: { x: layout.margins.left, y: yPos - 50 },
@@ -193,7 +195,7 @@ async function addEnhancedHeader(
     thickness: 2,
     color: layout.colors.secondary
   });
-  
+
   return yPos - 80;
 }
 
@@ -205,7 +207,7 @@ async function addEnhancedMetadata(
   yPos: number
 ): Promise<number> {
   const modelsUsed = note.metadata?.aiModelsUsed?.join(', ') || 'AI Enhanced';
-  
+
   page.drawText('Enhanced with AI Models:', {
     x: layout.margins.left,
     y: yPos,
@@ -213,7 +215,7 @@ async function addEnhancedMetadata(
     font,
     color: layout.colors.secondary
   });
-  
+
   page.drawText(modelsUsed, {
     x: layout.margins.left + 120,
     y: yPos,
@@ -221,7 +223,7 @@ async function addEnhancedMetadata(
     font,
     color: layout.colors.primary
   });
-  
+
   return yPos - 30;
 }
 
@@ -241,7 +243,7 @@ async function addEnhancedKeyConcepts(
     height: 25,
     color: layout.colors.accent
   });
-  
+
   page.drawText('Key Concepts', {
     x: layout.margins.left,
     y: yPos,
@@ -249,9 +251,9 @@ async function addEnhancedKeyConcepts(
     font: boldFont,
     color: layout.colors.primary
   });
-  
+
   yPos -= 40;
-  
+
   keyConcepts.forEach((concept, index) => {
     // Add concept number with circle
     page.drawCircle({
@@ -260,7 +262,7 @@ async function addEnhancedKeyConcepts(
       size: 8,
       color: layout.colors.primary
     });
-    
+
     page.drawText((index + 1).toString(), {
       x: layout.margins.left + 7,
       y: yPos - 8,
@@ -268,7 +270,7 @@ async function addEnhancedKeyConcepts(
       font: boldFont,
       color: rgb(1, 1, 1)
     });
-    
+
     // Add concept title
     page.drawText(concept.title, {
       x: layout.margins.left + 30,
@@ -277,11 +279,11 @@ async function addEnhancedKeyConcepts(
       font: boldFont,
       color: layout.colors.primary
     });
-    
+
     // Add concept definition with word wrapping
     const wrappedDefinition = wrapText(concept.definition, layout.pageSize.width - layout.margins.left - layout.margins.right - 30, regularFont, 10);
     let defYPos = yPos - 15;
-    
+
     wrappedDefinition.forEach(line => {
       page.drawText(line, {
         x: layout.margins.left + 30,
@@ -292,10 +294,10 @@ async function addEnhancedKeyConcepts(
       });
       defYPos -= 12;
     });
-    
+
     yPos = defYPos - 10;
   });
-  
+
   return yPos - 20;
 }
 
@@ -315,7 +317,7 @@ async function addEnhancedSummaryPoints(
     height: 25,
     color: layout.colors.accent
   });
-  
+
   page.drawText('Summary Points', {
     x: layout.margins.left,
     y: yPos,
@@ -323,9 +325,9 @@ async function addEnhancedSummaryPoints(
     font: boldFont,
     color: layout.colors.primary
   });
-  
+
   yPos -= 40;
-  
+
   summaryPoints.forEach((section, sectionIndex) => {
     // Add section heading
     page.drawText(`${sectionIndex + 1}. ${section.heading}`, {
@@ -335,9 +337,9 @@ async function addEnhancedSummaryPoints(
       font: boldFont,
       color: layout.colors.secondary
     });
-    
+
     yPos -= 20;
-    
+
     // Add bullet points
     section.points.forEach((point: string) => {
       // Add bullet
@@ -347,11 +349,11 @@ async function addEnhancedSummaryPoints(
         size: 2,
         color: layout.colors.primary
       });
-      
+
       // Add point text with wrapping
       const wrappedPoint = wrapText(point, layout.pageSize.width - layout.margins.left - layout.margins.right - 30, regularFont, 10);
       let pointYPos = yPos;
-      
+
       wrappedPoint.forEach(line => {
         page.drawText(line, {
           x: layout.margins.left + 25,
@@ -362,13 +364,13 @@ async function addEnhancedSummaryPoints(
         });
         pointYPos -= 12;
       });
-      
+
       yPos = pointYPos - 5;
     });
-    
+
     yPos -= 15;
   });
-  
+
   return yPos;
 }
 
@@ -388,7 +390,7 @@ async function addEnhancedProcessFlow(
     height: 25,
     color: layout.colors.accent
   });
-  
+
   page.drawText('Process Flow', {
     x: layout.margins.left,
     y: yPos,
@@ -396,9 +398,9 @@ async function addEnhancedProcessFlow(
     font: boldFont,
     color: layout.colors.primary
   });
-  
+
   yPos -= 40;
-  
+
   processFlow.forEach((step, index) => {
     // Add step number in a rectangle
     page.drawRectangle({
@@ -408,7 +410,7 @@ async function addEnhancedProcessFlow(
       height: 20,
       color: layout.colors.primary
     });
-    
+
     page.drawText(step.step.toString(), {
       x: layout.margins.left + 12,
       y: yPos - 8,
@@ -416,7 +418,7 @@ async function addEnhancedProcessFlow(
       font: boldFont,
       color: rgb(1, 1, 1)
     });
-    
+
     // Add arrow if not last step
     if (index < processFlow.length - 1) {
       page.drawLine({
@@ -425,7 +427,7 @@ async function addEnhancedProcessFlow(
         thickness: 2,
         color: layout.colors.secondary
       });
-      
+
       // Arrow head
       page.drawLine({
         start: { x: layout.margins.left + 12, y: yPos - 32 },
@@ -440,7 +442,7 @@ async function addEnhancedProcessFlow(
         color: layout.colors.secondary
       });
     }
-    
+
     // Add step title and description
     page.drawText(step.title, {
       x: layout.margins.left + 40,
@@ -449,10 +451,10 @@ async function addEnhancedProcessFlow(
       font: boldFont,
       color: layout.colors.primary
     });
-    
+
     const wrappedDescription = wrapText(step.description, layout.pageSize.width - layout.margins.left - layout.margins.right - 50, regularFont, 10);
     let descYPos = yPos - 18;
-    
+
     wrappedDescription.forEach(line => {
       page.drawText(line, {
         x: layout.margins.left + 40,
@@ -463,10 +465,10 @@ async function addEnhancedProcessFlow(
       });
       descYPos -= 12;
     });
-    
+
     yPos = descYPos - 25;
   });
-  
+
   return yPos;
 }
 
@@ -486,7 +488,7 @@ async function addEnhancedContent(
     height: 25,
     color: layout.colors.accent
   });
-  
+
   page.drawText('AI Enhanced Analysis', {
     x: layout.margins.left,
     y: yPos,
@@ -494,12 +496,12 @@ async function addEnhancedContent(
     font: italicFont,
     color: layout.colors.primary
   });
-  
+
   yPos -= 30;
-  
+
   // Add enhanced content with formatting
   const wrappedContent = wrapText(enhancedContent, layout.pageSize.width - layout.margins.left - layout.margins.right, font, 10);
-  
+
   wrappedContent.forEach(line => {
     page.drawText(line, {
       x: layout.margins.left,
@@ -510,13 +512,13 @@ async function addEnhancedContent(
     });
     yPos -= 12;
   });
-  
+
   return yPos;
 }
 
 function addEnhancedFooter(pdfDoc: any, layout: VisualLayoutDesign, font: any) {
   const pages = pdfDoc.getPages();
-  
+
   pages.forEach((page: any, index: number) => {
     // Add footer line
     page.drawLine({
@@ -525,7 +527,7 @@ function addEnhancedFooter(pdfDoc: any, layout: VisualLayoutDesign, font: any) {
       thickness: 1,
       color: layout.colors.secondary
     });
-    
+
     // Add page number
     page.drawText(`Page ${index + 1} of ${pages.length}`, {
       x: layout.pageSize.width - layout.margins.right - 60,
@@ -534,7 +536,7 @@ function addEnhancedFooter(pdfDoc: any, layout: VisualLayoutDesign, font: any) {
       font,
       color: layout.colors.secondary
     });
-    
+
     // Add AI attribution
     page.drawText('Generated with AI-Enhanced Processing', {
       x: layout.margins.left,
@@ -551,11 +553,11 @@ function wrapText(text: string, maxWidth: number, font: any, fontSize: number): 
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
-  
+
   words.forEach(word => {
     const testLine = currentLine + (currentLine ? ' ' : '') + word;
     const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-    
+
     if (testWidth <= maxWidth) {
       currentLine = testLine;
     } else {
@@ -567,11 +569,11 @@ function wrapText(text: string, maxWidth: number, font: any, fontSize: number): 
       }
     }
   });
-  
+
   if (currentLine) {
     lines.push(currentLine);
   }
-  
+
   return lines;
 }
 
@@ -600,20 +602,20 @@ function convertNoteToSections(note: ProcessedNote): any[] {
 
 function extractVisualElements(note: ProcessedNote, analysis: any): any[] {
   const elements = [];
-  
+
   if (note.processFlow && note.processFlow.length > 0) {
     elements.push({ type: 'flowchart', data: note.processFlow });
   }
-  
+
   // Check for visual elements in the processed content
   if (note.keyConcepts && note.keyConcepts.length > 0) {
     elements.push({ type: 'concepts', data: note.keyConcepts });
   }
-  
+
   if (note.summaryPoints && note.summaryPoints.length > 0) {
     elements.push({ type: 'summary', data: note.summaryPoints });
   }
-  
+
   return elements;
 }
 
@@ -624,7 +626,7 @@ function getTypographySettings(style: string) {
     minimal: { headerSize: 16, bodySize: 10, lineHeight: 1.5 },
     colorful: { headerSize: 22, bodySize: 11, lineHeight: 1.3 }
   };
-  
+
   return settings[style as keyof typeof settings] || settings.modern;
 }
 
@@ -643,15 +645,15 @@ function getDefaultLayout(style: string) {
 
 async function generateBasicPDF(note: ProcessedNote, options: AdvancedPDFOptions): Promise<Uint8Array> {
   console.log('Generating fallback basic PDF...');
-  
+
   try {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    
+
     let yPosition = 750;
-    
+
     // Title
     page.drawText(note.title || 'Study Notes', {
       x: 50,
@@ -660,9 +662,9 @@ async function generateBasicPDF(note: ProcessedNote, options: AdvancedPDFOptions
       font: boldFont,
       color: rgb(0.2, 0.2, 0.2)
     });
-    
+
     yPosition -= 40;
-    
+
     // Key Concepts
     if (note.keyConcepts && note.keyConcepts.length > 0) {
       page.drawText('Key Concepts:', {
@@ -672,9 +674,9 @@ async function generateBasicPDF(note: ProcessedNote, options: AdvancedPDFOptions
         font: boldFont,
         color: rgb(0.3, 0.3, 0.3)
       });
-      
+
       yPosition -= 25;
-      
+
       note.keyConcepts.forEach((concept, index) => {
         if (yPosition > 100) {
           page.drawText(`${index + 1}. ${concept.title}`, {
@@ -684,9 +686,9 @@ async function generateBasicPDF(note: ProcessedNote, options: AdvancedPDFOptions
             font: boldFont,
             color: rgb(0.4, 0.4, 0.4)
           });
-          
+
           yPosition -= 15;
-          
+
           if (concept.definition && yPosition > 100) {
             const lines = wrapText(concept.definition, 450, font, 10);
             lines.forEach(line => {
@@ -702,14 +704,16 @@ async function generateBasicPDF(note: ProcessedNote, options: AdvancedPDFOptions
               }
             });
           }
-          
+
           yPosition -= 10;
         }
       });
     }
-    
-    return await pdfDoc.save();
-    
+
+    const pdfBytes = await pdfDoc.save();
+
+    return Buffer.from(pdfBytes);
+
   } catch (error) {
     console.error('Basic PDF generation failed:', error);
     throw new Error('PDF generation completely failed');

@@ -183,11 +183,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error("Generated PDF buffer is empty");
       }
 
+      // Validate PDF header
+      const pdfHeader = pdfBuffer.subarray(0, 4).toString();
+      if (pdfHeader !== '%PDF') {
+        throw new Error("Generated file is not a valid PDF");
+      }
+
       console.log(`Advanced PDF generated successfully, size: ${pdfBuffer.length} bytes`);
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(note.title || 'enhanced-notes')}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length.toString());
+      res.setHeader('Cache-Control', 'no-cache');
       res.send(pdfBuffer);
     } catch (error) {
       console.error("Advanced PDF generation error:", error);
