@@ -32,7 +32,7 @@ Respond with JSON in the exact format specified by the schema.`;
     let userPrompt: string;
     let contents: any;
 
-    if (pdfBuffer && content === "PDF_CONTENT_FOR_GEMINI_PROCESSING") {
+    if (pdfBuffer) {
       // Handle PDF directly with Gemini
       console.log("Processing PDF directly with Gemini AI");
       

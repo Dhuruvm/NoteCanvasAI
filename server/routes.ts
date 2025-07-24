@@ -230,7 +230,7 @@ async function processContentInBackground(noteId: number, content: string, setti
     console.log(`Starting AI processing for note ${noteId}, content length: ${content.length} chars`);
 
     // Process content with Gemini AI
-    const processingPromise = summarizeContentWithGemini(content, settings);
+    const processingPromise = summarizeContentWithGemini(content, settings, pdfBuffer);
 
     // Add timeout to prevent hanging (30 seconds)
     const timeoutPromise = new Promise<never>((_, reject) => {

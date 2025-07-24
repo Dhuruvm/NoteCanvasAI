@@ -80,8 +80,9 @@ export async function generateNotePDF(
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
-    // Get color scheme
-    const colors = colorSchemes[options.colorScheme || "blue"];
+    // Get color scheme with fallback
+    const colorScheme = options.colorScheme || "blue";
+    const colors = colorSchemes[colorScheme] || colorSchemes["blue"];
     
     const margin = 60;
     let yPosition = height - margin;
