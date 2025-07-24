@@ -2,7 +2,7 @@ import { useState } from "react";
 import { InputPanel } from "@/components/input-panel";
 import { MainWorkspace } from "@/components/main-workspace";
 import { Button } from "@/components/ui/button";
-import { Brain, GraduationCap, Leaf, Moon, Settings } from "lucide-react";
+import { GraduationCap, Leaf, Moon, Settings } from "lucide-react";
 
 export default function Home() {
   const [currentNoteId, setCurrentNoteId] = useState<number | null>(null);
@@ -20,9 +20,11 @@ export default function Home() {
           <div className="flex justify-between items-center h-14 sm:h-16">
             {/* Logo */}
             <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 gradient-brand rounded-lg flex items-center justify-center">
-                <Brain className="text-white text-base sm:text-lg" />
-              </div>
+              <img 
+                src="/src/assets/notegpt-logo.png" 
+                alt="NoteGPT" 
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-contain"
+              />
               <div className="hidden xs:block">
                 <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">NoteGPT</h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">AI Study Notes Generator</p>

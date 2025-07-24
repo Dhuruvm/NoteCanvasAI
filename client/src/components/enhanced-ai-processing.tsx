@@ -137,7 +137,6 @@ export function EnhancedAIProcessing({ content, onNoteCreated }: EnhancedAIProce
       {/* Header */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center justify-center mb-2">
-          <Brain className="w-6 h-6 mr-2 text-purple-600" />
           Enhanced AI Processing
         </h2>
         <p className="text-muted-foreground">
