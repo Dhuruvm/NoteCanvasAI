@@ -1,9 +1,8 @@
 import { HfInference } from '@huggingface/inference';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { ProcessedNote } from '@shared/schema';
-import { processWithMultipleModels, type LayoutAnalysis, type DesignLayout } from './huggingface.js';
 
-const hf = new HfInference();
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
 interface AdvancedPDFOptions {
   designStyle: 'academic' | 'modern' | 'minimal' | 'colorful';
@@ -25,16 +24,13 @@ export async function generateAdvancedPDF(
   console.log('Starting advanced PDF generation with multiple AI models...');
 
   try {
-    // Step 1: Analyze content layout with multiple models
-    const multiModelAnalysis = await processWithMultipleModels(originalContent, options.designStyle);
+    // Step 1: Create enhanced content structure (simplified for now)
+    const enhancedStructure = await generateSimplifiedStructure(note);
     
-    // Step 2: Generate enhanced content structure
-    const enhancedStructure = await generateContentStructure(note, multiModelAnalysis);
-    
-    // Step 3: Create visual design layout
+    // Step 2: Create visual design layout
     const visualLayout = await createVisualLayout(enhancedStructure, options);
     
-    // Step 4: Generate the PDF with enhanced design
+    // Step 3: Generate the PDF with enhanced design
     const pdfBytes = await createEnhancedPDF(note, visualLayout, options);
     
     console.log('Advanced PDF generation completed successfully');
@@ -46,46 +42,25 @@ export async function generateAdvancedPDF(
   }
 }
 
-async function generateContentStructure(
-  note: ProcessedNote, 
-  multiModelAnalysis: any
-): Promise<EnhancedContentStructure> {
-  console.log('Generating enhanced content structure...');
+async function generateSimplifiedStructure(note: ProcessedNote): Promise<EnhancedContentStructure> {
+  console.log('Generating simplified enhanced content structure...');
   
   try {
-    // Use Mixtral for content enhancement
-    const prompt = `Enhance this study note content for optimal PDF layout and readability:
-
-Title: ${note.title}
-Key Concepts: ${JSON.stringify(note.keyConcepts)}
-Summary Points: ${JSON.stringify(note.summaryPoints)}
-
-Create a well-structured document with:
-1. Clear hierarchical organization
-2. Visual emphasis for important points
-3. Proper sectioning and flow
-4. Academic formatting standards
-
-Return as structured JSON with sections, emphasis, and layout hints.`;
-
-    const response = await hf.textGeneration({
-      model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-      inputs: prompt,
-      parameters: {
-        max_new_tokens: 800,
-        temperature: 0.3,
-        return_full_text: false
-      }
-    });
-
-    // Parse and structure the enhanced content
-    const enhancedText = response.generated_text;
-    
+    // Enhanced content structure without external API calls for now
     return {
       title: note.title,
-      sections: parseEnhancedSections(enhancedText, note),
-      layout: multiModelAnalysis.designLayout,
-      visualElements: extractVisualElements(note, multiModelAnalysis)
+      sections: convertNoteToSections(note),
+      layout: {
+        templateType: 'modern',
+        sections: [],
+        theme: {
+          primaryColor: '#2563eb',
+          secondaryColor: '#64748b',
+          fontFamily: 'sans-serif',
+          spacing: 'comfortable'
+        }
+      },
+      visualElements: extractVisualElements(note, {})
     };
     
   } catch (error) {
@@ -630,8 +605,13 @@ function extractVisualElements(note: ProcessedNote, analysis: any): any[] {
     elements.push({ type: 'flowchart', data: note.processFlow });
   }
   
-  if (analysis.layoutAnalysis?.visualStructure?.hasTable) {
-    elements.push({ type: 'table', data: analysis.tableStructure });
+  // Check for visual elements in the processed content
+  if (note.keyConcepts && note.keyConcepts.length > 0) {
+    elements.push({ type: 'concepts', data: note.keyConcepts });
+  }
+  
+  if (note.summaryPoints && note.summaryPoints.length > 0) {
+    elements.push({ type: 'summary', data: note.summaryPoints });
   }
   
   return elements;
@@ -662,20 +642,78 @@ function getDefaultLayout(style: string) {
 }
 
 async function generateBasicPDF(note: ProcessedNote, options: AdvancedPDFOptions): Promise<Uint8Array> {
-  // Fallback to basic PDF generation if advanced fails
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  console.log('Generating fallback basic PDF...');
   
-  page.drawText(note.title, {
-    x: 50,
-    y: 750,
-    size: 20,
-    font,
-    color: rgb(0, 0, 0)
-  });
-  
-  return await pdfDoc.save();
+  try {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    let yPosition = 750;
+    
+    // Title
+    page.drawText(note.title || 'Study Notes', {
+      x: 50,
+      y: yPosition,
+      size: 20,
+      font: boldFont,
+      color: rgb(0.2, 0.2, 0.2)
+    });
+    
+    yPosition -= 40;
+    
+    // Key Concepts
+    if (note.keyConcepts && note.keyConcepts.length > 0) {
+      page.drawText('Key Concepts:', {
+        x: 50,
+        y: yPosition,
+        size: 16,
+        font: boldFont,
+        color: rgb(0.3, 0.3, 0.3)
+      });
+      
+      yPosition -= 25;
+      
+      note.keyConcepts.forEach((concept, index) => {
+        if (yPosition > 100) {
+          page.drawText(`${index + 1}. ${concept.title}`, {
+            x: 70,
+            y: yPosition,
+            size: 12,
+            font: boldFont,
+            color: rgb(0.4, 0.4, 0.4)
+          });
+          
+          yPosition -= 15;
+          
+          if (concept.definition && yPosition > 100) {
+            const lines = wrapText(concept.definition, 450, font, 10);
+            lines.forEach(line => {
+              if (yPosition > 80) {
+                page.drawText(line, {
+                  x: 90,
+                  y: yPosition,
+                  size: 10,
+                  font,
+                  color: rgb(0.5, 0.5, 0.5)
+                });
+                yPosition -= 12;
+              }
+            });
+          }
+          
+          yPosition -= 10;
+        }
+      });
+    }
+    
+    return await pdfDoc.save();
+    
+  } catch (error) {
+    console.error('Basic PDF generation failed:', error);
+    throw new Error('PDF generation completely failed');
+  }
 }
 
 // Type definitions
