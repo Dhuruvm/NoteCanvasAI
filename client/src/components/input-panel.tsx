@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Sliders, Mic, Sparkles } from "lucide-react";
+import { Upload, Sliders, Mic, Sparkles, Brain, Zap } from "lucide-react";
 
 interface InputPanelProps {
   onNoteCreated: (noteId: number) => void;
@@ -99,8 +99,32 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
         summaryStyle,
         detailLevel: detailLevel[0],
         includeExamples,
-        useMultipleModels,
+        useMultipleModels: false,
         designStyle,
+      },
+    });
+  };
+
+  const handleEnhancedProcessing = () => {
+    if (!textContent.trim()) {
+      toast({
+        title: "Content Required",
+        description: "Please enter some text content for enhanced AI processing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    processTextMutation.mutate({
+      content: textContent,
+      settings: {
+        summaryStyle,
+        detailLevel: detailLevel[0],
+        includeExamples,
+        useMultipleModels: true,
+        designStyle,
+        enhancedProcessing: true,
+        advancedAnalysis: true,
       },
     });
   };
@@ -133,18 +157,26 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
             />
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" className="w-full sm:flex-1" disabled>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <Button variant="outline" className="w-full" disabled>
               <Mic className="w-4 h-4 mr-2" />
               <span className="text-sm">Voice Input</span>
             </Button>
             <Button
               onClick={handleGenerateNotes}
               disabled={processTextMutation.isPending || !textContent.trim()}
-              className="w-full sm:flex-1"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               <Sparkles className="w-4 h-4 mr-2" />
               <span className="text-sm">{processTextMutation.isPending ? "Processing..." : "Generate Notes"}</span>
+            </Button>
+            <Button
+              onClick={handleEnhancedProcessing}
+              disabled={processTextMutation.isPending || !textContent.trim()}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+            >
+              <Brain className="w-4 h-4 mr-2" />
+              <span className="text-sm">{processTextMutation.isPending ? "AI Enhanced" : "AI Enhanced"}</span>
             </Button>
           </div>
         </CardContent>
@@ -205,14 +237,22 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
             />
           </div>
           
-          <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Enhanced AI Processing
-            </Label>
-            <Switch
-              checked={useMultipleModels}
-              onCheckedChange={setUseMultipleModels}
-            />
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <Brain className="w-4 h-4 mr-2 text-purple-600" />
+                <Label className="text-sm font-medium text-purple-900 dark:text-purple-300">
+                  Multi-Model AI Processing
+                </Label>
+              </div>
+              <Switch
+                checked={useMultipleModels}
+                onCheckedChange={setUseMultipleModels}
+              />
+            </div>
+            <p className="text-xs text-purple-700 dark:text-purple-400">
+              Use 5 AI models (Gemini, Mixtral, BERT, LayoutLM) for enhanced analysis
+            </p>
           </div>
           
           {useMultipleModels && (

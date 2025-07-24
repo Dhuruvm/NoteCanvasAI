@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ProcessingStatus } from "./processing-status";
 import { FileText, PaintbrushVertical, Eye, Clock, Lightbulb, List, GitBranch, CheckCircle } from "lucide-react";
 import type { Note, ProcessedNote } from "@shared/schema";
+import { PDFDesigner } from "./pdf-designer";
+import { AIPreview } from "./ai-preview";
 
 interface MainWorkspaceProps {
   noteId: number | null;
@@ -391,27 +393,15 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
           </TabsContent>
 
           <TabsContent value="designer" className="p-3 sm:p-6">
-            <div className="text-center py-8 sm:py-12">
-              <PaintbrushVertical className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                PDF Designer
-              </h3>
-              <p className="text-sm text-muted-foreground px-4">
-                Visual PDF customization tools coming soon. Currently, you can download the generated PDF above.
-              </p>
-            </div>
+            <PDFDesigner 
+              note={processedContent}
+              onGeneratePDF={handleGeneratePDF}
+              isGenerating={isGeneratingPDF}
+            />
           </TabsContent>
 
           <TabsContent value="preview" className="p-3 sm:p-6">
-            <div className="text-center py-8 sm:py-12">
-              <Eye className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Preview Mode
-              </h3>
-              <p className="text-sm text-muted-foreground px-4">
-                Live preview functionality coming soon. Use the download button to see the final PDF.
-              </p>
-            </div>
+            <AIPreview note={processedContent} />
           </TabsContent>
         </Tabs>
       </Card>
