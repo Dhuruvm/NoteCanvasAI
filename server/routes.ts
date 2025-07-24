@@ -32,7 +32,7 @@ const processContentSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Upload and process PDF
   app.post("/api/upload", upload.single('file'), async (req, res) => {
     try {
@@ -41,7 +41,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let content: string;
-      
+
       try {
         if (req.file.mimetype === 'application/pdf') {
           console.log(`Processing PDF file: ${req.file.originalname}, size: ${req.file.buffer.length} bytes`);
@@ -88,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/process", async (req, res) => {
     try {
       const { content, settings } = processContentSchema.parse(req.body);
-      
+
       // Create initial note
       const note = await storage.createNote({
         title: "Generated Notes",
@@ -114,7 +114,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const noteId = parseInt(req.params.id);
       const note = await storage.getNote(noteId);
-      
+
       if (!note) {
         return res.status(404).json({ message: "Note not found" });
       }
@@ -141,13 +141,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notes/:id/pdf", async (req, res) => {
     try {
       const noteId = parseInt(req.params.id);
-      
+
       if (isNaN(noteId)) {
         return res.status(400).json({ message: "Invalid note ID" });
       }
 
       const note = await storage.getNote(noteId);
-      
+
       if (!note) {
         return res.status(404).json({ message: "Note not found" });
       }
@@ -228,22 +228,24 @@ async function processContentInBackground(noteId: number, content: string, setti
     // Update status to processing
     await storage.updateNoteStatus(noteId, "processing");
     console.log(`Starting AI processing for note ${noteId}, content length: ${content.length} chars`);
-    
+
+    // Process content with Gemini AI
+    const processingPromise = summarizeContentWithGemini(content, settings);
+
     // Add timeout to prevent hanging (30 seconds)
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('AI processing timeout after 30 seconds')), 30000);
     });
-    
-    const processingPromise = summarizeContentWithGemini(content, settings, pdfBuffer);
+
     const processedContent = await Promise.race([processingPromise, timeoutPromise]);
-    
+
     // Update note with processed content
     await storage.updateNoteContent(noteId, processedContent);
-    
+
     console.log(`Successfully processed note ${noteId}`);
   } catch (error) {
     console.error(`Failed to process note ${noteId}:`, error);
-    
+
     // Create fallback content for failed processing
     const fallbackContent = {
       title: content.substring(0, 50) + "...",
@@ -266,7 +268,7 @@ async function processContentInBackground(noteId: number, content: string, setti
         style: settings.summaryStyle || "academic"
       }
     };
-    
+
     await storage.updateNoteContent(noteId, fallbackContent);
     await storage.updateNoteStatus(noteId, "failed");
   }
