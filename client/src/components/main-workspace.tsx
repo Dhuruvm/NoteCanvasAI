@@ -149,28 +149,6 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
       {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-900">
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <img 
-                src={logoImage} 
-                alt="NoteGPT Logo" 
-                className="w-8 h-8 rounded-lg object-contain"
-                onError={(e) => {
-                  // Fallback to icon if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center hidden">
-                <FileText className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  NoteGPT
-                </h1>
-              </div>
-            </div>
-
             {/* Conditionally render the rest of the header items based on noteId */}
           </div>
         </div>
