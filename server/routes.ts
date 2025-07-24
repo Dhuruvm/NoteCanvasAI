@@ -169,9 +169,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Generating PDF for note ${noteId}: ${note.title}`);
 
       const pdfBuffer = await generateNotePDF(processedContent as any, {
-        theme: (req.query.theme as any) || "default",
+        theme: (req.query.theme as any) || "modern",
         fontSize: parseInt(req.query.fontSize as string) || 12,
         includeHeader: req.query.includeHeader !== "false",
+        includeFooter: req.query.includeFooter !== "false",
+        colorScheme: (req.query.colorScheme as any) || "blue",
       });
 
       if (!pdfBuffer || pdfBuffer.length === 0) {
@@ -232,6 +234,7 @@ async function processContentInBackground(noteId: number, content: string, setti
       setTimeout(() => reject(new Error('AI processing timeout after 30 seconds')), 30000);
     });
     
+    const processingPromise = summarizeContentWithGemini(content, settings, pdfBuffer);
     const processedContent = await Promise.race([processingPromise, timeoutPromise]);
     
     // Update note with processed content
