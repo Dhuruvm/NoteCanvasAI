@@ -9,7 +9,8 @@ const ai = new GoogleGenAI({
 
 export async function summarizeContentWithGemini(
   content: string,
-  settings: AISettings
+  settings: AISettings,
+  pdfBuffer?: Buffer
 ): Promise<ProcessedNote> {
   try {
     const systemPrompt = `You are an expert educational content analyzer and note generator. 
@@ -28,17 +29,58 @@ Generate structured study notes following this format:
 
 Respond with JSON in the exact format specified by the schema.`;
 
-    // Limit content length for faster processing
-    const maxContentLength = 3000;
-    const trimmedContent = content.length > maxContentLength 
-      ? content.substring(0, maxContentLength) + "..."
-      : content;
+    let userPrompt: string;
+    let contents: any;
 
-    const userPrompt = `Please analyze and structure the following content into comprehensive study notes:
+    if (pdfBuffer && content === "PDF_CONTENT_FOR_GEMINI_PROCESSING") {
+      // Handle PDF directly with Gemini
+      console.log("Processing PDF directly with Gemini AI");
+      
+      userPrompt = `Please analyze and structure the content from this PDF file into comprehensive study notes:
+
+Generate the response following these guidelines:`;
+
+      // Use the PDF buffer directly in the request
+      contents = {
+        parts: [
+          {
+            text: userPrompt + `
+- Title should be clear and descriptive (max 10 words)
+- Key concepts should include 3-5 most important terms with clear definitions
+- Summary points should be organized by topic with bullet points (max 3 sections)
+- If there are any processes, procedures, or sequential steps, include them in processFlow
+- Make the content study-friendly and well-organized
+- Keep responses concise and focused`
+          },
+          {
+            inlineData: {
+              mimeType: "application/pdf",
+              data: pdfBuffer.toString('base64')
+            }
+          }
+        ]
+      };
+    } else {
+      // Handle text content
+      const maxContentLength = 3000;
+      const trimmedContent = content.length > maxContentLength 
+        ? content.substring(0, maxContentLength) + "..."
+        : content;
+
+      userPrompt = `Please analyze and structure the following content into comprehensive study notes:
 
 ${trimmedContent}
 
-Generate the response following these guidelines:
+Generate the response following these guidelines:`;
+
+      contents = userPrompt + `
+- Title should be clear and descriptive (max 10 words)
+- Key concepts should include 3-5 most important terms with clear definitions
+- Summary points should be organized by topic with bullet points (max 3 sections)
+- If there are any processes, procedures, or sequential steps, include them in processFlow
+- Make the content study-friendly and well-organized
+- Keep responses concise and focused`;
+    }
 - Title should be clear and descriptive (max 10 words)
 - Key concepts should include 3-5 most important terms with clear definitions
 - Summary points should be organized by topic with bullet points (max 3 sections)
@@ -107,7 +149,7 @@ Generate the response following these guidelines:
           required: ["title", "keyConcepts", "summaryPoints", "metadata"]
         }
       },
-      contents: userPrompt,
+      contents,
     });
 
     const rawJson = response.text;

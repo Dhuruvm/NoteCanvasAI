@@ -75,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         summaryStyle: req.body.templateId || "academic",
         detailLevel: 3,
         includeExamples: true 
-      });
+      }, req.file.mimetype === 'application/pdf' ? req.file.buffer : undefined);
 
       res.json({ noteId: note.id, message: "File uploaded successfully" });
     } catch (error) {
@@ -221,14 +221,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 // Background processing function
-async function processContentInBackground(noteId: number, content: string, settings: AISettings) {
+async function processContentInBackground(noteId: number, content: string, settings: AISettings, pdfBuffer?: Buffer) {
   try {
     // Update status to processing
     await storage.updateNoteStatus(noteId, "processing");
     console.log(`Starting AI processing for note ${noteId}, content length: ${content.length} chars`);
     
     // Add timeout to prevent hanging (30 seconds)
-    const processingPromise = summarizeContentWithGemini(content, settings);
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('AI processing timeout after 30 seconds')), 30000);
     });
