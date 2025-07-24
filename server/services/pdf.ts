@@ -109,7 +109,7 @@ export async function generateNotePDF(
 
       // Main title with enhanced styling
       const titleFontSize = Math.min(options.fontSize + 8, 24);
-      page.drawText(note.title, {
+      page.drawText(sanitizeText(note.title), {
         x: margin,
         y: height - 70,
         size: titleFontSize,
@@ -135,7 +135,7 @@ export async function generateNotePDF(
     if (note.keyConcepts && note.keyConcepts.length > 0) {
       yPosition = await drawSection(
         page,
-        "🔑 Key Concepts",
+        "Key Concepts",
         yPosition,
         colors,
         boldFont,
@@ -176,7 +176,7 @@ export async function generateNotePDF(
         });
 
         // Concept title
-        page.drawText(concept.title, {
+        page.drawText(sanitizeText(concept.title), {
           x: margin + 40,
           y: yPosition - 20,
           size: options.fontSize + 1,
@@ -206,7 +206,7 @@ export async function generateNotePDF(
     if (note.summaryPoints && note.summaryPoints.length > 0) {
       yPosition = await drawSection(
         page,
-        "📋 Summary Points",
+        "Summary Points",
         yPosition,
         colors,
         boldFont,
@@ -226,7 +226,7 @@ export async function generateNotePDF(
           color: rgb(...colors.secondary),
         });
 
-        page.drawText(section.heading, {
+        page.drawText(sanitizeText(section.heading), {
           x: margin + 10,
           y: yPosition - 18,
           size: options.fontSize + 1,
@@ -267,7 +267,7 @@ export async function generateNotePDF(
     if (note.processFlow && note.processFlow.length > 0) {
       yPosition = await drawSection(
         page,
-        "🔄 Process Flow",
+        "Process Flow",
         yPosition,
         colors,
         boldFont,
@@ -305,7 +305,7 @@ export async function generateNotePDF(
         });
 
         // Step content
-        page.drawText(step.title, {
+        page.drawText(sanitizeText(step.title), {
           x: margin + 50,
           y: yPosition - 15,
           size: options.fontSize + 1,
@@ -393,8 +393,22 @@ async function drawSection(
   return yPosition - 50;
 }
 
+function sanitizeText(text: string): string {
+  // Remove or replace characters that can't be encoded in WinAnsi
+  return text
+    .replace(/[^\x00-\xFF]/g, '') // Remove non-Latin characters
+    .replace(/[\u0080-\u00FF]/g, (char) => {
+      // Handle extended ASCII characters
+      const charCode = char.charCodeAt(0);
+      if (charCode > 255) return '';
+      return char;
+    })
+    .trim();
+}
+
 function wrapText(text: string, maxWidth: number, font: any, fontSize: number): string[] {
-  const words = text.split(' ');
+  const sanitizedText = sanitizeText(text);
+  const words = sanitizedText.split(' ');
   const lines: string[] = [];
   let currentLine = '';
 
