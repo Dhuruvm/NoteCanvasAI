@@ -63,6 +63,15 @@ export default function Home() {
                 </Button>
               </div>
               
+              <div className="flex items-center">
+                <img 
+                  src="/src/assets/notegpt-logo.png" 
+                  alt="NoteGPT Logo" 
+                  className="h-8 w-8 sm:h-10 sm:w-10 mr-3"
+                />
+                <h1 className="text-lg sm:text-xl font-semibold">NoteGPT</h1>
+              </div>
+              
               <Button variant="ghost" size="sm" className="p-1.5 sm:p-2">
                 <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
