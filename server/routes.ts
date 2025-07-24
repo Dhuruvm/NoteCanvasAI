@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { summarizeContentWithGemini } from "./services/gemini";
 import { generateNotePDF, extractTextFromPDF } from "./services/pdf";
+import { generateAdvancedPDF } from "./services/advanced-pdf";
 import { insertNoteSchema, insertTemplateSchema, type AISettings } from "@shared/schema";
 import multer from "multer";
 import { z } from "zod";
@@ -28,6 +29,8 @@ const processContentSchema = z.object({
     summaryStyle: z.enum(["academic", "bulletPoints", "mindMap", "qna"]).default("academic"),
     detailLevel: z.number().min(1).max(5).default(3),
     includeExamples: z.boolean().default(true),
+    useMultipleModels: z.boolean().default(false),
+    designStyle: z.enum(["academic", "modern", "minimal", "colorful"]).default("modern"),
   }).default({}),
 });
 
@@ -137,7 +140,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate PDF for a note
+  // Generate advanced PDF for a note with multiple AI models
+  app.post("/api/notes/:id/generate-pdf", async (req, res) => {
+    try {
+      const noteId = parseInt(req.params.id);
+
+      if (isNaN(noteId)) {
+        return res.status(400).json({ message: "Invalid note ID" });
+      }
+
+      const note = await storage.getNote(noteId);
+
+      if (!note) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+
+      if (note.status !== "completed") {
+        return res.status(400).json({ message: "Note processing not completed" });
+      }
+
+      if (!note.processedContent) {
+        return res.status(400).json({ message: "No processed content available for PDF generation" });
+      }
+
+      console.log(`Generating advanced PDF for note ${noteId}: ${note.title}`);
+
+      // Use advanced PDF generation with multiple AI models
+      const options = {
+        designStyle: (req.body.designStyle as any) || "modern",
+        includeVisualElements: req.body.includeVisualElements !== false,
+        useEnhancedLayout: req.body.useEnhancedLayout !== false,
+        colorScheme: req.body.colorScheme || "blue"
+      };
+
+      const pdfBuffer = await generateAdvancedPDF(
+        note.processedContent as any,
+        note.originalContent,
+        options
+      );
+
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error("Generated PDF buffer is empty");
+      }
+
+      console.log(`Advanced PDF generated successfully, size: ${pdfBuffer.length} bytes`);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(note.title || 'enhanced-notes')}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length.toString());
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error("Advanced PDF generation error:", error);
+      res.status(500).json({ message: `Failed to generate advanced PDF: ${error instanceof Error ? error.message : 'Unknown error'}` });
+    }
+  });
+
+  // Generate basic PDF for a note (fallback)
   app.get("/api/notes/:id/pdf", async (req, res) => {
     try {
       const noteId = parseInt(req.params.id);
@@ -160,15 +218,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No processed content available for PDF generation" });
       }
 
-      // Validate processedContent structure
-      const processedContent = note.processedContent;
-      if (!processedContent || typeof processedContent !== 'object') {
-        return res.status(400).json({ message: "Invalid processed content format" });
-      }
+      console.log(`Generating basic PDF for note ${noteId}: ${note.title}`);
 
-      console.log(`Generating PDF for note ${noteId}: ${note.title}`);
-
-      const pdfBuffer = await generateNotePDF(processedContent as any, {
+      const pdfBuffer = await generateNotePDF(note.processedContent as any, {
         theme: (req.query.theme as any) || "modern",
         fontSize: parseInt(req.query.fontSize as string) || 12,
         includeHeader: req.query.includeHeader !== "false",
@@ -180,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error("Generated PDF buffer is empty");
       }
 
-      console.log(`PDF generated successfully, size: ${pdfBuffer.length} bytes`);
+      console.log(`Basic PDF generated successfully, size: ${pdfBuffer.length} bytes`);
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(note.title || 'notes')}.pdf"`);

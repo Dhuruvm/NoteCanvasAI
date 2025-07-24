@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ProcessingStatus } from "./processing-status";
-import { FileText, PaintbrushVertical, Eye, Download, FileType, Save, Share, Clock, Lightbulb, List, GitBranch, CheckCircle } from "lucide-react";
+import { FileText, PaintbrushVertical, Eye, Clock, Lightbulb, List, GitBranch, CheckCircle } from "lucide-react";
 import type { Note, ProcessedNote } from "@shared/schema";
 
 interface MainWorkspaceProps {
@@ -30,35 +30,45 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
     }
   }, [note]);
 
-  const handleDownloadPDF = async (colorScheme: string = "blue") => {
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [pdfOptions, setPdfOptions] = useState({
+    designStyle: 'modern' as 'academic' | 'modern' | 'minimal' | 'colorful',
+    colorScheme: 'blue',
+    includeVisualElements: true,
+    useEnhancedLayout: true
+  });
+
+  const handleGeneratePDF = async () => {
     if (!noteId || !note) return;
     
+    setIsGeneratingPDF(true);
+    
     try {
-      const params = new URLSearchParams({
-        theme: "modern",
-        colorScheme,
-        fontSize: "12",
-        includeHeader: "true",
-        includeFooter: "true"
+      // Use enhanced PDF generation with multiple AI models
+      const response = await fetch(`/api/notes/${noteId}/generate-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(pdfOptions),
       });
-      const response = await fetch(`/api/notes/${noteId}/pdf?${params}`);
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Download failed' }));
+        const errorData = await response.json().catch(() => ({ message: 'PDF generation failed' }));
         throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const blob = await response.blob();
       
       // Verify we got a PDF blob
-      if (blob.type !== 'application/pdf' && blob.size === 0) {
-        throw new Error('Invalid PDF file received');
+      if (blob.size === 0) {
+        throw new Error('Empty PDF file received');
       }
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${note.title || 'notes'}.pdf`;
+      a.download = `${note.title || 'enhanced-notes'}-ai-generated.pdf`;
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
@@ -70,9 +80,10 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
       }, 100);
       
     } catch (error) {
-      console.error("Download failed:", error);
-      // You could add a toast notification here if you have one set up
-      alert(`PDF download failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("PDF generation failed:", error);
+      alert(`AI-enhanced PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -265,50 +276,99 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                   </Card>
                 )}
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 pt-4 border-t dark:border-gray-700">
-                  <div className="flex flex-wrap gap-2">
-                    <Button onClick={handleDownloadPDF} className="flex items-center justify-center text-sm">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download PDF
-                    </Button>
+                {/* Enhanced PDF Generation */}
+                <div className="space-y-4 pt-4 border-t dark:border-gray-700">
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 p-4 rounded-lg border">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                      <FileText className="w-5 h-5 mr-2 text-blue-600" />
+                      AI-Enhanced PDF Generation
+                      {processedContent.metadata?.aiModelsUsed?.includes('mixtral-8x7b-instruct') && (
+                        <Badge className="ml-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs">
+                          Multi-Model AI
+                        </Badge>
+                      )}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Design Style</label>
+                        <select 
+                          value={pdfOptions.designStyle} 
+                          onChange={(e) => setPdfOptions({...pdfOptions, designStyle: e.target.value as any})}
+                          className="w-full px-3 py-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                        >
+                          <option value="academic">Academic</option>
+                          <option value="modern">Modern</option>
+                          <option value="minimal">Minimal</option>
+                          <option value="colorful">Colorful</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Color Scheme</label>
+                        <select 
+                          value={pdfOptions.colorScheme} 
+                          onChange={(e) => setPdfOptions({...pdfOptions, colorScheme: e.target.value})}
+                          className="w-full px-3 py-2 text-sm border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                        >
+                          <option value="blue">Blue</option>
+                          <option value="green">Green</option>
+                          <option value="purple">Purple</option>
+                          <option value="orange">Orange</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Visual Elements</label>
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="checkbox" 
+                            checked={pdfOptions.includeVisualElements}
+                            onChange={(e) => setPdfOptions({...pdfOptions, includeVisualElements: e.target.checked})}
+                            className="rounded"
+                          />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Include charts & diagrams</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Enhanced Layout</label>
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="checkbox" 
+                            checked={pdfOptions.useEnhancedLayout}
+                            onChange={(e) => setPdfOptions({...pdfOptions, useEnhancedLayout: e.target.checked})}
+                            className="rounded"
+                          />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">AI-optimized design</span>
+                        </div>
+                      </div>
+                    </div>
+                    
                     <Button 
-                      onClick={() => handleDownloadPDF("blue")} 
-                      variant="outline" 
-                      className="flex items-center justify-center text-sm"
+                      onClick={handleGeneratePDF} 
+                      disabled={isGeneratingPDF}
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      Blue Theme
+                      {isGeneratingPDF ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Generating AI-Enhanced PDF...
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-4 h-4 mr-2" />
+                          Generate AI-Enhanced PDF
+                        </>
+                      )}
                     </Button>
-                    <Button 
-                      onClick={() => handleDownloadPDF("green")} 
-                      variant="outline" 
-                      className="flex items-center justify-center text-sm"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Green Theme
-                    </Button>
-                    <Button 
-                      onClick={() => handleDownloadPDF("purple")} 
-                      variant="outline" 
-                      className="flex items-center justify-center text-sm"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Purple Theme
-                    </Button>
+                    
+                    {processedContent.metadata?.aiModelsUsed && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Powered by: {processedContent.metadata.aiModelsUsed.join(', ')}
+                      </p>
+                    )}
                   </div>
-                  <Button variant="outline" className="flex items-center justify-center text-sm" disabled>
-                    <FileType className="w-4 h-4 mr-2" />
-                    Export DOCX
-                  </Button>
-                  <Button variant="outline" className="flex items-center justify-center text-sm" disabled>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save as Template
-                  </Button>
-                  <Button variant="outline" className="flex items-center justify-center text-sm" disabled>
-                    <Share className="w-4 h-4 mr-2" />
-                    Share Link
-                  </Button>
                 </div>
               </>
             ) : (
