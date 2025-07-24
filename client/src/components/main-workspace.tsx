@@ -30,11 +30,18 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
     }
   }, [note]);
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = async (colorScheme: string = "blue") => {
     if (!noteId || !note) return;
     
     try {
-      const response = await fetch(`/api/notes/${noteId}/pdf`);
+      const params = new URLSearchParams({
+        theme: "modern",
+        colorScheme,
+        fontSize: "12",
+        includeHeader: "true",
+        includeFooter: "true"
+      });
+      const response = await fetch(`/api/notes/${noteId}/pdf?${params}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Download failed' }));
@@ -260,10 +267,36 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 pt-4 border-t dark:border-gray-700">
-                  <Button onClick={handleDownloadPDF} className="flex items-center justify-center text-sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download PDF
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={handleDownloadPDF} className="flex items-center justify-center text-sm">
+                      <Download className="w-4 h-4 mr-2" />
+                      Download PDF
+                    </Button>
+                    <Button 
+                      onClick={() => handleDownloadPDF("blue")} 
+                      variant="outline" 
+                      className="flex items-center justify-center text-sm"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Blue Theme
+                    </Button>
+                    <Button 
+                      onClick={() => handleDownloadPDF("green")} 
+                      variant="outline" 
+                      className="flex items-center justify-center text-sm"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Green Theme
+                    </Button>
+                    <Button 
+                      onClick={() => handleDownloadPDF("purple")} 
+                      variant="outline" 
+                      className="flex items-center justify-center text-sm"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Purple Theme
+                    </Button>
+                  </div>
                   <Button variant="outline" className="flex items-center justify-center text-sm" disabled>
                     <FileType className="w-4 h-4 mr-2" />
                     Export DOCX
