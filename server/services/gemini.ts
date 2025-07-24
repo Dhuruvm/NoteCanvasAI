@@ -81,12 +81,6 @@ Generate the response following these guidelines:`;
 - Make the content study-friendly and well-organized
 - Keep responses concise and focused`;
     }
-- Title should be clear and descriptive (max 10 words)
-- Key concepts should include 3-5 most important terms with clear definitions
-- Summary points should be organized by topic with bullet points (max 3 sections)
-- If there are any processes, procedures, or sequential steps, include them in processFlow
-- Make the content study-friendly and well-organized
-- Keep responses concise and focused`;
 
     // Use faster model for better performance
     const response = await ai.models.generateContent({
