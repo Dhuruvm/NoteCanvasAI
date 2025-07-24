@@ -55,10 +55,28 @@ export interface ProcessedNote {
     title: string;
     description: string;
   }>;
+  enhancedContent?: string;
+  designLayout?: {
+    templateType: 'academic' | 'modern' | 'minimal' | 'colorful';
+    sections: Array<{
+      id: string;
+      type: 'header' | 'content' | 'sidebar' | 'footer';
+      styling: Record<string, string>;
+      content: string;
+    }>;
+    theme: {
+      primaryColor: string;
+      secondaryColor: string;
+      fontFamily: string;
+      spacing: string;
+    };
+  };
+  tableStructure?: string;
   metadata: {
     source: string;
     generatedAt: string;
     style: string;
+    aiModelsUsed: string[];
   };
 }
 
@@ -66,4 +84,6 @@ export interface AISettings {
   summaryStyle: "academic" | "bulletPoints" | "mindMap" | "qna";
   detailLevel: number;
   includeExamples: boolean;
+  useMultipleModels?: boolean;
+  designStyle?: "academic" | "modern" | "minimal" | "colorful";
 }

@@ -21,6 +21,8 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
   const [summaryStyle, setSummaryStyle] = useState<"academic" | "bulletPoints" | "mindMap" | "qna">("academic");
   const [detailLevel, setDetailLevel] = useState([3]);
   const [includeExamples, setIncludeExamples] = useState(true);
+  const [useMultipleModels, setUseMultipleModels] = useState(false);
+  const [designStyle, setDesignStyle] = useState<"academic" | "modern" | "minimal" | "colorful">("modern");
 
   const { toast } = useToast();
 
@@ -97,6 +99,8 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
         summaryStyle,
         detailLevel: detailLevel[0],
         includeExamples,
+        useMultipleModels,
+        designStyle,
       },
     });
   };
@@ -200,6 +204,35 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
               onCheckedChange={setIncludeExamples}
             />
           </div>
+          
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Enhanced AI Processing
+            </Label>
+            <Switch
+              checked={useMultipleModels}
+              onCheckedChange={setUseMultipleModels}
+            />
+          </div>
+          
+          {useMultipleModels && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Design Style
+              </Label>
+              <Select value={designStyle} onValueChange={(value: any) => setDesignStyle(value)}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="academic">Academic</SelectItem>
+                  <SelectItem value="modern">Modern</SelectItem>
+                  <SelectItem value="minimal">Minimal</SelectItem>
+                  <SelectItem value="colorful">Colorful</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
