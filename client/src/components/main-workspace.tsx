@@ -42,9 +42,9 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
 
   const handleGeneratePDF = async () => {
     if (!noteId || !note) return;
-    
+
     setIsGeneratingPDF(true);
-    
+
     try {
       // Use enhanced PDF generation with multiple AI models
       const response = await fetch(`/api/notes/${noteId}/generate-pdf`, {
@@ -54,14 +54,14 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
         },
         body: JSON.stringify(pdfOptions),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'PDF generation failed' }));
         throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const blob = await response.blob();
-      
+
       // Verify we got a PDF blob
       if (blob.size === 0) {
         throw new Error('Empty PDF file received');
@@ -74,13 +74,13 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
-      
+
       // Clean up
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       }, 100);
-      
+
     } catch (error) {
       console.error("PDF generation failed:", error);
       alert(`AI-enhanced PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -232,7 +232,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                       <List className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
                       Summary Points
                     </h3>
-                    
+
                     {processedContent.summaryPoints.map((section, index) => (
                       <div key={index} className="ml-2 sm:ml-4 border-l-2 border-primary pl-3 sm:pl-4">
                         <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 text-sm sm:text-base">{section.heading}</h4>
@@ -290,7 +290,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                         </Badge>
                       )}
                     </h3>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Design Style</label>
@@ -305,7 +305,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                           <option value="colorful">Colorful</option>
                         </select>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Color Scheme</label>
                         <select 
@@ -319,7 +319,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                           <option value="orange">Orange</option>
                         </select>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Visual Elements</label>
                         <div className="flex items-center space-x-2">
@@ -332,7 +332,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                           <span className="text-sm text-gray-600 dark:text-gray-400">Include charts & diagrams</span>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Enhanced Layout</label>
                         <div className="flex items-center space-x-2">
@@ -346,7 +346,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                         </div>
                       </div>
                     </div>
-                    
+
                     <Button 
                       onClick={handleGeneratePDF} 
                       disabled={isGeneratingPDF}
@@ -364,7 +364,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                         </>
                       )}
                     </Button>
-                    
+
                     {processedContent.metadata?.aiModelsUsed && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                         Powered by: {processedContent.metadata.aiModelsUsed.join(', ')}
