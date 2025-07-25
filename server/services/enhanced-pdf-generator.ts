@@ -71,22 +71,37 @@ export async function generateEnhancedPDF(
   let tableData: any = null;
 
   if (options.includeVisualElements) {
-    console.log('Generating visual elements with AI...');
-    visualElements = await generateVisualElements(note);
-    visualElementsCount = visualElements.visualElements.length;
-    chartsCount = visualElements.charts.length;
-    aiModelsUsed.push('huggingface-visual', 'chart-generator');
+    console.log('Generating visual elements with multi-model AI...');
+    try {
+      visualElements = await generateVisualElements(note);
+      visualElementsCount = visualElements.visualElements?.length || 0;
+      chartsCount = visualElements.charts?.length || 0;
+      aiModelsUsed.push('visual-ai-generator', 'chart-generator', 'huggingface-visual');
+    } catch (error) {
+      console.error('Visual elements generation failed:', error);
+      visualElements = { charts: [], visualElements: [] };
+    }
   }
 
   if (options.includeInfographic) {
-    console.log('Generating infographic layout...');
-    infographicData = await generateInfographic(note, options.designStyle);
-    aiModelsUsed.push('layout-ai', 'design-optimizer');
+    console.log('Generating infographic layout with AI...');
+    try {
+      infographicData = await generateInfographic(note, options.designStyle);
+      aiModelsUsed.push('layout-ai', 'design-optimizer', 'infographic-generator');
+    } catch (error) {
+      console.error('Infographic generation failed:', error);
+      infographicData = null;
+    }
   }
 
-  // Generate enhanced table
-  tableData = await generateEnhancedTable(note);
-  aiModelsUsed.push('table-optimizer');
+  // Generate enhanced table structure
+  try {
+    tableData = await generateEnhancedTable(note);
+    aiModelsUsed.push('table-optimizer', 'structure-ai');
+  } catch (error) {
+    console.error('Table generation failed:', error);
+    tableData = { table: { headers: [], rows: [] }, styling: {} };
+  }
 
   // Page 1: Title and Overview
   const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size

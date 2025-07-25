@@ -418,11 +418,15 @@ export async function enhanceContentWithMultiModel(
   try {
     console.log('🔄 Starting enhanced content processing with multi-model AI...');
     
+    // Import the Gemini function dynamically to avoid circular dependency
+    const { summarizeContentWithGemini } = await import('./gemini');
+    
     // First, get primary content analysis from Gemini
     const primaryAnalysis = await summarizeContentWithGemini(originalContent, {
       summaryStyle: 'academic',
       detailLevel: 3,
-      includeExamples: true
+      includeExamples: true,
+      useMultipleModels: false
     });
 
     if (!options.multiModelProcessing) {
@@ -441,6 +445,7 @@ export async function enhanceContentWithMultiModel(
       fontOptimization: true,
       colorSchemeGeneration: true,
       structureAnalysis: true,
+      multiModelProcessing: true,
       ...options
     });
 
@@ -452,20 +457,29 @@ export async function enhanceContentWithMultiModel(
         aiModelsUsed: ['gemini-2.5-flash', ...multiModelResult.processingStats.modelsUsed],
         processingTime: multiModelResult.processingStats.totalTime,
         successRate: multiModelResult.processingStats.successRate,
-        multiModelEnhanced: true
+        multiModelEnhanced: true,
+        enhancementType: 'multi-model-ai'
       },
-      visualElements: multiModelResult.visualElements,
-      layoutOptimization: multiModelResult.layoutOptimization,
-      fontRecommendations: multiModelResult.fontRecommendations,
-      colorScheme: multiModelResult.colorScheme,
-      structureAnalysis: multiModelResult.structureAnalysis,
-      designSystem: multiModelResult.designSystem
+      visualElements: multiModelResult.visualElements || [],
+      layoutOptimization: multiModelResult.layoutOptimization || {},
+      fontRecommendations: multiModelResult.fontRecommendations || {},
+      colorScheme: multiModelResult.colorScheme || {},
+      structureAnalysis: multiModelResult.structureAnalysis || {},
+      designSystem: multiModelResult.designSystem || {}
     };
 
     console.log('✨ Enhanced content processing completed successfully!');
+    console.log(`🎯 AI Models Used: ${enhancedContent.metadata.aiModelsUsed.join(', ')}`);
     return enhancedContent;
   } catch (error) {
     console.error('Enhanced content processing error:', error);
-    throw error;
+    // Return basic content on error
+    const { summarizeContentWithGemini } = await import('./gemini');
+    return await summarizeContentWithGemini(originalContent, {
+      summaryStyle: 'academic',
+      detailLevel: 3,
+      includeExamples: true,
+      useMultipleModels: false
+    });
   }
 }

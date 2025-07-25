@@ -141,42 +141,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate advanced PDF for a note with multiple AI models
+  // Generate PDF endpoint with multi-model AI
   app.post("/api/notes/:id/generate-pdf", async (req, res) => {
     try {
-      const noteId = parseInt(req.params.id);
-
-      if (isNaN(noteId)) {
-        return res.status(400).json({ message: "Invalid note ID" });
-      }
-
+      const noteId = req.params.id;
       const note = await storage.getNote(noteId);
 
       if (!note) {
-        return res.status(404).json({ message: "Note not found" });
+        return res.status(404).json({ error: "Note not found" });
       }
 
-      if (note.status !== "completed") {
-        return res.status(400).json({ message: "Note processing not completed" });
-      }
+      console.log(`Generating enhanced PDF for note ${noteId}: ${note.title}`);
 
-      if (!note.processedContent) {
-        return res.status(400).json({ message: "No processed content available for PDF generation" });
-      }
-
-      console.log(`Generating advanced PDF for note ${noteId}: ${note.title}`);
-
-      // Use advanced PDF generation with multiple AI models
+      // Enhanced options with multi-model AI processing
       const options = {
         designStyle: (req.body.designStyle as any) || "modern",
+        colorScheme: req.body.colorScheme || "blue",
         includeVisualElements: req.body.includeVisualElements !== false,
+        includeCharts: req.body.includeCharts !== false,
+        includeInfographic: req.body.includeInfographic !== false,
         useEnhancedLayout: req.body.useEnhancedLayout !== false,
-        colorScheme: req.body.colorScheme || "blue"
+        fontSize: req.body.fontSize || 12,
+        fontFamily: req.body.fontFamily || "helvetica",
+        spacing: req.body.spacing || 1.5,
+        includeHeader: req.body.includeHeader !== false,
+        includeFooter: req.body.includeFooter !== false,
+        margins: req.body.margins || 60,
+        multiModelProcessing: req.body.multiModelProcessing !== false,
+        pageMargins: req.body.pageMargins || {
+          top: 60,
+          right: 60,
+          bottom: 60,
+          left: 60
+        }
       };
 
-      const pdfBuffer = await generateAdvancedPDF(
+      // Use enhanced PDF generator with multi-model AI
+      const { buffer: pdfBuffer, metadata } = await generateAdvancedPDF(
         note.processedContent as any,
-        note.originalContent,
         options
       );
 
@@ -190,16 +192,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error("Generated file is not a valid PDF");
       }
 
-      console.log(`Advanced PDF generated successfully, size: ${pdfBuffer.length} bytes`);
+      console.log(`Enhanced PDF generated successfully:`, metadata);
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(note.title || 'enhanced-notes')}.pdf"`);
-      res.setHeader('Content-Length', pdfBuffer.length.toString());
-      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Content-Disposition', `attachment; filename="${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf"`);
+      res.setHeader('X-PDF-Metadata', JSON.stringify(metadata));
       res.send(pdfBuffer);
+
     } catch (error) {
-      console.error("Advanced PDF generation error:", error);
-      res.status(500).json({ message: `Failed to generate advanced PDF: ${error instanceof Error ? error.message : 'Unknown error'}` });
+      console.error("Enhanced PDF generation error:", error);
+      res.status(500).json({ 
+        error: "Failed to generate enhanced PDF",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Auto-generate PDF endpoint
+  app.post("/api/notes/:id/auto-generate-pdf", async (req, res) => {
+    try {
+      const noteId = req.params.id;
+      const note = await storage.getNote(noteId);
+
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      console.log(`Auto-generating PDF for note ${noteId}: ${note.title}`);
+
+      // Auto-detect optimal settings based on content
+      const autoOptions = {
+        designStyle: "modern" as const,
+        colorScheme: "blue",
+        includeVisualElements: true,
+        includeCharts: true,
+        includeInfographic: true,
+        useEnhancedLayout: true,
+        fontSize: 12,
+        fontFamily: "helvetica" as const,
+        spacing: 1.5,
+        includeHeader: true,
+        includeFooter: true,
+        margins: 60,
+        multiModelProcessing: true,
+        pageMargins: { top: 60, right: 60, bottom: 60, left: 60 }
+      };
+
+      const { buffer: pdfBuffer, metadata } = await generateAdvancedPDF(
+        note.processedContent as any,
+        autoOptions
+      );
+
+      console.log(`Auto-generated PDF completed:`, metadata);
+
+      res.json({
+        success: true,
+        metadata,
+        downloadUrl: `/api/notes/${noteId}/download-pdf`,
+        message: "PDF auto-generated successfully with multi-model AI"
+      });
+
+    } catch (error) {
+      console.error("Auto PDF generation error:", error);
+      res.status(500).json({ 
+        error: "Failed to auto-generate PDF",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
