@@ -87,3 +87,25 @@ export interface AISettings {
   useMultipleModels?: boolean;
   designStyle?: "academic" | "modern" | "minimal" | "colorful";
 }
+
+// Additional interfaces for enhanced functionality
+export interface EnhancedPreview {
+  structuredView: {
+    metadata: {
+      wordCount: number;
+      readingTime: number;
+      conceptCount: number;
+    };
+  };
+  aiInsights: {
+    complexity: string;
+    suggestions: string[];
+  };
+}
+
+export interface VisualElement {
+  type: 'chart' | 'diagram' | 'infographic';
+  data: any;
+  title: string;
+  description?: string;
+}

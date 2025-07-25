@@ -4,6 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Clock, AlertCircle, Brain, Zap, Sparkles, Target, Eye } from "lucide-react";
 
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Brain, Target, Sparkles, Zap, CheckCircle } from "lucide-react";
+
 interface AIProgressMonitorProps {
   isProcessing: boolean;
   isGeneratingPDF: boolean;
@@ -33,6 +39,104 @@ export function AIProgressMonitor({ isProcessing, isGeneratingPDF, currentStage 
     const tasks = isGeneratingPDF 
       ? ['Analyzing layout...', 'Generating design...', 'Creating PDF...', 'Finalizing document...']
       : ['Analyzing content...', 'Structuring information...', 'Enhancing with AI...', 'Generating notes...'];
+
+    for (let i = 0; i < tasks.length; i++) {
+      setCurrentTask(tasks[i]);
+      
+      // Update stage status
+      setStages(prev => prev.map((stage, index) => ({
+        ...stage,
+        status: index === i ? 'processing' : index < i ? 'completed' : 'pending',
+        progress: index === i ? 0 : index < i ? 100 : 0
+      })));
+
+      // Simulate progress for current stage
+      for (let progress = 0; progress <= 100; progress += 10) {
+        setProgress((i * 100 + progress) / tasks.length);
+        
+        setStages(prev => prev.map((stage, index) => 
+          index === i ? { ...stage, progress } : stage
+        ));
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+    
+    // Mark all as completed
+    setStages(prev => prev.map(stage => ({
+      ...stage,
+      status: 'completed',
+      progress: 100
+    })));
+    setProgress(100);
+  };
+
+  const resetProgress = () => {
+    setProgress(0);
+    setCurrentTask("");
+    setStages(prev => prev.map(stage => ({
+      ...stage,
+      status: 'pending',
+      progress: 0
+    })));
+  };
+
+  if (!isProcessing && !isGeneratingPDF) {
+    return null;
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="flex items-center text-lg">
+          <Brain className="w-5 h-5 mr-2 text-blue-600" />
+          AI Processing Progress
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>{currentTask || "Starting..."}</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <Progress value={progress} className="w-full" />
+        </div>
+        
+        <div className="space-y-2">
+          {stages.map((stage, index) => {
+            const IconComponent = stage.icon;
+            return (
+              <div key={stage.id} className="flex items-center space-x-3">
+                <div className={`p-2 rounded-full ${
+                  stage.status === 'completed' ? 'bg-green-100 text-green-600' :
+                  stage.status === 'processing' ? 'bg-blue-100 text-blue-600' :
+                  'bg-gray-100 text-gray-400'
+                }`}>
+                  <IconComponent className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">{stage.name}</span>
+                    <Badge variant={
+                      stage.status === 'completed' ? 'default' :
+                      stage.status === 'processing' ? 'secondary' :
+                      'outline'
+                    }>
+                      {stage.status}
+                    </Badge>
+                  </div>
+                  {stage.status === 'processing' && (
+                    <Progress value={stage.progress} className="w-full mt-1 h-1" />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
     for (let i = 0; i < tasks.length; i++) {
       const task = tasks[i];

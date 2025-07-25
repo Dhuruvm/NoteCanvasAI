@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import type { ProcessedNote, AISettings } from "@shared/schema";
-import { processWithMultipleModels } from './huggingface.js';
+import { processWithMultipleModels } from './huggingface';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 // Note that the newest Gemini model series is "gemini-2.5-flash" or gemini-2.5-pro"

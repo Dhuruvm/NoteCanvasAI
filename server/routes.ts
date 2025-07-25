@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { summarizeContentWithGemini } from "./services/gemini";
 import { generateNotePDF, extractTextFromPDF } from "./services/pdf";
 import { generateAdvancedPDF } from "./services/advanced-pdf";
-import { enhanceContentWithMultiModel, processWithMultipleModels } from "./services/multi-model-ai";
+import { processWithMultipleModels } from "./services/multi-model-ai";
 import { insertNoteSchema, insertTemplateSchema, type AISettings } from "@shared/schema";
 import multer from "multer";
 import { z } from "zod";

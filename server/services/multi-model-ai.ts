@@ -241,6 +241,30 @@ export async function generateColorScheme(designStyle: string, colorScheme: stri
   const selectedScheme = colorSchemes[colorScheme as keyof typeof colorSchemes] || colorSchemes.blue;
 
   console.log(`Color AI: Generated color scheme in ${Date.now() - startTime}ms`);
+
+// Interface definitions for multi-model processing
+export interface MultiModelOptions {
+  includeCharts?: boolean;
+  includeInfographic?: boolean;
+  includeVisualElements?: boolean;
+  designStyle?: string;
+  colorScheme?: string;
+}
+
+export interface MultiModelProcessingResult {
+  primaryContent: any;
+  visualElements: any[];
+  layoutOptimization: any;
+  fontRecommendations: any;
+  colorScheme: any;
+  structureAnalysis: any;
+  designSystem?: any;
+  processingStats: {
+    totalTime: number;
+    modelsUsed: string[];
+    successRate: number;
+  };
+}
   return {
     ...selectedScheme,
     processingTime: Date.now() - startTime,
@@ -299,6 +323,26 @@ export async function analyzeContentStructure(content: any): Promise<any> {
       processingTime: Date.now() - startTime,
       confidence: 0.3
     };
+  }
+}
+
+// Helper function to process AI model results safely
+function processResult(result: any, modelName: string): any {
+  try {
+    if (!result) {
+      console.warn(`${modelName}: No result returned`);
+      return null;
+    }
+    
+    if (result.error) {
+      console.error(`${modelName}: Error in result`, result.error);
+      return null;
+    }
+    
+    return result;
+  } catch (error) {
+    console.error(`${modelName}: Failed to process result`, error);
+    return null;
   }
 }
 
@@ -406,7 +450,9 @@ export async function processWithMultipleModels(
     return finalResult;
   } catch (error) {
     console.error('Multi-Model AI Processing error:', error);
-    throw new Error(`Multi-Model AI processing failed: ${error}`);
+    throw new Error(`Multi-Model AI processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}r}`);
   }
 }
 

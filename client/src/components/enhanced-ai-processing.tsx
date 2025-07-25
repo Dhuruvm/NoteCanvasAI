@@ -37,7 +37,7 @@ export function EnhancedAIProcessing({ content, onNoteCreated }: EnhancedAIProce
     mutationFn: async (settings: any) => {
       // Simulate enhanced multi-model processing
       const stages = [...processingStages];
-      
+
       for (let i = 0; i < stages.length; i++) {
         const stage = stages[i];
         setProcessingStages(prev => 
@@ -220,7 +220,7 @@ export function EnhancedAIProcessing({ content, onNoteCreated }: EnhancedAIProce
                 }
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white">Advanced Analysis</h4>
@@ -233,7 +233,7 @@ export function EnhancedAIProcessing({ content, onNoteCreated }: EnhancedAIProce
                 }
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white">Semantic Enhancement</h4>
@@ -246,7 +246,7 @@ export function EnhancedAIProcessing({ content, onNoteCreated }: EnhancedAIProce
                 }
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white">Layout Optimization</h4>
@@ -291,9 +291,9 @@ export function EnhancedAIProcessing({ content, onNoteCreated }: EnhancedAIProce
                     {stage.progress}%
                   </div>
                 </div>
-                
+
                 <Progress value={stage.progress} className="h-2" />
-                
+
                 {index < processingStages.length - 1 && stage.status === 'completed' && (
                   <div className="flex justify-center">
                     <ArrowRight className="w-4 h-4 text-gray-400" />
@@ -326,7 +326,7 @@ export function EnhancedAIProcessing({ content, onNoteCreated }: EnhancedAIProce
               </>
             )}
           </Button>
-          
+
           <p className="text-xs text-muted-foreground text-center mt-3">
             This will process your content using 5 different AI models for optimal results
           </p>
