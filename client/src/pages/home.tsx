@@ -3,6 +3,7 @@ import { InputPanel } from "@/components/input-panel";
 import { MainWorkspace } from "@/components/main-workspace";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Leaf, Moon, Settings } from "lucide-react";
+import notegptLogo from "@/assets/notegpt-logo.png";
 
 export default function Home() {
   const [currentNoteId, setCurrentNoteId] = useState<number | null>(null);
@@ -21,7 +22,7 @@ export default function Home() {
             {/* Logo */}
             <div className="flex items-center space-x-2 sm:space-x-3">
               <img 
-                src="/src/assets/notegpt-logo.png" 
+                src={notegptLogo} 
                 alt="NoteGPT" 
                 className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-contain"
               />
