@@ -324,7 +324,8 @@ async function processContentInBackground(noteId: number, content: string, setti
       metadata: {
         source: "error_fallback",
         generatedAt: new Date().toISOString(),
-        style: settings.summaryStyle || "academic"
+        style: settings.summaryStyle || "academic",
+        aiModelsUsed: ["fallback"]
       }
     };
 

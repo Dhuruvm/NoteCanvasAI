@@ -81,6 +81,7 @@ export class MemStorage implements IStorage {
     defaultTemplates.forEach(template => {
       const fullTemplate: Template = {
         ...template,
+        isDefault: template.isDefault ?? false
       };
       this.templates.set(template.id, fullTemplate);
     });
@@ -94,6 +95,7 @@ export class MemStorage implements IStorage {
       processedContent: {},
       status: "processing",
       createdAt: new Date(),
+      templateId: insertNote.templateId ?? null
     };
     this.notes.set(id, note);
     return note;
@@ -141,6 +143,7 @@ export class MemStorage implements IStorage {
   async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
     const template: Template = {
       ...insertTemplate,
+      isDefault: insertTemplate.isDefault ?? false
     };
     this.templates.set(template.id, template);
     return template;

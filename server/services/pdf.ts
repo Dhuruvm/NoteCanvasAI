@@ -145,7 +145,8 @@ export async function generateNotePDF(
         width
       );
 
-      for (const [index, concept] of note.keyConcepts.entries()) {
+      for (let index = 0; index < note.keyConcepts.length; index++) {
+        const concept = note.keyConcepts[index];
         // Concept card background
         const cardHeight = 60;
         page.drawRectangle({
@@ -187,7 +188,8 @@ export async function generateNotePDF(
 
         // Concept definition with word wrapping
         const definitionLines = wrapText(concept.definition, width - 2 * margin - 50, regularFont, options.fontSize - 1);
-        for (const [lineIndex, line] of definitionLines.entries()) {
+        for (let lineIndex = 0; lineIndex < definitionLines.length; lineIndex++) {
+          const line = definitionLines[lineIndex];
           page.drawText(line, {
             x: margin + 40,
             y: yPosition - 35 - (lineIndex * 12),
@@ -247,7 +249,8 @@ export async function generateNotePDF(
           });
 
           const pointLines = wrapText(point, width - 2 * margin - 30, regularFont, options.fontSize);
-          for (const [lineIndex, line] of pointLines.entries()) {
+          for (let lineIndex = 0; lineIndex < pointLines.length; lineIndex++) {
+            const line = pointLines[lineIndex];
             page.drawText(line, {
               x: margin + 25,
               y: yPosition - (lineIndex * 15),
@@ -277,7 +280,8 @@ export async function generateNotePDF(
         width
       );
 
-      for (const [index, step] of note.processFlow.entries()) {
+      for (let index = 0; index < note.processFlow.length; index++) {
+        const step = note.processFlow[index];
         // Step connector line (if not first step)
         if (index > 0) {
           page.drawLine({
@@ -314,7 +318,8 @@ export async function generateNotePDF(
         });
 
         const descLines = wrapText(step.description, width - 2 * margin - 60, regularFont, options.fontSize - 1);
-        for (const [lineIndex, line] of descLines.entries()) {
+        for (let lineIndex = 0; lineIndex < descLines.length; lineIndex++) {
+          const line = descLines[lineIndex];
           page.drawText(line, {
             x: margin + 50,
             y: yPosition - 30 - (lineIndex * 12),
