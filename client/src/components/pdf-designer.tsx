@@ -22,12 +22,16 @@ export function PDFDesigner({ note, onGeneratePDF, isGenerating }: PDFDesignerPr
     fontSize: [12],
     spacing: [1.5],
     includeVisualElements: true,
+    includeCharts: true,
+    includeInfographic: true,
     useEnhancedLayout: true,
     includeHeader: true,
     includeFooter: true,
     pageBreaks: 'auto' as 'auto' | 'manual' | 'section',
     margins: [60],
-    showPreview: true
+    showPreview: true,
+    multiModelProcessing: true,
+    fontFamily: 'helvetica' as 'helvetica' | 'times' | 'courier'
   });
 
   const colorSchemes = {
@@ -55,13 +59,23 @@ export function PDFDesigner({ note, onGeneratePDF, isGenerating }: PDFDesignerPr
       designStyle: designOptions.style,
       colorScheme: designOptions.colorScheme,
       includeVisualElements: designOptions.includeVisualElements,
+      includeCharts: designOptions.includeCharts,
+      includeInfographic: designOptions.includeInfographic,
       useEnhancedLayout: designOptions.useEnhancedLayout,
       fontSize: designOptions.fontSize[0],
+      fontFamily: designOptions.fontFamily,
       spacing: designOptions.spacing[0],
       includeHeader: designOptions.includeHeader,
       includeFooter: designOptions.includeFooter,
       pageBreaks: designOptions.pageBreaks,
-      margins: designOptions.margins[0]
+      margins: designOptions.margins[0],
+      multiModelProcessing: designOptions.multiModelProcessing,
+      pageMargins: {
+        top: designOptions.margins[0],
+        right: designOptions.margins[0],
+        bottom: designOptions.margins[0],
+        left: designOptions.margins[0]
+      }
     });
   };
 
@@ -360,7 +374,213 @@ export function PDFDesigner({ note, onGeneratePDF, isGenerating }: PDFDesignerPr
                 {designOptions.includeHeader && (
                   <div 
                     className="border-b pb-4 mb-6"
-                    style={{ borderColor: currentScheme.accent }}
+                    style={{ borderColor: currentScheme.primary }}
+                  >
+                    <h1 
+                      className="text-2xl font-bold"
+                      style={{ color: currentScheme.primary }}
+                    >
+                      {note.title}
+                    </h1>
+                    <p 
+                      className="text-sm mt-2"
+                      style={{ color: currentScheme.secondary }}
+                    >
+                      Generated: {new Date().toLocaleDateString()} • Multi-Model AI Enhanced
+                    </p>
+                  </div>
+                )}
+
+                {/* Content Preview */}
+                <div className="space-y-4">
+                  <div>
+                    <h2 
+                      className="text-lg font-semibold mb-3"
+                      style={{ color: currentScheme.primary }}
+                    >
+                      Key Concepts
+                    </h2>
+                    {note.keyConcepts?.slice(0, 2).map((concept, index) => (
+                      <div key={index} className="mb-4">
+                        <h3 className="font-medium mb-1">{concept.title}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {concept.definition.substring(0, 100)}...
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Visual Elements Preview */}
+                  {designOptions.includeVisualElements && (
+                    <div 
+                      className="p-4 rounded-lg"
+                      style={{ backgroundColor: currentScheme.accent }}
+                    >
+                      <h3 
+                        className="font-medium mb-2"
+                        style={{ color: currentScheme.primary }}
+                      >
+                        Visual Elements Included
+                      </h3>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        {designOptions.includeCharts && (
+                          <div className="flex items-center">
+                            <BarChart3 className="w-3 h-3 mr-1" />
+                            Charts
+                          </div>
+                        )}
+                        {designOptions.includeInfographic && (
+                          <div className="flex items-center">
+                            <Layout className="w-3 h-3 mr-1" />
+                            Infographic
+                          </div>
+                        )}
+                        <div className="flex items-center">
+                          <FileText className="w-3 h-3 mr-1" />
+                          Tables
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Preview Footer */}
+                {designOptions.includeFooter && (
+                  <div 
+                    className="border-t pt-4 mt-6 text-xs"
+                    style={{ borderColor: currentScheme.primary, color: currentScheme.secondary }}
+                  >
+                    Page 1 of 3 • Generated by NoteGPT AI • Multi-Model Processing: {designOptions.multiModelProcessing ? '5 models' : '1 model'}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Multi-Model AI Options */}
+          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg">
+                <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
+                Multi-Model AI Processing
+                <Badge className="ml-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+                  Advanced
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Multi-Model Processing</h4>
+                  <p className="text-sm text-muted-foreground">Use 5+ AI models for enhanced content analysis and design</p>
+                </div>
+                <Switch
+                  checked={designOptions.multiModelProcessing}
+                  onCheckedChange={(checked) => handleOptionChange('multiModelProcessing', checked)}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Include Charts</h4>
+                  <p className="text-sm text-muted-foreground">Generate pie charts, bar charts, and flow diagrams</p>
+                </div>
+                <Switch
+                  checked={designOptions.includeCharts}
+                  onCheckedChange={(checked) => handleOptionChange('includeCharts', checked)}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Include Infographic</h4>
+                  <p className="text-sm text-muted-foreground">Create visual infographic layouts with AI design</p>
+                </div>
+                <Switch
+                  checked={designOptions.includeInfographic}
+                  onCheckedChange={(checked) => handleOptionChange('includeInfographic', checked)}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  Font Family
+                </label>
+                <Select 
+                  value={designOptions.fontFamily} 
+                  onValueChange={(value: any) => handleOptionChange('fontFamily', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="helvetica">Helvetica (Modern)</SelectItem>
+                    <SelectItem value="times">Times Roman (Academic)</SelectItem>
+                    <SelectItem value="courier">Courier (Monospace)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {designOptions.multiModelProcessing && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
+                  {[
+                    { name: 'Gemini 2.5-Flash', color: 'bg-blue-500' },
+                    { name: 'Visual AI', color: 'bg-green-500' },
+                    { name: 'Layout Optimizer', color: 'bg-purple-500' },
+                    { name: 'Chart Generator', color: 'bg-orange-500' },
+                    { name: 'Design AI', color: 'bg-pink-500' },
+                    { name: 'Font Optimizer', color: 'bg-cyan-500' }
+                  ].map((model, index) => (
+                    <div key={index} className="flex items-center space-x-2 p-2 bg-white dark:bg-gray-800 rounded-lg">
+                      <div className={`w-2 h-2 rounded-full ${model.color}`}></div>
+                      <span className="text-xs font-medium">{model.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Generate Button */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+        <CardContent className="p-6">
+          <Button
+            onClick={handleGeneratePDF}
+            disabled={isGenerating}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-4"
+            size="lg"
+          >
+            {isGenerating ? (
+              <>
+                <div className="w-5 h-5 mr-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Generating Enhanced PDF with {designOptions.multiModelProcessing ? '5+' : '1'} AI Models...
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5 mr-3" />
+                Generate {designOptions.multiModelProcessing ? 'Multi-Model' : 'Standard'} AI-Enhanced PDF
+              </>
+            )}
+          </Button>
+          
+          <div className="mt-4 text-center space-y-1">
+            <p className="text-sm text-muted-foreground">
+              PDF will include: {designOptions.includeVisualElements ? 'Visual Elements' : 'Text Only'} • 
+              {designOptions.includeCharts ? ' Charts' : ''} • 
+              {designOptions.includeInfographic ? ' Infographic' : ''} • 
+              {designOptions.multiModelProcessing ? ' Multi-Model AI' : ' Standard AI'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Estimated generation time: {designOptions.multiModelProcessing ? '15-30' : '5-10'} seconds
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
                   >
                     <h1 
                       className="text-2xl font-bold"

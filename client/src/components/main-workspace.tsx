@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ProcessingStatus } from "./processing-status";
 import { FileText, PaintbrushVertical, Eye, Clock, Lightbulb, List, GitBranch, CheckCircle } from "lucide-react";
 import type { Note, ProcessedNote } from "@shared/schema";
-import { PDFDesigner } from "./pdf-designer";
-import { AIPreview } from "./ai-preview";
+import { PDFDesignerEnhanced } from "./pdf-designer-enhanced";
+import { VisualPreview } from "./visual-preview";
 import logoImage from "../assets/notegpt-logo.png";
 
 interface MainWorkspaceProps {
@@ -400,7 +400,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
           </TabsContent>
 
           <TabsContent value="designer" className="p-3 sm:p-6">
-            <PDFDesigner 
+            <PDFDesignerEnhanced 
               note={processedContent}
               onGeneratePDF={handleGeneratePDF}
               isGenerating={isGeneratingPDF}
@@ -408,7 +408,17 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
           </TabsContent>
 
           <TabsContent value="preview" className="p-3 sm:p-6">
-            <AIPreview note={processedContent} />
+            <VisualPreview 
+              noteId={note.id}
+              processedContent={processedContent}
+              pdfOptions={{
+                designStyle: 'modern',
+                colorScheme: 'blue',
+                includeVisualElements: true,
+                includeCharts: true,
+                includeInfographic: true
+              }}
+            />
           </TabsContent>
         </Tabs>
       </Card>
