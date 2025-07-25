@@ -31,7 +31,14 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
     margins: [60],
     showPreview: true,
     multiModelProcessing: true,
-    fontFamily: 'helvetica' as 'helvetica' | 'times' | 'courier'
+    fontFamily: 'helvetica' as 'helvetica' | 'times' | 'courier',
+    includeIcons: true,
+    includeGradients: true,
+    includeShadows: true,
+    includePatterns: false,
+    interactiveElements: false,
+    customWatermark: '',
+    borderStyle: 'modern' as 'none' | 'simple' | 'modern' | 'decorative'
   });
 
   const colorSchemes = {
@@ -47,7 +54,10 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
     academic: { name: 'Academic', desc: 'Traditional academic paper style with formal typography' },
     modern: { name: 'Modern', desc: 'Clean, contemporary design with visual elements' },
     minimal: { name: 'Minimal', desc: 'Simple, distraction-free layout focused on content' },
-    colorful: { name: 'Colorful', desc: 'Vibrant design with rich colors and graphics' }
+    colorful: { name: 'Colorful', desc: 'Vibrant design with rich colors and graphics' },
+    executive: { name: 'Executive', desc: 'Professional business style with elegant gradients' },
+    creative: { name: 'Creative', desc: 'Artistic layout with patterns, icons, and dynamic colors' },
+    technical: { name: 'Technical', desc: 'Code-focused monospace design for technical content' }
   };
 
   const handleOptionChange = (key: string, value: any) => {
@@ -382,6 +392,30 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
                     <Switch
                       checked={designOptions.useEnhancedLayout}
                       onCheckedChange={(checked) => handleOptionChange('useEnhancedLayout', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Include Icons</label>
+                    <Switch
+                      checked={designOptions.includeIcons}
+                      onCheckedChange={(checked) => handleOptionChange('includeIcons', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Gradient Backgrounds</label>
+                    <Switch
+                      checked={designOptions.includeGradients}
+                      onCheckedChange={(checked) => handleOptionChange('includeGradients', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drop Shadows</label>
+                    <Switch
+                      checked={designOptions.includeShadows}
+                      onCheckedChange={(checked) => handleOptionChange('includeShadows', checked)}
                     />
                   </div>
                 </div>

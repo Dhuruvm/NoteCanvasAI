@@ -1,5 +1,6 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { generateVisualElements, generateInfographic, generateEnhancedTable } from './visual-ai';
+import { generateIconElements, generateGradientBackgrounds, generateAdvancedVisualElements } from './visual-enhancements';
 import { ProcessedNote } from '@shared/schema';
 
 export interface PDFGenerationOptions {
@@ -69,6 +70,8 @@ export async function generateEnhancedPDF(
   let visualElements: any = null;
   let infographicData: any = null;
   let tableData: any = null;
+  let iconData: any = null;
+  let gradientData: any = null;
 
   if (options.includeVisualElements) {
     console.log('Generating visual elements with multi-model AI...');
@@ -76,10 +79,17 @@ export async function generateEnhancedPDF(
       visualElements = await generateVisualElements(note);
       visualElementsCount = visualElements.visualElements?.length || 0;
       chartsCount = visualElements.charts?.length || 0;
-      aiModelsUsed.push('visual-ai-generator', 'chart-generator', 'huggingface-visual');
+      
+      // Generate icons and decorative elements
+      iconData = await generateIconElements(note);
+      gradientData = await generateGradientBackgrounds(options.designStyle, options.colorScheme);
+      
+      aiModelsUsed.push('visual-ai-generator', 'chart-generator', 'huggingface-visual', 'icon-generator', 'gradient-ai');
     } catch (error) {
       console.error('Visual elements generation failed:', error);
       visualElements = { charts: [], visualElements: [] };
+      iconData = { icons: [] };
+      gradientData = { gradients: [] };
     }
   }
 
@@ -110,15 +120,36 @@ export async function generateEnhancedPDF(
   // Title section with design style
   let yPosition = height - pageMargins.top;
   
-  // Header background based on design style
+  // Enhanced header with gradient background
   if (options.designStyle !== 'minimal') {
-    page1.drawRectangle({
-      x: 0,
-      y: yPosition - 80,
-      width: width,
-      height: 80,
-      color: colors.primary,
-    });
+    // Create gradient effect with multiple rectangles
+    for (let i = 0; i < 5; i++) {
+      const opacity = 0.8 - (i * 0.15);
+      const gradientColor = {
+        r: colors.primary.r * opacity,
+        g: colors.primary.g * opacity,
+        b: colors.primary.b * opacity
+      };
+      
+      page1.drawRectangle({
+        x: 0,
+        y: yPosition - 80 - (i * 2),
+        width: width,
+        height: 80 + (i * 4),
+        color: rgb(gradientColor.r, gradientColor.g, gradientColor.b),
+      });
+    }
+    
+    // Add decorative pattern
+    for (let x = 50; x < width - 50; x += 100) {
+      page1.drawCircle({
+        x: x,
+        y: yPosition - 40,
+        size: 3,
+        color: rgb(1, 1, 1),
+        opacity: 0.3,
+      });
+    }
   }
 
   // Title
@@ -196,16 +227,47 @@ export async function generateEnhancedPDF(
       yPosition = height - pageMargins.top;
     }
 
-    // Concept box for colorful/modern styles
+    // Enhanced concept boxes with gradients and icons
     if (options.designStyle === 'colorful' || options.designStyle === 'modern') {
-      page1.drawRectangle({
-        x: pageMargins.left - 5,
-        y: yPosition - 25,
-        width: width - pageMargins.left - pageMargins.right + 10,
-        height: 60,
-        color: rgb(0.95, 0.95, 0.98),
-        borderColor: colors.secondary,
-        borderWidth: 1,
+      // Create gradient background
+      const gradientSteps = 3;
+      for (let i = 0; i < gradientSteps; i++) {
+        const opacity = 0.15 - (i * 0.03);
+        const gradientY = yPosition - 25 - i;
+        
+        page1.drawRectangle({
+          x: pageMargins.left - 5 - i,
+          y: gradientY,
+          width: width - pageMargins.left - pageMargins.right + 10 + (i * 2),
+          height: 60 + (i * 2),
+          color: rgb(colors.secondary.r * opacity, colors.secondary.g * opacity, colors.secondary.b * opacity),
+        });
+      }
+      
+      // Add concept number circle
+      page1.drawCircle({
+        x: pageMargins.left + 15,
+        y: yPosition - 10,
+        size: 12,
+        color: colors.primary,
+      });
+      
+      page1.drawText((index + 1).toString(), {
+        x: pageMargins.left + 11,
+        y: yPosition - 15,
+        size: 10,
+        font: boldFont,
+        color: rgb(1, 1, 1),
+      });
+      
+      // Add concept icon
+      const iconSymbol = getConceptIcon(concept.title);
+      page1.drawText(iconSymbol, {
+        x: width - pageMargins.right - 30,
+        y: yPosition - 15,
+        size: 16,
+        font: font,
+        color: colors.accent,
       });
     }
 
