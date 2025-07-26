@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { InputPanel } from "@/components/input-panel";
 import { MainWorkspace } from "@/components/main-workspace";
+import { LandingPage } from "@/components/landing-page";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -14,6 +16,7 @@ export default function Home() {
   const [noteId, setNoteId] = useState<number | null>(null);
   const [mode, setMode] = useState<"study" | "calm" | "dark">("study");
   const [isGearOpen, setIsGearOpen] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [preferences, setPreferences] = useState({
     autoSave: true,
     visualEffects: true,
@@ -47,6 +50,11 @@ export default function Home() {
     }
   }, [mode]);
 
+  // Show landing page if no noteId and showLanding is true
+  if (showLanding && !noteId) {
+    return <LandingPage onGetStarted={() => setShowLanding(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Enhanced Header */}
@@ -63,13 +71,18 @@ export default function Home() {
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <div>
-                  <h1 className={`text-lg sm:text-xl font-bold ${mode === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
-                    NoteGPT
-                  </h1>
-                  <p className={`text-xs sm:text-sm ${mode === 'dark' ? 'text-gray-300' : 'text-gray-600'} hidden sm:block transition-colors duration-300`}>
-                    AI-Powered Note Generation
-                  </p>
+                <div className="flex items-center space-x-2">
+                  <div>
+                    <h1 className={`text-lg sm:text-xl font-bold ${mode === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
+                      NoteGPT
+                    </h1>
+                    <p className={`text-xs sm:text-sm ${mode === 'dark' ? 'text-gray-300' : 'text-gray-600'} hidden sm:block transition-colors duration-300`}>
+                      AI-Powered Note Generation
+                    </p>
+                  </div>
+                  <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                    BETA
+                  </Badge>
                 </div>
               </div>
             </div>
