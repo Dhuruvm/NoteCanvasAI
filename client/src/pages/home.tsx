@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, Sparkles, GraduationCap, Leaf, Moon, Settings, Palette, Eye, Layout } from "lucide-react";
-import logoImage from "@assets/notegpt-logo.png";
+import logoImage from "@assets/file_00000000fe2861f5a8308fe4bd6247b6_1753525054263.png";
 
 export default function Home() {
   const [noteId, setNoteId] = useState<number | null>(null);
@@ -71,16 +71,16 @@ export default function Home() {
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <div>
-                    <h1 className={`text-lg sm:text-xl font-bold ${mode === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300`}>
+                    <h1 className={`text-xl sm:text-2xl font-display font-bold ${mode === 'dark' ? 'text-white' : 'text-gray-900'} transition-colors duration-300 tracking-tight`}>
                       NoteGPT
                     </h1>
-                    <p className={`text-xs sm:text-sm ${mode === 'dark' ? 'text-gray-300' : 'text-gray-600'} hidden sm:block transition-colors duration-300`}>
+                    <p className={`text-sm sm:text-base font-body ${mode === 'dark' ? 'text-gray-300' : 'text-gray-600'} hidden sm:block transition-colors duration-300`}>
                       AI-Powered Note Generation
                     </p>
                   </div>
-                  <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                  <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm px-3 py-1 rounded-full font-heading font-bold shadow-lg">
                     BETA
                   </Badge>
                 </div>

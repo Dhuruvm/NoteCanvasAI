@@ -13,6 +13,12 @@ export default {
       '2xl': '1536px',
     },
     extend: {
+      fontFamily: {
+        display: ["Poppins", "Inter", "sans-serif"],
+        heading: ["Poppins", "Inter", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
