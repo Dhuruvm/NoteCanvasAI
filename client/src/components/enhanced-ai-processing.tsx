@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Brain, Zap, Target, Sparkles, CheckCircle, Clock, ArrowRight } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 
 interface EnhancedAIProcessingProps {
   content: string;

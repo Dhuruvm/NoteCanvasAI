@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaintbrushVertical, Eye, Download, Palette, Type, Layout, Sparkles, BarChart3, FileText } from "lucide-react";
 import type { ProcessedNote } from "@shared/schema";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
 
 interface PDFDesignerProps {
   note: ProcessedNote | null;
@@ -162,7 +163,7 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
                   onCheckedChange={(checked) => handleOptionChange('multiModelProcessing', checked)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-white">Generate Charts & Visualizations</h4>
@@ -173,7 +174,7 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
                   onCheckedChange={(checked) => handleOptionChange('includeCharts', checked)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-white">Create Infographic Layout</h4>
@@ -378,7 +379,7 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
                       onCheckedChange={(checked) => handleOptionChange('includeHeader', checked)}
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Include Footer</label>
                     <Switch
@@ -394,7 +395,7 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
                       onCheckedChange={(checked) => handleOptionChange('useEnhancedLayout', checked)}
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Include Icons</label>
                     <Switch
@@ -402,7 +403,7 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
                       onCheckedChange={(checked) => handleOptionChange('includeIcons', checked)}
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Gradient Backgrounds</label>
                     <Switch
@@ -410,7 +411,7 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
                       onCheckedChange={(checked) => handleOptionChange('includeGradients', checked)}
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Drop Shadows</label>
                     <Switch
@@ -419,7 +420,7 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
@@ -618,7 +619,7 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
               </>
             )}
           </Button>
-          
+
           <div className="mt-4 text-center space-y-2">
             <div className="flex items-center justify-center flex-wrap gap-2 text-sm text-muted-foreground">
               <span>PDF will include:</span>
