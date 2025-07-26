@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, Sparkles, GraduationCap, Leaf, Moon, Settings, Palette, Eye, Layout } from "lucide-react";
-import logoImage from "../assets/notegpt-logo.png";
+import logoImage from "@assets/notegpt-logo.png";
 
 export default function Home() {
   const [noteId, setNoteId] = useState<number | null>(null);
@@ -56,11 +56,11 @@ export default function Home() {
             {/* Logo and Title */}
             <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className={`relative w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg ${mode === 'study' ? 'bg-gradient-to-br from-blue-500 to-purple-600' : mode === 'calm' ? 'bg-gradient-to-br from-green-400 to-blue-500' : 'bg-gradient-to-br from-purple-500 to-pink-500'} p-1 transition-all duration-300`}>
+                <div className={`relative w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-lg bg-white p-1 transition-all duration-300`}>
                   <img 
                     src={logoImage} 
                     alt="NoteGPT" 
-                    className="w-full h-full object-contain filter brightness-0 invert"
+                    className="w-full h-full object-contain"
                   />
                 </div>
                 <div>
