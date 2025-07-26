@@ -5,7 +5,11 @@ import { summarizeContentWithGemini } from "./services/gemini";
 import { generateNotePDF, extractTextFromPDF } from "./services/pdf";
 import { generateAdvancedPDF } from "./services/advanced-pdf";
 import { processWithMultipleModels } from "./services/multi-model-ai";
-import { insertNoteSchema, insertTemplateSchema, type AISettings } from "@shared/schema";
+import { chatAIService } from "./services/chat-ai";
+import { 
+  insertNoteSchema, insertTemplateSchema, insertChatSessionSchema, 
+  insertChatMessageSchema, type AISettings, type ChatContext 
+} from "@shared/schema";
 import multer from "multer";
 import { z } from "zod";
 
@@ -345,6 +349,412 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid template data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  // ============= CHAT WITH PDF ROUTES =============
+
+  // Create a new chat session for a note
+  app.post("/api/notes/:noteId/chat", async (req, res) => {
+    try {
+      const noteId = parseInt(req.params.noteId);
+      if (isNaN(noteId)) {
+        return res.status(400).json({ error: "Invalid note ID" });
+      }
+
+      const note = await storage.getNote(noteId);
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      const { userId = "anonymous", difficulty = "intermediate", subject } = req.body;
+
+      // Create chat session
+      const session = await storage.createChatSession({
+        noteId,
+        userId,
+        title: `Chat: ${note.title}`,
+        difficulty,
+        subject: subject || "General Study"
+      });
+
+      // Generate predicted questions in background
+      if (note.processedContent && typeof note.processedContent === 'object') {
+        const content = note.originalContent;
+        try {
+          const predictions = await chatAIService.predictImportantQuestions(
+            content, 
+            subject, 
+            difficulty
+          );
+          
+          // Store predicted questions
+          for (const prediction of predictions) {
+            await storage.createPredictedQuestion({
+              noteId,
+              question: prediction.question,
+              answer: prediction.answer,
+              difficulty: prediction.difficulty,
+              topic: prediction.topic,
+              importance: prediction.importance,
+              sources: prediction.sources || []
+            });
+          }
+          
+          console.log(`Generated ${predictions.length} predicted questions for note ${noteId}`);
+        } catch (error) {
+          console.error("Failed to generate predicted questions:", error);
+        }
+      }
+
+      // Create welcome message
+      await storage.createChatMessage({
+        sessionId: session.id,
+        role: "assistant",
+        content: `Hello! I'm here to help you understand "${note.title}". I can answer questions, explain concepts, and quiz you on the content. What would you like to explore first?`,
+        messageType: "text",
+        metadata: { isWelcome: true }
+      });
+
+      res.json(session);
+    } catch (error) {
+      console.error("Create chat session error:", error);
+      res.status(500).json({ error: "Failed to create chat session" });
+    }
+  });
+
+  // Get chat sessions for a note
+  app.get("/api/notes/:noteId/chat", async (req, res) => {
+    try {
+      const noteId = parseInt(req.params.noteId);
+      if (isNaN(noteId)) {
+        return res.status(400).json({ error: "Invalid note ID" });
+      }
+
+      const sessions = await storage.getChatSessionsByNote(noteId);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Get chat sessions error:", error);
+      res.status(500).json({ error: "Failed to retrieve chat sessions" });
+    }
+  });
+
+  // Send message in chat session
+  app.post("/api/chat/:sessionId/message", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      if (isNaN(sessionId)) {
+        return res.status(400).json({ error: "Invalid session ID" });
+      }
+
+      const { content, userId = "anonymous" } = req.body;
+      if (!content || !content.trim()) {
+        return res.status(400).json({ error: "Message content is required" });
+      }
+
+      const session = await storage.getChatSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Chat session not found" });
+      }
+
+      const note = await storage.getNote(session.noteId);
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      // Save user message
+      const userMessage = await storage.createChatMessage({
+        sessionId,
+        role: "user",
+        content: content.trim(),
+        messageType: "text"
+      });
+
+      // Get chat history and user progress
+      const chatHistory = await storage.getRecentChatMessages(sessionId, 10);
+      
+      let userProgress = await storage.getUserProgress(userId, sessionId);
+      if (!userProgress) {
+        userProgress = await storage.createUserProgress({
+          userId,
+          sessionId,
+          totalQuestions: 0,
+          correctAnswers: 0,
+          currentStreak: 0,
+          bestStreak: 0,
+          points: 0,
+          level: 1,
+          badges: [],
+          penalties: 0
+        });
+      }
+
+      // Build context
+      const previousMessages = chatHistory.filter(msg => msg.messageType === "question");
+      const previousQuestions = previousMessages.map(msg => msg.content);
+
+      const context: ChatContext = {
+        noteContent: note.originalContent,
+        currentTopic: session.subject || "General",
+        userLevel: session.difficulty,
+        previousQuestions,
+        userProgress: {
+          correctAnswers: userProgress.correctAnswers,
+          totalQuestions: userProgress.totalQuestions,
+          currentStreak: userProgress.currentStreak,
+          points: userProgress.points,
+          level: userProgress.level
+        }
+      };
+
+      // Generate AI response
+      const aiResponse = await chatAIService.generateResponse(
+        content.trim(),
+        context,
+        chatHistory
+      );
+
+      // Save AI response
+      const assistantMessage = await storage.createChatMessage({
+        sessionId,
+        role: "assistant",
+        content: aiResponse.response,
+        messageType: aiResponse.messageType,
+        metadata: aiResponse.metadata
+      });
+
+      res.json({
+        userMessage,
+        assistantMessage,
+        context: {
+          currentStreak: userProgress.currentStreak,
+          points: userProgress.points,
+          level: userProgress.level
+        }
+      });
+
+    } catch (error) {
+      console.error("Send message error:", error);
+      res.status(500).json({ error: "Failed to process message" });
+    }
+  });
+
+  // Get messages for a chat session
+  app.get("/api/chat/:sessionId/messages", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      if (isNaN(sessionId)) {
+        return res.status(400).json({ error: "Invalid session ID" });
+      }
+
+      const messages = await storage.getChatMessagesBySession(sessionId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Get messages error:", error);
+      res.status(500).json({ error: "Failed to retrieve messages" });
+    }
+  });
+
+  // Generate quiz question
+  app.post("/api/chat/:sessionId/quiz", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      if (isNaN(sessionId)) {
+        return res.status(400).json({ error: "Invalid session ID" });
+      }
+
+      const { userId = "anonymous" } = req.body;
+
+      const session = await storage.getChatSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Chat session not found" });
+      }
+
+      const note = await storage.getNote(session.noteId);
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      // Get user progress
+      let userProgress = await storage.getUserProgress(userId, sessionId);
+      if (!userProgress) {
+        userProgress = await storage.createUserProgress({
+          userId,
+          sessionId,
+          totalQuestions: 0,
+          correctAnswers: 0,
+          currentStreak: 0,
+          bestStreak: 0,
+          points: 0,
+          level: 1,
+          badges: [],
+          penalties: 0
+        });
+      }
+
+      // Get previous questions
+      const chatHistory = await storage.getRecentChatMessages(sessionId, 20);
+      const previousQuestions = chatHistory
+        .filter(msg => msg.messageType === "quiz")
+        .map(msg => msg.content);
+
+      // Build context
+      const context: ChatContext = {
+        noteContent: note.originalContent,
+        currentTopic: session.subject || "General",
+        userLevel: session.difficulty,
+        previousQuestions,
+        userProgress: {
+          correctAnswers: userProgress.correctAnswers,
+          totalQuestions: userProgress.totalQuestions,
+          currentStreak: userProgress.currentStreak,
+          points: userProgress.points,
+          level: userProgress.level
+        }
+      };
+
+      // Generate quiz question
+      const quiz = await chatAIService.generateQuizQuestion(context, previousQuestions);
+
+      // Save quiz question
+      await storage.createChatMessage({
+        sessionId,
+        role: "assistant",
+        content: quiz.question,
+        messageType: "quiz",
+        metadata: {
+          options: quiz.options,
+          correctAnswer: quiz.correctAnswer,
+          explanation: quiz.explanation,
+          difficulty: quiz.difficulty,
+          topic: quiz.topic
+        }
+      });
+
+      res.json(quiz);
+
+    } catch (error) {
+      console.error("Generate quiz error:", error);
+      res.status(500).json({ error: "Failed to generate quiz question" });
+    }
+  });
+
+  // Submit quiz answer
+  app.post("/api/chat/:sessionId/quiz/answer", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      if (isNaN(sessionId)) {
+        return res.status(400).json({ error: "Invalid session ID" });
+      }
+
+      const { answer, correctAnswer, difficulty, timeTaken, userId = "anonymous" } = req.body;
+
+      const session = await storage.getChatSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Chat session not found" });
+      }
+
+      // Get current progress
+      let userProgress = await storage.getUserProgress(userId, sessionId);
+      if (!userProgress) {
+        userProgress = await storage.createUserProgress({
+          userId,
+          sessionId,
+          totalQuestions: 0,
+          correctAnswers: 0,
+          currentStreak: 0,
+          bestStreak: 0,
+          points: 0,
+          level: 1,
+          badges: [],
+          penalties: 0
+        });
+      }
+
+      const isCorrect = answer === correctAnswer;
+      
+      // Calculate rewards
+      const rewards = chatAIService.calculateRewards(
+        isCorrect,
+        difficulty || "medium",
+        userProgress.currentStreak,
+        timeTaken || 60,
+        userProgress.level
+      );
+
+      // Update progress
+      const newStreak = isCorrect ? userProgress.currentStreak + 1 : 0;
+      const newPoints = Math.max(0, userProgress.points + rewards.pointsEarned - rewards.penalties);
+      const newLevel = rewards.levelUp ? userProgress.level + 1 : userProgress.level;
+      const newBestStreak = Math.max(userProgress.bestStreak, newStreak);
+
+      const updatedProgress = await storage.updateUserProgress(userId, sessionId, {
+        totalQuestions: userProgress.totalQuestions + 1,
+        correctAnswers: isCorrect ? userProgress.correctAnswers + 1 : userProgress.correctAnswers,
+        currentStreak: newStreak,
+        bestStreak: newBestStreak,
+        points: newPoints,
+        level: newLevel,
+        badges: [...(userProgress.badges as string[] || []), ...rewards.newBadges],
+        penalties: userProgress.penalties + rewards.penalties
+      });
+
+      // Save user answer
+      await storage.createChatMessage({
+        sessionId,
+        role: "user",
+        content: answer,
+        messageType: "answer",
+        metadata: { 
+          isCorrect, 
+          timeTaken,
+          pointsEarned: rewards.pointsEarned,
+          penalties: rewards.penalties
+        }
+      });
+
+      res.json({
+        isCorrect,
+        rewards,
+        progress: updatedProgress,
+        encouragement: rewards.encouragement
+      });
+
+    } catch (error) {
+      console.error("Submit quiz answer error:", error);
+      res.status(500).json({ error: "Failed to submit quiz answer" });
+    }
+  });
+
+  // Get user progress
+  app.get("/api/chat/:sessionId/progress/:userId", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.sessionId);
+      const userId = req.params.userId;
+
+      if (isNaN(sessionId)) {
+        return res.status(400).json({ error: "Invalid session ID" });
+      }
+
+      const progress = await storage.getUserProgress(userId, sessionId);
+      if (!progress) {
+        // Return default progress
+        return res.json({
+          totalQuestions: 0,
+          correctAnswers: 0,
+          currentStreak: 0,
+          bestStreak: 0,
+          points: 0,
+          level: 1,
+          badges: [],
+          penalties: 0
+        });
+      }
+
+      res.json(progress);
+    } catch (error) {
+      console.error("Get progress error:", error);
+      res.status(500).json({ error: "Failed to retrieve progress" });
     }
   });
 

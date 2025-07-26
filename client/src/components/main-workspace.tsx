@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ProcessingStatus } from "./processing-status";
-import { FileText, PaintbrushVertical, Eye, Clock, Lightbulb, List, GitBranch, CheckCircle } from "lucide-react";
+import { FileText, PaintbrushVertical, Eye, Clock, Lightbulb, List, GitBranch, CheckCircle, MessageCircle } from "lucide-react";
 import type { Note, ProcessedNote } from "@shared/schema";
 import { PDFDesignerEnhanced } from "./pdf-designer-enhanced";
 import { VisualPreview } from "./visual-preview";
+import { ChatWithPDF } from "./chat-with-pdf";
 import logoImage from "../assets/notegpt-logo.png";
 
 interface MainWorkspaceProps {
@@ -168,6 +169,14 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
               >
                 <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 <span className="hidden xs:inline">AI Generated </span>Notes
+              </TabsTrigger>
+              <TabsTrigger
+                value="chat"
+                className="px-2 sm:px-4 py-3 sm:py-4 border-b-2 border-transparent data-[state=active]:border-primary text-sm whitespace-nowrap"
+                disabled={note.status !== "completed"}
+              >
+                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">Chat with </span>PDF
               </TabsTrigger>
               <TabsTrigger
                 value="designer"
@@ -394,6 +403,25 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                   {note.status === "processing" 
                     ? "Please wait while we generate your structured notes..."
                     : "There was an error processing your content. Please try again."}
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="chat" className="p-0">
+            {note.status === "completed" ? (
+              <ChatWithPDF 
+                noteId={note.id}
+                noteTitle={note.title}
+              />
+            ) : (
+              <div className="p-6 text-center">
+                <MessageCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Chat Available After Processing
+                </h3>
+                <p className="text-muted-foreground">
+                  Please wait for AI processing to complete before starting a chat session.
                 </p>
               </div>
             )}
