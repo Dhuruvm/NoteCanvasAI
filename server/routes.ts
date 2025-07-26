@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { summarizeContentWithGemini } from "./services/gemini";
 import { generateNotePDF, extractTextFromPDF } from "./services/pdf";
 import { generateAdvancedPDF } from "./services/advanced-pdf";
+import { generateEnhancedPDF } from "./services/pdf-generator";
 import { processWithMultipleModels } from "./services/multi-model-ai";
 import { chatAIService } from "./services/chat-ai";
 import { 
@@ -183,10 +184,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
 
+      // Cast note to ProcessedNote with required properties
+      const processedContent = note.processedContent as any || {};
+      const processedNote = {
+        ...note,
+        keyConcepts: processedContent.keyConcepts || [],
+        summaryPoints: processedContent.summaryPoints || [],
+        processFlow: processedContent.processFlow || [],
+        enhancedContent: processedContent.enhancedContent || '',
+        metadata: processedContent.metadata || { aiModelsUsed: ['Multi-Model AI'] }
+      } as any;
+
       // Use enhanced PDF generator with multi-model AI
-      const pdfResult = await generateAdvancedPDF(
-        note.processedContent as any,
-        JSON.stringify(options)
+      const pdfResult = await generateEnhancedPDF(
+        note,
+        note.originalContent || '',
+        {
+          designStyle: options.designStyle,
+          includeVisualElements: options.includeVisualElements,
+          useEnhancedLayout: options.useEnhancedLayout,
+          colorScheme: options.colorScheme
+        }
       );
       
       const pdfBuffer = Buffer.isBuffer(pdfResult) ? pdfResult : Buffer.from(pdfResult);

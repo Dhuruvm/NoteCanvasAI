@@ -115,6 +115,15 @@ async function createEnhancedPDF(
   let currentPage = pdfDoc.addPage([layout.pageSize.width, layout.pageSize.height]);
   let yPosition = layout.pageSize.height - layout.margins.top;
 
+  // Add background color to prevent blank pages
+  currentPage.drawRectangle({
+    x: 0,
+    y: 0,
+    width: layout.pageSize.width,
+    height: layout.pageSize.height,
+    color: rgb(0.98, 0.99, 1.0)
+  });
+
   // Add header with design styling
   yPosition = await addEnhancedHeader(currentPage, note.title, layout, boldFont, yPosition);
 
@@ -124,7 +133,12 @@ async function createEnhancedPDF(
   }
 
   // Add key concepts with visual styling
-  yPosition = await addEnhancedKeyConcepts(currentPage, note.keyConcepts, layout, boldFont, regularFont, yPosition);
+  if (note.keyConcepts && Array.isArray(note.keyConcepts) && note.keyConcepts.length > 0) {
+    yPosition = await addEnhancedKeyConcepts(currentPage, note.keyConcepts, layout, boldFont, regularFont, yPosition);
+  } else {
+    // Add basic content if no key concepts
+    yPosition = await addBasicContent(currentPage, note, layout, regularFont, yPosition);
+  }
 
   // Check if we need a new page
   if (yPosition < layout.margins.bottom + 200) {
@@ -133,7 +147,9 @@ async function createEnhancedPDF(
   }
 
   // Add summary points with enhanced formatting
-  yPosition = await addEnhancedSummaryPoints(currentPage, note.summaryPoints, layout, boldFont, regularFont, yPosition);
+  if (note.summaryPoints && Array.isArray(note.summaryPoints) && note.summaryPoints.length > 0) {
+    yPosition = await addEnhancedSummaryPoints(currentPage, note.summaryPoints, layout, boldFont, regularFont, yPosition);
+  }
 
   // Add process flow if available
   if (note.processFlow && note.processFlow.length > 0) {
@@ -374,6 +390,31 @@ async function addEnhancedSummaryPoints(
   return yPos;
 }
 
+async function addBasicContent(
+  page: any,
+  note: ProcessedNote,
+  layout: VisualLayoutDesign,
+  font: any,
+  yPos: number
+): Promise<number> {
+  // Add basic content as fallback
+  const content = note.enhancedContent || note.originalContent || 'No content available';
+  const wrappedContent = wrapText(content, layout.pageSize.width - layout.margins.left - layout.margins.right, font, 12);
+  
+  wrappedContent.forEach(line => {
+    page.drawText(line, {
+      x: layout.margins.left,
+      y: yPos,
+      size: 12,
+      font,
+      color: rgb(0.2, 0.2, 0.2)
+    });
+    yPos -= 15;
+  });
+
+  return yPos - 20;
+}
+
 async function addEnhancedProcessFlow(
   page: any,
   processFlow: any[],
@@ -593,12 +634,7 @@ function parseEnhancedSections(enhancedText: string, originalNote: ProcessedNote
   ];
 }
 
-function convertNoteToSections(note: ProcessedNote): any[] {
-  return [
-    { type: 'concepts', content: note.keyConcepts, enhanced: false },
-    { type: 'summary', content: note.summaryPoints, enhanced: false }
-  ];
-}
+
 
 function extractVisualElements(note: ProcessedNote, analysis: any): any[] {
   const elements = [];
