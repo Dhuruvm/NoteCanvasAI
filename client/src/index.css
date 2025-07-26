@@ -132,6 +132,136 @@
   filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.5));
 }
 
+/* Loading Page Animations */
+@keyframes flower-spin {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(90deg) scale(1.05); }
+  50% { transform: rotate(180deg) scale(1); }
+  75% { transform: rotate(270deg) scale(1.05); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes flower-bloom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes petal-1 {
+  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateX(-50%) translateY(-10px) scale(1.2); opacity: 1; }
+}
+
+@keyframes petal-2 {
+  0%, 100% { transform: translateX(0) translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateX(10px) translateY(-5px) scale(1.2); opacity: 1; }
+}
+
+@keyframes petal-3 {
+  0%, 100% { transform: translateX(0) translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateX(10px) translateY(5px) scale(1.2); opacity: 1; }
+}
+
+@keyframes petal-4 {
+  0%, 100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateX(-50%) translateY(10px) scale(1.2); opacity: 1; }
+}
+
+@keyframes petal-5 {
+  0%, 100% { transform: translateX(0) translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateX(-10px) translateY(5px) scale(1.2); opacity: 1; }
+}
+
+@keyframes petal-6 {
+  0%, 100% { transform: translateX(0) translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateX(-10px) translateY(-5px) scale(1.2); opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+@keyframes float-delay {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(-180deg); }
+}
+
+@keyframes float-delay-2 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-25px) rotate(180deg); }
+}
+
+.animate-flower-spin {
+  animation: flower-spin 4s ease-in-out infinite;
+}
+
+.animate-flower-bloom {
+  animation: flower-bloom 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 4s linear infinite;
+}
+
+.animate-petal-1 {
+  animation: petal-1 2s ease-in-out infinite;
+}
+
+.animate-petal-2 {
+  animation: petal-2 2.2s ease-in-out infinite;
+}
+
+.animate-petal-3 {
+  animation: petal-3 2.4s ease-in-out infinite;
+}
+
+.animate-petal-4 {
+  animation: petal-4 2.6s ease-in-out infinite;
+}
+
+.animate-petal-5 {
+  animation: petal-5 2.8s ease-in-out infinite;
+}
+
+.animate-petal-6 {
+  animation: petal-6 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-float-delay {
+  animation: float-delay 3s ease-in-out infinite 0.5s;
+}
+
+.animate-float-delay-2 {
+  animation: float-delay-2 3s ease-in-out infinite 1s;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(222, 84%, 5%);

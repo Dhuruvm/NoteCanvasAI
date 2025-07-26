@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { InputPanel } from "@/components/input-panel";
 import { MainWorkspace } from "@/components/main-workspace";
 import { LandingPage } from "@/components/landing-page";
+import { LoadingPage } from "@/components/loading-page";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ export default function Home() {
   const [mode, setMode] = useState<"study" | "calm" | "dark">("study");
   const [isGearOpen, setIsGearOpen] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [preferences, setPreferences] = useState({
     autoSave: true,
     visualEffects: true,
@@ -49,6 +51,11 @@ export default function Home() {
         break;
     }
   }, [mode]);
+
+  // Show loading page initially
+  if (isLoading) {
+    return <LoadingPage onComplete={() => setIsLoading(false)} />;
+  }
 
   // Show landing page if no noteId and showLanding is true
   if (showLanding && !noteId) {
