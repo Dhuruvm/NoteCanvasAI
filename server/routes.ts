@@ -144,7 +144,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate PDF endpoint with multi-model AI
   app.post("/api/notes/:id/generate-pdf", async (req, res) => {
     try {
-      const noteId = req.params.id;
+      const noteId = parseInt(req.params.id);
+      if (isNaN(noteId)) {
+        return res.status(400).json({ error: "Invalid note ID" });
+      }
       const note = await storage.getNote(noteId);
 
       if (!note) {
@@ -177,10 +180,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Use enhanced PDF generator with multi-model AI
-      const { buffer: pdfBuffer, metadata } = await generateAdvancedPDF(
+      const pdfResult = await generateAdvancedPDF(
         note.processedContent as any,
-        options
+        JSON.stringify(options)
       );
+      
+      const pdfBuffer = Buffer.isBuffer(pdfResult) ? pdfResult : Buffer.from(pdfResult);
+      const metadata = (pdfResult as any).metadata || {};
 
       if (!pdfBuffer || pdfBuffer.length === 0) {
         throw new Error("Generated PDF buffer is empty");
@@ -211,7 +217,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auto-generate PDF endpoint
   app.post("/api/notes/:id/auto-generate-pdf", async (req, res) => {
     try {
-      const noteId = req.params.id;
+      const noteId = parseInt(req.params.id);
+      if (isNaN(noteId)) {
+        return res.status(400).json({ error: "Invalid note ID" });
+      }
       const note = await storage.getNote(noteId);
 
       if (!note) {
@@ -238,10 +247,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pageMargins: { top: 60, right: 60, bottom: 60, left: 60 }
       };
 
-      const { buffer: pdfBuffer, metadata } = await generateAdvancedPDF(
+      const pdfResult = await generateAdvancedPDF(
         note.processedContent as any,
-        autoOptions
+        JSON.stringify(autoOptions)
       );
+      
+      const pdfBuffer = Buffer.isBuffer(pdfResult) ? pdfResult : Buffer.from(pdfResult);
+      const metadata = (pdfResult as any).metadata || {};
 
       console.log(`Auto-generated PDF completed:`, metadata);
 
