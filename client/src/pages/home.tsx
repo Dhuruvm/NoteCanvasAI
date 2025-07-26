@@ -273,21 +273,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Floating Background Elements */}
-        {preferences.visualEffects && (
-          <div className="fixed inset-0 pointer-events-none overflow-hidden">
-            <div className={`absolute top-20 right-20 w-64 h-64 rounded-full opacity-10 ${
-              mode === 'study' ? 'bg-gradient-to-r from-blue-400 to-purple-400' :
-              mode === 'calm' ? 'bg-gradient-to-r from-green-400 to-blue-400' :
-              'bg-gradient-to-r from-purple-400 to-pink-400'
-            } animate-pulse-subtle`}></div>
-            <div className={`absolute bottom-20 left-20 w-48 h-48 rounded-full opacity-10 ${
-              mode === 'study' ? 'bg-gradient-to-r from-purple-400 to-blue-400' :
-              mode === 'calm' ? 'bg-gradient-to-r from-blue-400 to-green-400' :
-              'bg-gradient-to-r from-pink-400 to-purple-400'
-            } animate-pulse-subtle`} style={{ animationDelay: '1s' }}></div>
-          </div>
-        )}
+        
       </div>
     </div>
   );
