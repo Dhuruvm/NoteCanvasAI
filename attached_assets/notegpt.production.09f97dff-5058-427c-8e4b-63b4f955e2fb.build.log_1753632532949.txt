@@ -1,0 +1,125 @@
+2025-07-27T16:01:08.878Z	Initializing build environment...
+2025-07-27T16:01:21.106Z	Success: Finished initializing build environment
+2025-07-27T16:01:21.973Z	Cloning repository...
+2025-07-27T16:01:23.620Z	Restoring from dependencies cache
+2025-07-27T16:01:23.624Z	Restoring from build output cache
+2025-07-27T16:01:23.632Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2025-07-27T16:01:24.810Z	Installing project dependencies: npm clean-install --progress=false
+2025-07-27T16:01:32.532Z	npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2025-07-27T16:01:32.587Z	npm warn deprecated gm@1.25.1: The gm module has been sunset. Please migrate to an alternative. https://github.com/aheckmann/gm?tab=readme-ov-file#2025-02-24-this-project-is-not-maintained
+2025-07-27T16:01:35.185Z	npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2025-07-27T16:01:35.353Z	npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2025-07-27T16:01:49.024Z	
+2025-07-27T16:01:49.024Z	added 626 packages, and audited 627 packages in 24s
+2025-07-27T16:01:49.024Z	
+2025-07-27T16:01:49.025Z	78 packages are looking for funding
+2025-07-27T16:01:49.025Z	  run `npm fund` for details
+2025-07-27T16:01:49.061Z	
+2025-07-27T16:01:49.062Z	5 moderate severity vulnerabilities
+2025-07-27T16:01:49.062Z	
+2025-07-27T16:01:49.062Z	To address all issues (including breaking changes), run:
+2025-07-27T16:01:49.063Z	  npm audit fix --force
+2025-07-27T16:01:49.063Z	
+2025-07-27T16:01:49.063Z	Run `npm audit` for details.
+2025-07-27T16:01:49.171Z	Executing user build command: npm run build 
+2025-07-27T16:01:49.502Z	
+2025-07-27T16:01:49.503Z	> rest-express@1.0.0 build
+2025-07-27T16:01:49.503Z	> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+2025-07-27T16:01:49.503Z	
+2025-07-27T16:01:49.866Z	vite v5.4.19 building for production...
+2025-07-27T16:01:49.941Z	transforming...
+2025-07-27T16:01:58.745Z	✓ 2534 modules transformed.
+2025-07-27T16:01:59.674Z	rendering chunks...
+2025-07-27T16:01:59.697Z	computing gzip size...
+2025-07-27T16:01:59.733Z	../dist/public/index.html                                                                   0.63 kB │ gzip:   0.38 kB
+2025-07-27T16:01:59.733Z	../dist/public/assets/file_00000000fe2861f5a8308fe4bd6247b6_1753525054263-UmWc1L6o.png  1,171.89 kB
+2025-07-27T16:01:59.733Z	../dist/public/assets/index-BFnmP4Ek.css                                                  114.48 kB │ gzip:  17.98 kB
+2025-07-27T16:01:59.733Z	../dist/public/assets/index-CKCd9JjH.js                                                   889.12 kB │ gzip: 254.65 kB
+2025-07-27T16:01:59.734Z	
+2025-07-27T16:01:59.734Z	(!) Some chunks are larger than 500 kB after minification. Consider:
+2025-07-27T16:01:59.734Z	- Using dynamic import() to code-split the application
+2025-07-27T16:01:59.735Z	- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-07-27T16:01:59.735Z	- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-07-27T16:01:59.735Z	✓ built in 9.83s
+2025-07-27T16:01:59.822Z	
+2025-07-27T16:01:59.823Z	  dist/index.js  106.7kb
+2025-07-27T16:01:59.823Z	
+2025-07-27T16:01:59.823Z	⚡ Done in 14ms
+2025-07-27T16:01:59.836Z	Success: Build command completed
+2025-07-27T16:01:59.837Z	Executing user deploy command: npx wrangler deploy
+2025-07-27T16:02:13.615Z	npm warn exec The following package was not found and will be installed: wrangler@4.26.0
+2025-07-27T16:02:36.730Z	
+2025-07-27T16:02:36.731Z	 ⛅️ wrangler 4.26.0
+2025-07-27T16:02:36.731Z	───────────────────
+2025-07-27T16:02:36.843Z	▲ [WARNING] Multiple environments are defined in the Wrangler configuration file, but no target environment was specified for the deploy command.
+2025-07-27T16:02:36.844Z	
+2025-07-27T16:02:36.844Z	  To avoid unintentional changes to the wrong environment, it is recommended to explicitly specify the target environment using the `-e|--env` flag.
+2025-07-27T16:02:36.844Z	  If your intention is to use the top-level environment of your configuration simply pass an empty string to the flag to target such environment. For example `--env=""`.
+2025-07-27T16:02:36.846Z	
+2025-07-27T16:02:36.846Z	
+2025-07-27T16:02:36.850Z	[custom build] Running: npm run build && npx esbuild server/worker.ts --platform=neutral --packages=external --bundle --format=esm --outfile=dist/worker.js --define:import.meta.dirname='"./"'
+2025-07-27T16:02:37.086Z	[custom build] 
+2025-07-27T16:02:37.086Z	[custom build] > rest-express@1.0.0 build
+2025-07-27T16:02:37.087Z	[custom build] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+2025-07-27T16:02:37.087Z	[custom build] 
+2025-07-27T16:02:37.087Z	[custom build] 
+2025-07-27T16:02:37.440Z	[custom build] vite v5.4.19 building for production...
+2025-07-27T16:02:37.442Z	[custom build] 
+2025-07-27T16:02:37.537Z	[custom build] transforming...
+2025-07-27T16:02:37.538Z	[custom build] 
+2025-07-27T16:02:46.339Z	[custom build] ✓ 2534 modules transformed.
+2025-07-27T16:02:46.340Z	[custom build] 
+2025-07-27T16:02:47.350Z	[custom build] rendering chunks...
+2025-07-27T16:02:47.352Z	[custom build] 
+2025-07-27T16:02:47.377Z	[custom build] computing gzip size...
+2025-07-27T16:02:47.380Z	[custom build] 
+2025-07-27T16:02:47.415Z	[custom build] ../dist/public/index.html                                                                   0.63 kB │ gzip:   0.38 kB
+2025-07-27T16:02:47.416Z	[custom build] ../dist/public/assets/file_00000000fe2861f5a8308fe4bd6247b6_1753525054263-UmWc1L6o.png  1,171.89 kB
+2025-07-27T16:02:47.417Z	[custom build] 
+2025-07-27T16:02:47.422Z	[custom build] ../dist/public/assets/index-BFnmP4Ek.css                                                  114.48 kB │ gzip:  17.98 kB
+2025-07-27T16:02:47.422Z	[custom build] ../dist/public/assets/index-CKCd9JjH.js                                                   889.12 kB │ gzip: 254.65 kB
+2025-07-27T16:02:47.426Z	[custom build] ✓ built in 9.93s
+2025-07-27T16:02:47.426Z	[custom build] 
+2025-07-27T16:02:47.426Z	[custom build] 
+2025-07-27T16:02:47.427Z	[custom build] (!) Some chunks are larger than 500 kB after minification. Consider:
+2025-07-27T16:02:47.428Z	[custom build] - Using dynamic import() to code-split the application
+2025-07-27T16:02:47.428Z	[custom build] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-07-27T16:02:47.428Z	[custom build] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-07-27T16:02:47.428Z	[custom build] 
+2025-07-27T16:02:47.537Z	[custom build] 
+2025-07-27T16:02:47.538Z	[custom build]   dist/index.js  106.7kb
+2025-07-27T16:02:47.538Z	[custom build] 
+2025-07-27T16:02:47.542Z	[custom build] ⚡ Done in 16ms
+2025-07-27T16:02:47.542Z	[custom build] 
+2025-07-27T16:02:47.989Z	[custom build] 
+2025-07-27T16:02:47.991Z	[custom build]   dist/worker.js  105.0kb
+2025-07-27T16:02:47.991Z	[custom build] 
+2025-07-27T16:02:47.992Z	[custom build] ⚡ Done in 12ms
+2025-07-27T16:02:47.992Z	[custom build] 
+2025-07-27T16:02:51.474Z	Total Upload: 3764.76 KiB / gzip: 795.20 KiB
+2025-07-27T16:02:54.858Z	Your Worker has access to the following bindings:
+2025-07-27T16:02:54.860Z	Binding                          Resource                  
+2025-07-27T16:02:54.860Z	env.NODE_ENV ("production")      Environment Variable      
+2025-07-27T16:02:54.860Z	
+2025-07-27T16:02:55.051Z	
+2025-07-27T16:02:55.052Z	✘ [ERROR] A request to the Cloudflare API (/accounts/b082b51c1ce7577c1ff8d8fdf3d4f641/workers/scripts/notegpt/versions) failed.
+2025-07-27T16:02:55.052Z	
+2025-07-27T16:02:55.052Z	  Uncaught TypeError: (init_debug(...) , __toCommonJS(...)) is not a function
+2025-07-27T16:02:55.052Z	    at null.<anonymous> (file:///opt/buildhome/repo/node_modules/finalhandler/index.js:14:13) in node_modules/finalhandler/index.js
+2025-07-27T16:02:55.053Z	    at null.<anonymous> (worker.js:18:50) in __require2
+2025-07-27T16:02:55.053Z	    at null.<anonymous> (file:///opt/buildhome/repo/node_modules/express/lib/application.js:16:20) in node_modules/express/lib/application.js
+2025-07-27T16:02:55.053Z	    at null.<anonymous> (worker.js:18:50) in __require2
+2025-07-27T16:02:55.053Z	    at null.<anonymous> (file:///opt/buildhome/repo/node_modules/express/lib/express.js:18:13) in node_modules/express/lib/express.js
+2025-07-27T16:02:55.054Z	    at null.<anonymous> (worker.js:18:50) in __require2
+2025-07-27T16:02:55.054Z	    at null.<anonymous> (file:///opt/buildhome/repo/node_modules/express/index.js:11:18) in node_modules/express/index.js
+2025-07-27T16:02:55.054Z	    at null.<anonymous> (worker.js:18:50) in __require2
+2025-07-27T16:02:55.054Z	    at null.<anonymous> (file:///opt/buildhome/repo/dist/worker.js:2:21)
+2025-07-27T16:02:55.054Z	   [code: 10021]
+2025-07-27T16:02:55.054Z	
+2025-07-27T16:02:55.055Z	  
+2025-07-27T16:02:55.055Z	  If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
+2025-07-27T16:02:55.055Z	
+2025-07-27T16:02:55.055Z	
+2025-07-27T16:02:55.055Z	
+2025-07-27T16:02:55.055Z	Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2025-07-27T16:02:55.158Z	Failed: error occurred while running deploy command
