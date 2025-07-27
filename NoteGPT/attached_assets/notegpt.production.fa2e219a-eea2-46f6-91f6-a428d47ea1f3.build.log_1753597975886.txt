@@ -1,0 +1,90 @@
+2025-07-27T06:31:00.461Z	Initializing build environment...
+2025-07-27T06:31:08.550Z	Success: Finished initializing build environment
+2025-07-27T06:31:09.261Z	Cloning repository...
+2025-07-27T06:31:10.329Z	Restoring from dependencies cache
+2025-07-27T06:31:10.333Z	Restoring from build output cache
+2025-07-27T06:31:10.339Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2025-07-27T06:31:10.866Z	Installing project dependencies: npm clean-install --progress=false
+2025-07-27T06:31:18.044Z	npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2025-07-27T06:31:18.172Z	npm warn deprecated gm@1.25.1: The gm module has been sunset. Please migrate to an alternative. https://github.com/aheckmann/gm?tab=readme-ov-file#2025-02-24-this-project-is-not-maintained
+2025-07-27T06:31:19.399Z	npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2025-07-27T06:31:19.430Z	npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2025-07-27T06:31:35.828Z	
+2025-07-27T06:31:35.829Z	added 634 packages, and audited 635 packages in 24s
+2025-07-27T06:31:35.829Z	
+2025-07-27T06:31:35.830Z	80 packages are looking for funding
+2025-07-27T06:31:35.830Z	  run `npm fund` for details
+2025-07-27T06:31:35.859Z	
+2025-07-27T06:31:35.859Z	5 moderate severity vulnerabilities
+2025-07-27T06:31:35.859Z	
+2025-07-27T06:31:35.859Z	To address all issues (including breaking changes), run:
+2025-07-27T06:31:35.859Z	  npm audit fix --force
+2025-07-27T06:31:35.860Z	
+2025-07-27T06:31:35.860Z	Run `npm audit` for details.
+2025-07-27T06:31:35.951Z	Executing user build command: npm run build 
+2025-07-27T06:31:36.209Z	
+2025-07-27T06:31:36.210Z	> rest-express@1.0.0 build
+2025-07-27T06:31:36.210Z	> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+2025-07-27T06:31:36.210Z	
+2025-07-27T06:31:36.501Z	vite v5.4.19 building for production...
+2025-07-27T06:31:36.577Z	transforming...
+2025-07-27T06:31:44.924Z	✓ 2534 modules transformed.
+2025-07-27T06:31:45.565Z	rendering chunks...
+2025-07-27T06:31:45.587Z	computing gzip size...
+2025-07-27T06:31:47.139Z	../dist/public/index.html                                                                   0.63 kB │ gzip:   0.38 kB
+2025-07-27T06:31:47.140Z	../dist/public/assets/file_00000000fe2861f5a8308fe4bd6247b6_1753525054263-UmWc1L6o.png  1,171.89 kB
+2025-07-27T06:31:47.140Z	../dist/public/assets/index-BFnmP4Ek.css                                                  114.48 kB │ gzip:  17.98 kB
+2025-07-27T06:31:47.140Z	../dist/public/assets/index-BjmPeJiX.js                                                   890.19 kB │ gzip: 254.82 kB
+2025-07-27T06:31:47.142Z	✓ built in 10.61s
+2025-07-27T06:31:47.143Z	
+2025-07-27T06:31:47.143Z	(!) Some chunks are larger than 500 kB after minification. Consider:
+2025-07-27T06:31:47.143Z	- Using dynamic import() to code-split the application
+2025-07-27T06:31:47.143Z	- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-07-27T06:31:47.143Z	- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-07-27T06:31:47.220Z	
+2025-07-27T06:31:47.220Z	  dist/index.js  106.7kb
+2025-07-27T06:31:47.220Z	
+2025-07-27T06:31:47.220Z	⚡ Done in 12ms
+2025-07-27T06:31:47.233Z	Success: Build command completed
+2025-07-27T06:31:47.233Z	Executing user deploy command: npx wrangler deploy
+2025-07-27T06:31:48.517Z	npm warn exec The following package was not found and will be installed: wrangler@4.26.0
+2025-07-27T06:31:58.463Z	
+2025-07-27T06:31:58.463Z	 ⛅️ wrangler 4.26.0
+2025-07-27T06:31:58.464Z	───────────────────
+2025-07-27T06:31:58.469Z	
+2025-07-27T06:31:58.553Z	✘ [ERROR] Missing entry-point to Worker script or to assets directory
+2025-07-27T06:31:58.553Z	
+2025-07-27T06:31:58.553Z	  
+2025-07-27T06:31:58.553Z	  If there is code to deploy, you can either:
+2025-07-27T06:31:58.557Z	  - Specify an entry-point to your Worker script via the command line (ex: `npx wrangler deploy src/index.ts`)
+2025-07-27T06:31:58.561Z	  - Or create a "wrangler.jsonc" file containing:
+2025-07-27T06:31:58.561Z	  
+2025-07-27T06:31:58.562Z	  ```
+2025-07-27T06:31:58.562Z	  {
+2025-07-27T06:31:58.562Z	    "name": "worker-name",
+2025-07-27T06:31:58.563Z	    "compatibility_date": "2025-07-27",
+2025-07-27T06:31:58.563Z	    "main": "src/index.ts"
+2025-07-27T06:31:58.563Z	  }
+2025-07-27T06:31:58.564Z	  ```
+2025-07-27T06:31:58.564Z	  
+2025-07-27T06:31:58.569Z	  
+2025-07-27T06:31:58.570Z	  If are uploading a directory of assets, you can either:
+2025-07-27T06:31:58.570Z	  - Specify the path to the directory of assets via the command line: (ex: `npx wrangler deploy --assets=./dist`)
+2025-07-27T06:31:58.570Z	  - Or create a "wrangler.jsonc" file containing:
+2025-07-27T06:31:58.571Z	  
+2025-07-27T06:31:58.571Z	  ```
+2025-07-27T06:31:58.571Z	  {
+2025-07-27T06:31:58.572Z	    "name": "worker-name",
+2025-07-27T06:31:58.573Z	    "compatibility_date": "2025-07-27",
+2025-07-27T06:31:58.576Z	    "assets": {
+2025-07-27T06:31:58.579Z	      "directory": "./dist"
+2025-07-27T06:31:58.580Z	    }
+2025-07-27T06:31:58.580Z	  }
+2025-07-27T06:31:58.580Z	  ```
+2025-07-27T06:31:58.581Z	  
+2025-07-27T06:31:58.581Z	
+2025-07-27T06:31:58.581Z	
+2025-07-27T06:31:58.588Z	
+2025-07-27T06:31:58.588Z	Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2025-07-27T06:31:58.590Z	🪵  Logs were written to "/opt/buildhome/.config/.wrangler/logs/wrangler-2025-07-27_06-31-57_754.log"
+2025-07-27T06:31:58.739Z	Failed: error occurred while running deploy command
