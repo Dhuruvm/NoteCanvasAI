@@ -11,7 +11,7 @@ name = "notegpt-production"
 
 [[env.production.routes]]
 pattern = "*"
-zone_name = "deadmad.site"
+zone_name = "your-domain.com"
 
 [env.staging]
 name = "notegpt-staging"
