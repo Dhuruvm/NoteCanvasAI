@@ -1,29 +1,33 @@
-
 name = "notegpt"
 main = "dist/index.js"
 compatibility_date = "2024-01-01"
-node_compat = true
+compatibility_flags = ["nodejs_compat"]
 
 [build]
 command = "npm run build"
+
+[env.production]
+name = "notegpt-production"
 
 [[env.production.routes]]
 pattern = "*"
 zone_name = "your-domain.com"
 
-[env.production]
-name = "notegpt-production"
-
 [env.staging]
 name = "notegpt-staging"
 
-# Environment variables (add your actual values)
 [vars]
 NODE_ENV = "production"
 PORT = "8787"
 
-# KV namespaces for storage (optional)
+# KV Namespaces (uncomment and configure if needed)
 # [[kv_namespaces]]
 # binding = "NOTES_KV"
 # id = "your-kv-namespace-id"
 # preview_id = "your-preview-kv-namespace-id"
+
+# R2 Buckets (optional)
+# [[r2_buckets]]
+# binding = "ASSETS"
+# bucket_name = "assets"
+# preview_bucket_name = "assets-preview"
