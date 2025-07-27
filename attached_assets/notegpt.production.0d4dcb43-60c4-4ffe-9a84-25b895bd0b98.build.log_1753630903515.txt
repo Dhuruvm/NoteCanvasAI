@@ -1,0 +1,254 @@
+2025-07-27T15:38:06.066Z	Initializing build environment...
+2025-07-27T15:38:06.066Z	Initializing build environment...
+2025-07-27T15:38:12.481Z	Success: Finished initializing build environment
+2025-07-27T15:38:13.408Z	Cloning repository...
+2025-07-27T15:38:14.765Z	Restoring from dependencies cache
+2025-07-27T15:38:14.767Z	Restoring from build output cache
+2025-07-27T15:38:14.769Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+2025-07-27T15:38:15.369Z	Installing project dependencies: npm clean-install --progress=false
+2025-07-27T15:38:20.584Z	npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+2025-07-27T15:38:20.605Z	npm warn deprecated gm@1.25.1: The gm module has been sunset. Please migrate to an alternative. https://github.com/aheckmann/gm?tab=readme-ov-file#2025-02-24-this-project-is-not-maintained
+2025-07-27T15:38:24.917Z	npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2025-07-27T15:38:24.954Z	npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2025-07-27T15:38:40.407Z	
+2025-07-27T15:38:40.407Z	added 624 packages, and audited 625 packages in 25s
+2025-07-27T15:38:40.407Z	
+2025-07-27T15:38:40.407Z	78 packages are looking for funding
+2025-07-27T15:38:40.407Z	  run `npm fund` for details
+2025-07-27T15:38:40.423Z	
+2025-07-27T15:38:40.423Z	5 moderate severity vulnerabilities
+2025-07-27T15:38:40.423Z	
+2025-07-27T15:38:40.424Z	To address all issues (including breaking changes), run:
+2025-07-27T15:38:40.424Z	  npm audit fix --force
+2025-07-27T15:38:40.424Z	
+2025-07-27T15:38:40.424Z	Run `npm audit` for details.
+2025-07-27T15:38:40.491Z	Executing user build command: npm run build 
+2025-07-27T15:38:40.679Z	
+2025-07-27T15:38:40.681Z	> rest-express@1.0.0 build
+2025-07-27T15:38:40.681Z	> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+2025-07-27T15:38:40.681Z	
+2025-07-27T15:38:40.879Z	vite v5.4.19 building for production...
+2025-07-27T15:38:40.937Z	transforming...
+2025-07-27T15:38:45.587Z	✓ 2534 modules transformed.
+2025-07-27T15:38:46.213Z	rendering chunks...
+2025-07-27T15:38:46.230Z	computing gzip size...
+2025-07-27T15:38:46.260Z	../dist/public/index.html                                                                   0.63 kB │ gzip:   0.38 kB
+2025-07-27T15:38:46.261Z	../dist/public/assets/file_00000000fe2861f5a8308fe4bd6247b6_1753525054263-UmWc1L6o.png  1,171.89 kB
+2025-07-27T15:38:46.261Z	../dist/public/assets/index-BFnmP4Ek.css                                                  114.48 kB │ gzip:  17.98 kB
+2025-07-27T15:38:46.261Z	../dist/public/assets/index-CKCd9JjH.js                                                   889.12 kB │ gzip: 254.65 kB
+2025-07-27T15:38:46.261Z	✓ built in 5.36s
+2025-07-27T15:38:46.262Z	
+2025-07-27T15:38:46.262Z	(!) Some chunks are larger than 500 kB after minification. Consider:
+2025-07-27T15:38:46.262Z	- Using dynamic import() to code-split the application
+2025-07-27T15:38:46.262Z	- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-07-27T15:38:46.262Z	- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-07-27T15:38:46.326Z	
+2025-07-27T15:38:46.326Z	  dist/index.js  106.7kb
+2025-07-27T15:38:46.326Z	
+2025-07-27T15:38:46.326Z	⚡ Done in 8ms
+2025-07-27T15:38:46.333Z	Success: Build command completed
+2025-07-27T15:38:46.334Z	Executing user deploy command: npx wrangler deploy
+2025-07-27T15:38:47.203Z	npm warn exec The following package was not found and will be installed: wrangler@4.26.0
+2025-07-27T15:39:25.455Z	
+2025-07-27T15:39:25.455Z	 ⛅️ wrangler 4.26.0
+2025-07-27T15:39:25.456Z	───────────────────
+2025-07-27T15:39:25.527Z	▲ [WARNING] Multiple environments are defined in the Wrangler configuration file, but no target environment was specified for the deploy command.
+2025-07-27T15:39:25.527Z	
+2025-07-27T15:39:25.527Z	  To avoid unintentional changes to the wrong environment, it is recommended to explicitly specify the target environment using the `-e|--env` flag.
+2025-07-27T15:39:25.527Z	  If your intention is to use the top-level environment of your configuration simply pass an empty string to the flag to target such environment. For example `--env=""`.
+2025-07-27T15:39:25.527Z	
+2025-07-27T15:39:25.527Z	
+2025-07-27T15:39:25.527Z	[custom build] Running: npm run build
+2025-07-27T15:39:25.673Z	[custom build] 
+2025-07-27T15:39:25.674Z	[custom build] > rest-express@1.0.0 build
+2025-07-27T15:39:25.674Z	[custom build] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+2025-07-27T15:39:25.674Z	[custom build] 
+2025-07-27T15:39:25.674Z	[custom build] 
+2025-07-27T15:39:25.898Z	[custom build] vite v5.4.19 building for production...
+2025-07-27T15:39:25.898Z	[custom build] 
+2025-07-27T15:39:25.959Z	[custom build] transforming...
+2025-07-27T15:39:25.960Z	[custom build] 
+2025-07-27T15:39:31.102Z	[custom build] ✓ 2534 modules transformed.
+2025-07-27T15:39:31.102Z	[custom build] 
+2025-07-27T15:39:31.688Z	[custom build] rendering chunks...
+2025-07-27T15:39:31.688Z	[custom build] 
+2025-07-27T15:39:31.700Z	[custom build] computing gzip size...
+2025-07-27T15:39:31.700Z	[custom build] 
+2025-07-27T15:39:31.723Z	[custom build] ../dist/public/index.html                                                                   0.63 kB │ gzip:   0.38 kB
+2025-07-27T15:39:31.723Z	[custom build] 
+2025-07-27T15:39:31.723Z	[custom build] ../dist/public/assets/file_00000000fe2861f5a8308fe4bd6247b6_1753525054263-UmWc1L6o.png  1,171.89 kB
+2025-07-27T15:39:31.724Z	[custom build] ../dist/public/assets/index-BFnmP4Ek.css                                                  114.48 kB │ gzip:  17.98 kB
+2025-07-27T15:39:31.727Z	[custom build] ../dist/public/assets/index-CKCd9JjH.js                                                   889.12 kB │ gzip: 254.65 kB
+2025-07-27T15:39:31.727Z	[custom build] 
+2025-07-27T15:39:31.727Z	[custom build] ✓ built in 5.80s
+2025-07-27T15:39:31.727Z	[custom build] 
+2025-07-27T15:39:31.728Z	[custom build] 
+2025-07-27T15:39:31.728Z	[custom build] (!) Some chunks are larger than 500 kB after minification. Consider:
+2025-07-27T15:39:31.728Z	[custom build] - Using dynamic import() to code-split the application
+2025-07-27T15:39:31.728Z	[custom build] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-07-27T15:39:31.728Z	[custom build] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-07-27T15:39:31.728Z	[custom build] 
+2025-07-27T15:39:31.785Z	[custom build] 
+2025-07-27T15:39:31.785Z	[custom build]   dist/index.js  106.7kb
+2025-07-27T15:39:31.785Z	[custom build] 
+2025-07-27T15:39:31.785Z	[custom build] ⚡ Done in 8ms
+2025-07-27T15:39:31.785Z	[custom build] 
+2025-07-27T15:39:36.352Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.353Z	
+2025-07-27T15:39:36.353Z	    dist/index.js:3101:24:
+2025-07-27T15:39:36.353Z	      3101 │       "@": path.resolve(import.meta.dirname, "client", "src"),
+2025-07-27T15:39:36.353Z	           ╵                         ~~~~~~~~~~~
+2025-07-27T15:39:36.353Z	
+2025-07-27T15:39:36.354Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.354Z	
+2025-07-27T15:39:36.354Z	
+2025-07-27T15:39:36.354Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.354Z	
+2025-07-27T15:39:36.354Z	    dist/index.js:3102:30:
+2025-07-27T15:39:36.354Z	      3102 │       "@shared": path.resolve(import.meta.dirname, "shared"),
+2025-07-27T15:39:36.354Z	           ╵                               ~~~~~~~~~~~
+2025-07-27T15:39:36.354Z	
+2025-07-27T15:39:36.354Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.354Z	
+2025-07-27T15:39:36.354Z	
+2025-07-27T15:39:36.355Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.355Z	
+2025-07-27T15:39:36.355Z	    dist/index.js:3103:30:
+2025-07-27T15:39:36.355Z	      3103 │ ... "@assets": path.resolve(import.meta.dirname, "attached_assets")
+2025-07-27T15:39:36.355Z	           ╵                             ~~~~~~~~~~~
+2025-07-27T15:39:36.355Z	
+2025-07-27T15:39:36.355Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.355Z	
+2025-07-27T15:39:36.355Z	
+2025-07-27T15:39:36.356Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.356Z	
+2025-07-27T15:39:36.356Z	    dist/index.js:3106:21:
+2025-07-27T15:39:36.356Z	      3106 │   root: path.resolve(import.meta.dirname, "client"),
+2025-07-27T15:39:36.356Z	           ╵                      ~~~~~~~~~~~
+2025-07-27T15:39:36.356Z	
+2025-07-27T15:39:36.356Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.356Z	
+2025-07-27T15:39:36.357Z	
+2025-07-27T15:39:36.357Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.357Z	
+2025-07-27T15:39:36.357Z	    dist/index.js:3108:25:
+2025-07-27T15:39:36.357Z	      3108 │     outDir: path.resolve(import.meta.dirname, "dist/public"),
+2025-07-27T15:39:36.357Z	           ╵                          ~~~~~~~~~~~
+2025-07-27T15:39:36.357Z	
+2025-07-27T15:39:36.357Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.357Z	
+2025-07-27T15:39:36.357Z	
+2025-07-27T15:39:36.357Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.357Z	
+2025-07-27T15:39:36.357Z	    dist/index.js:3174:33:
+2025-07-27T15:39:36.357Z	      3174 │   const distPath = path2.resolve(import.meta.dirname, "public");
+2025-07-27T15:39:36.358Z	           ╵                                  ~~~~~~~~~~~
+2025-07-27T15:39:36.358Z	
+2025-07-27T15:39:36.358Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.358Z	
+2025-07-27T15:39:36.358Z	
+2025-07-27T15:39:36.358Z	▲ [WARNING] The glob pattern require("../lightningcss.*.node") did not match any files [empty-glob]
+2025-07-27T15:39:36.358Z	
+2025-07-27T15:39:36.358Z	    node_modules/lightningcss/node/index.js:22:29:
+2025-07-27T15:39:36.358Z	      22 │ ...dule.exports = require(`../lightningcss.${parts.join('-')}.node`);
+2025-07-27T15:39:36.358Z	         ╵                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2025-07-27T15:39:36.358Z	
+2025-07-27T15:39:36.358Z	
+2025-07-27T15:39:36.358Z	✘ [ERROR] Build failed with 4 errors:
+2025-07-27T15:39:36.358Z	
+2025-07-27T15:39:36.358Z	  ✘ [ERROR] Top-level await is currently not supported with the "iife" output format
+2025-07-27T15:39:36.358Z	  
+2025-07-27T15:39:36.358Z	      dist/index.js:3094:6:
+2025-07-27T15:39:36.358Z	        3094 │       await import("@replit/vite-plugin-cartographer").then(
+2025-07-27T15:39:36.358Z	             ╵       ~~~~~
+2025-07-27T15:39:36.358Z	  
+2025-07-27T15:39:36.358Z	  
+2025-07-27T15:39:36.358Z	  ✘ [ERROR] Could not resolve "../pkg"
+2025-07-27T15:39:36.358Z	  
+2025-07-27T15:39:36.358Z	      node_modules/lightningcss/node/index.js:17:27:
+2025-07-27T15:39:36.358Z	        17 │   module.exports = require(`../pkg`);
+2025-07-27T15:39:36.358Z	           ╵                            ~~~~~~~~
+2025-07-27T15:39:36.358Z	  
+2025-07-27T15:39:36.358Z	  
+2025-07-27T15:39:36.358Z	  ✘ [ERROR] Unexpected external import of "assert", "async_hooks", "buffer", "child_process", "crypto", "events", "fs", "fs/promises", "http", "https", "module", "net", "node:assert", "node:buffer", "node:child_process", "node:crypto", "node:dns", "node:events", "node:fs", "node:fs/promises", "node:http", "node:http2", "node:https", "node:module", "node:net", "node:os", "node:path", "node:perf_hooks", "node:process", "node:readline", "node:readline/promises", "node:stream", "node:string_decoder", "node:tty", "node:url", "node:util", "node:util/types", "node:v8", "node:worker_threads", "node:zlib", "os", "path", "querystring", "stream", "string_decoder", "tls", "tty", "url", "util", "worker_threads", and "zlib".
+2025-07-27T15:39:36.358Z	  Your worker has no default export, which means it is assumed to be a Service Worker format Worker.
+2025-07-27T15:39:36.358Z	  Did you mean to create a ES Module format Worker?
+2025-07-27T15:39:36.358Z	  If so, try adding `export default { ... }` in your entry-point.
+2025-07-27T15:39:36.358Z	  See https://developers.cloudflare.com/workers/reference/migrate-to-module-workers/. [plugin hybrid-nodejs_compat]
+2025-07-27T15:39:36.358Z	  
+2025-07-27T15:39:36.358Z	  
+2025-07-27T15:39:36.358Z	  ✘ [ERROR] Unexpected external import of "cloudflare:workers".
+2025-07-27T15:39:36.359Z	  Your worker has no default export, which means it is assumed to be a Service Worker format Worker.
+2025-07-27T15:39:36.360Z	  Did you mean to create a ES Module format Worker?
+2025-07-27T15:39:36.360Z	  If so, try adding `export default { ... }` in your entry-point.
+2025-07-27T15:39:36.360Z	  See https://developers.cloudflare.com/workers/reference/migrate-to-module-workers/. [plugin cloudflare-internal-imports]
+2025-07-27T15:39:36.360Z	  
+2025-07-27T15:39:36.360Z	  
+2025-07-27T15:39:36.360Z	
+2025-07-27T15:39:36.360Z	
+2025-07-27T15:39:36.360Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.361Z	
+2025-07-27T15:39:36.361Z	    dist/index.js:3101:24:
+2025-07-27T15:39:36.361Z	      3101 │       "@": path.resolve(import.meta.dirname, "client", "src"),
+2025-07-27T15:39:36.361Z	           ╵                         ~~~~~~~~~~~
+2025-07-27T15:39:36.361Z	
+2025-07-27T15:39:36.361Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.361Z	
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.362Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.362Z	    dist/index.js:3102:30:
+2025-07-27T15:39:36.362Z	      3102 │       "@shared": path.resolve(import.meta.dirname, "shared"),
+2025-07-27T15:39:36.362Z	           ╵                               ~~~~~~~~~~~
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.362Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.362Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.362Z	    dist/index.js:3103:30:
+2025-07-27T15:39:36.362Z	      3103 │ ... "@assets": path.resolve(import.meta.dirname, "attached_assets")
+2025-07-27T15:39:36.362Z	           ╵                             ~~~~~~~~~~~
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.362Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.362Z	
+2025-07-27T15:39:36.363Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.363Z	
+2025-07-27T15:39:36.363Z	    dist/index.js:3106:21:
+2025-07-27T15:39:36.363Z	      3106 │   root: path.resolve(import.meta.dirname, "client"),
+2025-07-27T15:39:36.363Z	           ╵                      ~~~~~~~~~~~
+2025-07-27T15:39:36.363Z	
+2025-07-27T15:39:36.363Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.363Z	
+2025-07-27T15:39:36.363Z	
+2025-07-27T15:39:36.363Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.363Z	
+2025-07-27T15:39:36.363Z	    dist/index.js:3108:25:
+2025-07-27T15:39:36.363Z	      3108 │     outDir: path.resolve(import.meta.dirname, "dist/public"),
+2025-07-27T15:39:36.363Z	           ╵                          ~~~~~~~~~~~
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	    dist/index.js:3174:33:
+2025-07-27T15:39:36.364Z	      3174 │   const distPath = path2.resolve(import.meta.dirname, "public");
+2025-07-27T15:39:36.364Z	           ╵                                  ~~~~~~~~~~~
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	  You need to set the output format to "esm" for "import.meta" to work correctly.
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	▲ [WARNING] The glob pattern require("../lightningcss.*.node") did not match any files [empty-glob]
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	    node_modules/lightningcss/node/index.js:22:29:
+2025-07-27T15:39:36.364Z	      22 │ ...dule.exports = require(`../lightningcss.${parts.join('-')}.node`);
+2025-07-27T15:39:36.364Z	         ╵                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	
+2025-07-27T15:39:36.364Z	Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2025-07-27T15:39:36.380Z	🪵  Logs were written to "/opt/buildhome/.config/.wrangler/logs/wrangler-2025-07-27_15-39-22_766.log"
+2025-07-27T15:39:36.426Z	Failed: error occurred while running deploy command
