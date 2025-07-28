@@ -4,6 +4,8 @@ import {
   type ChatSession, type InsertChatSession, type ChatMessage, type InsertChatMessage,
   type UserProgress, type InsertUserProgress, type PredictedQuestion, type InsertPredictedQuestion
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, and, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // Notes CRUD
@@ -43,259 +45,162 @@ export interface IStorage {
   markQuestionAsAsked(id: number): Promise<PredictedQuestion>;
 }
 
-export class MemStorage implements IStorage {
-  private notes: Map<number, Note>;
-  private templates: Map<string, Template>;
-  private chatSessions: Map<number, ChatSession>;
-  private chatMessages: Map<number, ChatMessage>;
-  private userProgress: Map<string, UserProgress>; // userId_sessionId as key
-  private predictedQuestions: Map<number, PredictedQuestion>;
-  
-  private currentNoteId: number;
-  private currentChatSessionId: number;
-  private currentChatMessageId: number;
-  private currentProgressId: number;
-  private currentQuestionId: number;
+// MemStorage class kept for reference but not used
 
-  constructor() {
-    this.notes = new Map();
-    this.templates = new Map();
-    this.chatSessions = new Map();
-    this.chatMessages = new Map();
-    this.userProgress = new Map();
-    this.predictedQuestions = new Map();
-    
-    this.currentNoteId = 1;
-    this.currentChatSessionId = 1;
-    this.currentChatMessageId = 1;
-    this.currentProgressId = 1;
-    this.currentQuestionId = 1;
-    
-    // Initialize with default templates
-    this.initializeDefaultTemplates();
-  }
-
-  private initializeDefaultTemplates() {
-    const defaultTemplates: InsertTemplate[] = [
-      {
-        id: "academic",
-        name: "Academic Style",
-        description: "Clean layout with structured sections perfect for academic content",
-        layout: {
-          theme: "professional",
-          sections: ["title", "keyConcepts", "summaryPoints", "processFlow"],
-          colors: {
-            primary: "#6366F1",
-            secondary: "#8B5CF6",
-            accent: "#10B981"
-          }
-        },
-        isDefault: true
-      },
-      {
-        id: "bullet-points",
-        name: "Bullet Points",
-        description: "Simple bullet-point format for quick reference",
-        layout: {
-          theme: "minimal",
-          sections: ["title", "summaryPoints"],
-          colors: {
-            primary: "#059669",
-            secondary: "#0891B2",
-            accent: "#DC2626"
-          }
-        },
-        isDefault: true
-      },
-      {
-        id: "colorful",
-        name: "Colorful Mind Map",
-        description: "Vibrant design with visual elements and icons",
-        layout: {
-          theme: "colorful",
-          sections: ["title", "keyConcepts", "summaryPoints", "processFlow"],
-          colors: {
-            primary: "#F59E0B",
-            secondary: "#EF4444",
-            accent: "#8B5CF6"
-          }
-        },
-        isDefault: true
-      }
-    ];
-
-    defaultTemplates.forEach(template => {
-      const fullTemplate: Template = {
-        ...template,
-        isDefault: template.isDefault ?? false
-      };
-      this.templates.set(template.id, fullTemplate);
-    });
-  }
-
+export class DatabaseStorage implements IStorage {
   async createNote(insertNote: InsertNote): Promise<Note> {
-    const id = this.currentNoteId++;
-    const note: Note = {
-      ...insertNote,
-      id,
-      processedContent: {},
-      status: "processing",
-      createdAt: new Date(),
-      templateId: insertNote.templateId ?? null
-    };
-    this.notes.set(id, note);
+    const [note] = await db
+      .insert(notes)
+      .values({
+        ...insertNote,
+        processedContent: {},
+        status: "processing"
+      })
+      .returning();
     return note;
   }
 
   async getNote(id: number): Promise<Note | undefined> {
-    return this.notes.get(id);
+    const [note] = await db.select().from(notes).where(eq(notes.id, id));
+    return note || undefined;
   }
 
   async updateNoteContent(id: number, processedContent: ProcessedNote): Promise<Note> {
-    const note = this.notes.get(id);
-    if (!note) {
-      throw new Error(`Note with id ${id} not found`);
-    }
-    
-    const updatedNote: Note = {
-      ...note,
-      processedContent,
-      status: "completed",
-    };
-    this.notes.set(id, updatedNote);
-    return updatedNote;
+    const [note] = await db
+      .update(notes)
+      .set({
+        processedContent,
+        status: "completed"
+      })
+      .where(eq(notes.id, id))
+      .returning();
+    return note;
   }
 
   async updateNoteStatus(id: number, status: "processing" | "completed" | "failed"): Promise<Note> {
-    const note = this.notes.get(id);
-    if (!note) {
-      throw new Error(`Note with id ${id} not found`);
-    }
-    
-    const updatedNote: Note = {
-      ...note,
-      status,
-    };
-    this.notes.set(id, updatedNote);
-    return updatedNote;
+    const [note] = await db
+      .update(notes)
+      .set({ status })
+      .where(eq(notes.id, id))
+      .returning();
+    return note;
   }
 
   async getAllNotes(): Promise<Note[]> {
-    return Array.from(this.notes.values()).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return await db.select().from(notes).orderBy(desc(notes.createdAt));
   }
 
   async createTemplate(insertTemplate: InsertTemplate): Promise<Template> {
-    const template: Template = {
-      ...insertTemplate,
-      isDefault: insertTemplate.isDefault ?? false
-    };
-    this.templates.set(template.id, template);
+    const [template] = await db
+      .insert(templates)
+      .values(insertTemplate)
+      .returning();
     return template;
   }
 
   async getTemplate(id: string): Promise<Template | undefined> {
-    return this.templates.get(id);
+    const [template] = await db.select().from(templates).where(eq(templates.id, id));
+    return template || undefined;
   }
 
   async getAllTemplates(): Promise<Template[]> {
-    return Array.from(this.templates.values());
+    return await db.select().from(templates);
   }
 
   async getDefaultTemplates(): Promise<Template[]> {
-    return Array.from(this.templates.values()).filter(t => t.isDefault);
+    return await db.select().from(templates).where(eq(templates.isDefault, true));
   }
 
-  // Chat Sessions implementation
   async createChatSession(insertSession: InsertChatSession): Promise<ChatSession> {
-    const id = this.currentChatSessionId++;
-    const session: ChatSession = {
-      ...insertSession,
-      id,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.chatSessions.set(id, session);
+    const [session] = await db
+      .insert(chatSessions)
+      .values({
+        ...insertSession,
+        userId: insertSession.userId || null,
+        difficulty: insertSession.difficulty || "intermediate",
+        subject: insertSession.subject || null
+      })
+      .returning();
     return session;
   }
 
   async getChatSession(id: number): Promise<ChatSession | undefined> {
-    return this.chatSessions.get(id);
+    const [session] = await db.select().from(chatSessions).where(eq(chatSessions.id, id));
+    return session || undefined;
   }
 
   async getChatSessionsByNote(noteId: number): Promise<ChatSession[]> {
-    return Array.from(this.chatSessions.values())
-      .filter(session => session.noteId === noteId)
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    return await db
+      .select()
+      .from(chatSessions)
+      .where(eq(chatSessions.noteId, noteId))
+      .orderBy(desc(chatSessions.updatedAt));
   }
 
   async updateChatSession(id: number, updates: Partial<ChatSession>): Promise<ChatSession> {
-    const session = this.chatSessions.get(id);
-    if (!session) {
-      throw new Error(`Chat session with id ${id} not found`);
-    }
-    
-    const updatedSession: ChatSession = {
-      ...session,
-      ...updates,
-      id,
-      updatedAt: new Date(),
-    };
-    this.chatSessions.set(id, updatedSession);
-    return updatedSession;
+    const [session] = await db
+      .update(chatSessions)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(chatSessions.id, id))
+      .returning();
+    return session;
   }
 
-  // Chat Messages implementation
   async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
-    const id = this.currentChatMessageId++;
-    const message: ChatMessage = {
-      ...insertMessage,
-      id,
-      timestamp: new Date(),
-    };
-    this.chatMessages.set(id, message);
+    const [message] = await db
+      .insert(chatMessages)
+      .values({
+        ...insertMessage,
+        messageType: insertMessage.messageType || "text",
+        metadata: insertMessage.metadata || null
+      })
+      .returning();
     return message;
   }
 
   async getChatMessagesBySession(sessionId: number): Promise<ChatMessage[]> {
-    return Array.from(this.chatMessages.values())
-      .filter(message => message.sessionId === sessionId)
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return await db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.sessionId, sessionId))
+      .orderBy(chatMessages.timestamp);
   }
 
   async getRecentChatMessages(sessionId: number, limit: number): Promise<ChatMessage[]> {
-    const messages = await this.getChatMessagesBySession(sessionId);
-    return messages.slice(-limit);
+    return await db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.sessionId, sessionId))
+      .orderBy(desc(chatMessages.timestamp))
+      .limit(limit);
   }
 
-  // User Progress implementation
   async createUserProgress(insertProgress: InsertUserProgress): Promise<UserProgress> {
-    const id = this.currentProgressId++;
-    const key = `${insertProgress.userId}_${insertProgress.sessionId}`;
-    const progress: UserProgress = {
-      ...insertProgress,
-      id,
-      lastActivity: new Date(),
-    };
-    this.userProgress.set(key, progress);
+    const [progress] = await db
+      .insert(userProgress)
+      .values(insertProgress)
+      .returning();
     return progress;
   }
 
   async getUserProgress(userId: string, sessionId: number): Promise<UserProgress | undefined> {
-    const key = `${userId}_${sessionId}`;
-    return this.userProgress.get(key);
+    const [progress] = await db
+      .select()
+      .from(userProgress)
+      .where(and(eq(userProgress.userId, userId), eq(userProgress.sessionId, sessionId)));
+    return progress || undefined;
   }
 
   async updateUserProgress(userId: string, sessionId: number, updates: Partial<UserProgress>): Promise<UserProgress> {
-    const key = `${userId}_${sessionId}`;
-    const progress = this.userProgress.get(key);
+    // First try to get existing progress
+    const existing = await this.getUserProgress(userId, sessionId);
     
-    if (!progress) {
+    if (!existing) {
       // Create new progress if doesn't exist
-      const newProgress: UserProgress = {
-        id: this.currentProgressId++,
+      return await this.createUserProgress({
         userId,
         sessionId,
         totalQuestions: 0,
@@ -306,67 +211,126 @@ export class MemStorage implements IStorage {
         level: 1,
         badges: [],
         penalties: 0,
-        lastActivity: new Date(),
-        ...updates,
-      };
-      this.userProgress.set(key, newProgress);
-      return newProgress;
+        ...updates
+      });
     }
     
-    const updatedProgress: UserProgress = {
-      ...progress,
-      ...updates,
-      lastActivity: new Date(),
-    };
-    this.userProgress.set(key, updatedProgress);
-    return updatedProgress;
+    const [progress] = await db
+      .update(userProgress)
+      .set({
+        ...updates,
+        lastActivity: new Date()
+      })
+      .where(and(eq(userProgress.userId, userId), eq(userProgress.sessionId, sessionId)))
+      .returning();
+    return progress;
   }
 
   async getUserProgressBySession(sessionId: number): Promise<UserProgress[]> {
-    return Array.from(this.userProgress.values())
-      .filter(progress => progress.sessionId === sessionId);
+    return await db
+      .select()
+      .from(userProgress)
+      .where(eq(userProgress.sessionId, sessionId));
   }
 
-  // Predicted Questions implementation
   async createPredictedQuestion(insertQuestion: InsertPredictedQuestion): Promise<PredictedQuestion> {
-    const id = this.currentQuestionId++;
-    const question: PredictedQuestion = {
-      ...insertQuestion,
-      id,
-      isAsked: false,
-      createdAt: new Date(),
-    };
-    this.predictedQuestions.set(id, question);
+    const [question] = await db
+      .insert(predictedQuestions)
+      .values(insertQuestion)
+      .returning();
     return question;
   }
 
   async getPredictedQuestionsByNote(noteId: number): Promise<PredictedQuestion[]> {
-    return Array.from(this.predictedQuestions.values())
-      .filter(question => question.noteId === noteId)
-      .sort((a, b) => b.importance - a.importance);
+    return await db
+      .select()
+      .from(predictedQuestions)
+      .where(eq(predictedQuestions.noteId, noteId))
+      .orderBy(desc(predictedQuestions.importance));
   }
 
   async getUnaskedQuestions(noteId: number, limit: number): Promise<PredictedQuestion[]> {
-    const questions = Array.from(this.predictedQuestions.values())
-      .filter(question => question.noteId === noteId && !question.isAsked)
-      .sort((a, b) => b.importance - a.importance);
-    
-    return questions.slice(0, limit);
+    return await db
+      .select()
+      .from(predictedQuestions)
+      .where(and(eq(predictedQuestions.noteId, noteId), eq(predictedQuestions.isAsked, false)))
+      .orderBy(desc(predictedQuestions.importance))
+      .limit(limit);
   }
 
   async markQuestionAsAsked(id: number): Promise<PredictedQuestion> {
-    const question = this.predictedQuestions.get(id);
-    if (!question) {
-      throw new Error(`Predicted question with id ${id} not found`);
-    }
-    
-    const updatedQuestion: PredictedQuestion = {
-      ...question,
-      isAsked: true,
-    };
-    this.predictedQuestions.set(id, updatedQuestion);
-    return updatedQuestion;
+    const [question] = await db
+      .update(predictedQuestions)
+      .set({ isAsked: true })
+      .where(eq(predictedQuestions.id, id))
+      .returning();
+    return question;
   }
 }
 
-export const storage = new MemStorage();
+// Initialize default templates in database
+async function initializeDefaultTemplates() {
+  const defaultTemplates: InsertTemplate[] = [
+    {
+      id: "academic",
+      name: "Academic Style",
+      description: "Clean layout with structured sections perfect for academic content",
+      layout: {
+        theme: "professional",
+        sections: ["title", "keyConcepts", "summaryPoints", "processFlow"],
+        colors: {
+          primary: "#6366F1",
+          secondary: "#8B5CF6",
+          accent: "#10B981"
+        }
+      },
+      isDefault: true
+    },
+    {
+      id: "bullet-points",
+      name: "Bullet Points",
+      description: "Simple bullet-point format for quick reference",
+      layout: {
+        theme: "minimal",
+        sections: ["title", "summaryPoints"],
+        colors: {
+          primary: "#059669",
+          secondary: "#0891B2",
+          accent: "#DC2626"
+        }
+      },
+      isDefault: true
+    },
+    {
+      id: "colorful",
+      name: "Colorful Mind Map",
+      description: "Vibrant design with visual elements and icons",
+      layout: {
+        theme: "colorful",
+        sections: ["title", "keyConcepts", "summaryPoints", "processFlow"],
+        colors: {
+          primary: "#F59E0B",
+          secondary: "#EF4444",
+          accent: "#8B5CF6"
+        }
+      },
+      isDefault: true
+    }
+  ];
+
+  try {
+    for (const template of defaultTemplates) {
+      const existing = await db.select().from(templates).where(eq(templates.id, template.id));
+      if (existing.length === 0) {
+        await db.insert(templates).values(template);
+      }
+    }
+  } catch (error) {
+    console.log("Templates already exist or error inserting:", error);
+  }
+}
+
+export const storage = new DatabaseStorage();
+
+// Initialize templates on first run
+initializeDefaultTemplates().catch(console.error);

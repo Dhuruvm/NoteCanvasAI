@@ -143,7 +143,7 @@ export const userProgress = pgTable("user_progress", {
   bestStreak: integer("best_streak").notNull().default(0),
   points: integer("points").notNull().default(0),
   level: integer("level").notNull().default(1),
-  badges: jsonb("badges"), // Array of earned badges
+  badges: jsonb("badges").default([]), // Array of earned badges
   penalties: integer("penalties").notNull().default(0),
   lastActivity: timestamp("last_activity").notNull().defaultNow(),
 });
@@ -156,7 +156,7 @@ export const predictedQuestions = pgTable("predicted_questions", {
   difficulty: text("difficulty", { enum: ["easy", "medium", "hard"] }).notNull(),
   topic: text("topic").notNull(),
   importance: integer("importance").notNull(), // 1-10 scale
-  sources: jsonb("sources"), // Web research sources
+  sources: jsonb("sources").default([]), // Web research sources
   isAsked: boolean("is_asked").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
