@@ -11,68 +11,40 @@ export function LoadingPage({
   onComplete, 
   duration = 3000 
 }: LoadingPageProps) {
-  const [progress, setProgress] = useState(0);
-  const [currentMessage, setCurrentMessage] = useState(message);
-
-  const loadingMessages = [
-    "Initializing AI models...",
-    "Preparing visual elements...",
-    "Setting up workspace...",
-    "Almost ready..."
-  ];
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        const newProgress = prev + 1;
-        
-        // Update message based on progress
-        if (newProgress === 25) setCurrentMessage(loadingMessages[0]);
-        else if (newProgress === 50) setCurrentMessage(loadingMessages[1]);
-        else if (newProgress === 75) setCurrentMessage(loadingMessages[2]);
-        else if (newProgress === 95) setCurrentMessage(loadingMessages[3]);
-        
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          setTimeout(() => onComplete?.(), 500);
-        }
-        
-        return Math.min(newProgress, 100);
-      });
-    }, duration / 100);
+    const timer = setTimeout(() => {
+      onComplete?.();
+    }, duration);
 
-    return () => clearInterval(interval);
+    return () => clearTimeout(timer);
   }, [duration, onComplete]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center z-50">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-      
-      {/* Animated Background Elements */}
-      <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-      <div className="absolute top-40 right-10 w-32 h-32 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-32 h-32 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-
-      <div className="relative text-center">
-        {/* Main Logo with Flower Rotation */}
-        <div className="mb-12 flex justify-center">
-          <div className="relative">
-            {/* Outer rotating ring */}
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-gradient-to-r from-blue-400 to-purple-400 opacity-30 animate-spin-slow absolute -inset-4"></div>
-            
-            {/* Middle rotating ring */}
-            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-2 border-gradient-to-r from-purple-400 to-pink-400 opacity-50 animate-spin-reverse absolute -inset-2"></div>
-            
-            {/* Main logo container with flower-like rotation */}
-            <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full shadow-2xl p-4 animate-flower-bloom flex items-center justify-center">
-              <div className="w-full h-full logo-glow animate-flower-spin flex items-center justify-center">
-                <h1 className="text-lg sm:text-xl font-bold text-black">
-                  NoteGPT
-                </h1>
-              </div>
-              
-              {/* Petal-like elements */}
+    <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
+      <div className="text-center">
+        {/* Simple Central NoteGPT Logo with Animation */}
+        <div className="relative">
+          <h1 className="text-6xl md:text-8xl font-bold text-white mb-4 animate-pulse">
+            <span className="inline-block animate-bounce" style={{ animationDelay: '0s' }}>N</span>
+            <span className="inline-block animate-bounce" style={{ animationDelay: '0.1s' }}>o</span>
+            <span className="inline-block animate-bounce" style={{ animationDelay: '0.2s' }}>t</span>
+            <span className="inline-block animate-bounce" style={{ animationDelay: '0.3s' }}>e</span>
+            <span className="inline-block animate-bounce" style={{ animationDelay: '0.4s' }}>G</span>
+            <span className="inline-block animate-bounce" style={{ animationDelay: '0.5s' }}>P</span>
+            <span className="inline-block animate-bounce" style={{ animationDelay: '0.6s' }}>T</span>
+          </h1>
+          
+          {/* Loading animation circles */}
+          <div className="flex justify-center space-x-2 mt-8">
+            <div className="w-3 h-3 bg-white rounded-full animate-pulse" style={{ animationDelay: '0s' }}></div>
+            <div className="w-3 h-3 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-3 h-3 bg-white rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
               <div className="absolute -inset-6 pointer-events-none">
                 <div className="absolute top-0 left-1/2 w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full transform -translate-x-1/2 animate-petal-1 opacity-60"></div>
                 <div className="absolute top-1/4 right-0 w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-petal-2 opacity-60"></div>

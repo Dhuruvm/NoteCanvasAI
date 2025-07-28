@@ -128,13 +128,43 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           }
         }
 
+        .modern-prototype-tag {
+          font-family: 'Roboto Condensed', sans-serif;
+          font-size: clamp(0.8rem, 2vw, 1rem);
+          font-weight: 700;
+          color: #ffffff;
+          letter-spacing: 0.3em;
+          margin-top: 1rem;
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.8s ease;
+          text-shadow: 2px 2px 0px #333333, 4px 4px 0px #222222;
+        }
+
+        .modern-prototype-tag.animate-in {
+          opacity: 1;
+          transform: translateY(0);
+          animation: modernPrototypeSlideIn 1s ease-out 1s forwards;
+        }
+
+        @keyframes modernPrototypeSlideIn {
+          0% {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         .modern-enter-button {
           font-family: 'Roboto Condensed', sans-serif;
           font-size: 1.1rem;
           font-weight: 700;
-          color: #000000;
-          background: #99AAB5;
-          border: 2px solid #99AAB5;
+          color: #ffffff;
+          background: #4f545c;
+          border: 2px solid #4f545c;
           padding: 1rem 3rem;
           letter-spacing: 0.2em;
           cursor: pointer;
@@ -164,12 +194,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         }
 
         .modern-enter-button:hover {
-          background: #b8c4cf;
-          border: 2px solid #b8c4cf;
+          background: #5f646e;
+          border: 2px solid #5f646e;
           transform: scale(1.05);
           box-shadow: 
-            0 0 20px rgba(153, 170, 181, 0.5),
-            0 0 40px rgba(153, 170, 181, 0.3);
+            0 0 20px rgba(79, 84, 92, 0.5),
+            0 0 40px rgba(79, 84, 92, 0.3);
         }
 
         .modern-enter-button:active {
@@ -213,7 +243,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       <div className="modern-landing-container">
         {/* Main Content */}
         <div className="modern-content-container">
-          {/* Animated Logo */}
+          {/* Animated Logo with Prototype Tag */}
           <div className="modern-logo-container">
             <div className="modern-title-text">
               {letters.map((letter, index) => (
@@ -229,6 +259,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
                 </span>
               ))}
             </div>
+            
+            {/* Prototype Tag */}
+            <div className={`modern-prototype-tag ${isLoaded ? 'animate-in' : ''}`}>
+              PROTOTYPE
+            </div>
           </div>
           
           {/* Tagline */}
@@ -236,12 +271,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             DIG DEEPER. THINK SMARTER.
           </div>
           
-          {/* Enter Button */}
+          {/* Get Started Button */}
           <button 
             className={`modern-enter-button ${isLoaded ? 'animate-in' : ''}`}
             onClick={onGetStarted}
           >
-            ENTER
+            GET STARTED
           </button>
         </div>
       </div>
