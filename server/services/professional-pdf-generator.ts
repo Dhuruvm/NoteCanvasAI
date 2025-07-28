@@ -334,8 +334,12 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
 
   let yPos = pageHeight - 120;
   
-  if (note.keyConcepts && note.keyConcepts.length > 0) {
-    note.keyConcepts.forEach((concept: any, index: number) => {
+  // Access processed content properly
+  const processedContent = note.processedContent || {};
+  const keyConcepts = processedContent.keyConcepts || [];
+  
+  if (keyConcepts && keyConcepts.length > 0) {
+    keyConcepts.forEach((concept: any, index: number) => {
       if (yPos < 150) {
         const newPage = pdfDoc.addPage([pageWidth, pageHeight]);
         addPageHeader(newPage, 'Key Concepts (continued)', colors, boldFont, pageWidth, margin);
@@ -404,8 +408,11 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
 
   yPos = pageHeight - 120;
   
-  if (note.summaryPoints && note.summaryPoints.length > 0) {
-    note.summaryPoints.forEach((section: any, sectionIndex: number) => {
+  // Access summary points from processed content
+  const summaryPoints = processedContent.summaryPoints || [];
+  
+  if (summaryPoints && summaryPoints.length > 0) {
+    summaryPoints.forEach((section: any, sectionIndex: number) => {
       if (yPos < 200) {
         const newPage = pdfDoc.addPage([pageWidth, pageHeight]);
         addPageHeader(newPage, 'Summary Points (continued)', colors, boldFont, pageWidth, margin);
@@ -457,8 +464,8 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
   }
 
   // Original Content Page (if no structured content)
-  if ((!note.keyConcepts || note.keyConcepts.length === 0) && 
-      (!note.summaryPoints || note.summaryPoints.length === 0)) {
+  if ((!keyConcepts || keyConcepts.length === 0) && 
+      (!summaryPoints || summaryPoints.length === 0)) {
     const contentPage = pdfDoc.addPage([pageWidth, pageHeight]);
     addPageHeader(contentPage, 'Content Analysis', colors, boldFont, pageWidth, margin);
 
