@@ -35,6 +35,10 @@
   --grayale-darker: 208 22% 35%;
   --chat-input: 0 0% 5%;
   --chat-hover: 0 0% 8%;
+  
+  /* Gemini Blue Colors for Send Button */
+  --gemini-blue: 210 100% 60%;
+  --gemini-blue-hover: 210 100% 65%;
 }
 
 /* Landing Page Animations */
