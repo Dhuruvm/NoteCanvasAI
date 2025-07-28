@@ -5,6 +5,7 @@ import { summarizeContentWithGemini } from "./services/gemini";
 import { generateNotePDF, extractTextFromPDF } from "./services/pdf";
 import { generateAdvancedPDF } from "./services/advanced-pdf";
 import { generateEnhancedPDF } from "./services/pdf-generator";
+import { generateRobustPDF } from "./services/robust-pdf-generator";
 import { processWithMultipleModels } from "./services/multi-model-ai";
 import { chatAIService } from "./services/chat-ai";
 import { 
@@ -205,20 +206,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: processedContent.metadata || { aiModelsUsed: ['Multi-Model AI'] }
       } as any;
 
-      // Use enhanced PDF generator with multi-model AI
-      const pdfResult = await generateEnhancedPDF(
+      // Use robust PDF generator that prevents blank pages
+      const pdfResult = await generateRobustPDF(
         note,
         note.originalContent || '',
         {
           designStyle: options.designStyle,
           includeVisualElements: options.includeVisualElements,
-          useEnhancedLayout: options.useEnhancedLayout,
-          colorScheme: options.colorScheme
+          includeCharts: options.includeCharts,
+          includeInfographic: options.includeInfographic,
+          colorScheme: options.colorScheme,
+          fontSize: options.fontSize,
+          fontFamily: options.fontFamily
         }
       );
       
-      const pdfBuffer = Buffer.isBuffer(pdfResult) ? pdfResult : Buffer.from(pdfResult);
-      const metadata = (pdfResult as any).metadata || {};
+      const pdfBuffer = pdfResult.buffer;
+      const metadata = pdfResult.metadata;
 
       if (!pdfBuffer || pdfBuffer.length === 0) {
         throw new Error("Generated PDF buffer is empty");
@@ -264,28 +268,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Auto-detect optimal settings based on content
       const autoOptions = {
         designStyle: "modern" as const,
-        colorScheme: "blue",
+        colorScheme: "blue" as const,
         includeVisualElements: true,
         includeCharts: true,
         includeInfographic: true,
-        useEnhancedLayout: true,
         fontSize: 12,
-        fontFamily: "helvetica" as const,
-        spacing: 1.5,
-        includeHeader: true,
-        includeFooter: true,
-        margins: 60,
-        multiModelProcessing: true,
-        pageMargins: { top: 60, right: 60, bottom: 60, left: 60 }
+        fontFamily: "helvetica" as const
       };
 
-      const pdfResult = await generateAdvancedPDF(
-        note.processedContent as any,
-        JSON.stringify(autoOptions)
+      const pdfResult = await generateRobustPDF(
+        note,
+        note.originalContent || '',
+        autoOptions
       );
       
-      const pdfBuffer = Buffer.isBuffer(pdfResult) ? pdfResult : Buffer.from(pdfResult);
-      const metadata = (pdfResult as any).metadata || {};
+      const pdfBuffer = pdfResult.buffer;
+      const metadata = pdfResult.metadata;
 
       console.log(`Auto-generated PDF completed:`, metadata);
 
@@ -330,13 +328,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Generating basic PDF for note ${noteId}: ${note.title}`);
 
-      const pdfBuffer = await generateNotePDF(note.processedContent as any, {
-        theme: (req.query.theme as any) || "modern",
-        fontSize: parseInt(req.query.fontSize as string) || 12,
-        includeHeader: req.query.includeHeader !== "false",
-        includeFooter: req.query.includeFooter !== "false",
-        colorScheme: (req.query.colorScheme as any) || "blue",
-      });
+      // Use robust PDF generator for consistent results
+      const pdfResult = await generateRobustPDF(
+        note,
+        note.originalContent || '',
+        {
+          designStyle: (req.query.theme as any) || "modern",
+          colorScheme: (req.query.colorScheme as any) || "blue",
+          includeVisualElements: req.query.includeVisualElements !== "false",
+          includeCharts: req.query.includeCharts !== "false", 
+          includeInfographic: req.query.includeInfographic !== "false",
+          fontSize: parseInt(req.query.fontSize as string) || 12,
+          fontFamily: (req.query.fontFamily as any) || "helvetica"
+        }
+      );
+      
+      const pdfBuffer = pdfResult.buffer;
 
       if (!pdfBuffer || pdfBuffer.length === 0) {
         throw new Error("Generated PDF buffer is empty");
