@@ -76,11 +76,11 @@ export async function generateProfessionalPDF(
   const contentWidth = pageWidth - (margin * 2);
 
   // Page 1: Title Page
-  await createTitlePage(pdfDoc, note, colors, helveticaFont, helveticaBoldFont, timesBoldFont, aiModelsUsed);
+  await createTitlePage(pdfDoc, note, colors, helveticaFont, helveticaBoldFont, timesBoldFont, aiModelsUsed, contentWidth, margin);
 
   // Page 2: Table of Contents (if multi-page)
   if (options.multiPage) {
-    await createTableOfContentsPage(pdfDoc, note, colors, helveticaFont, helveticaBoldFont);
+    await createTableOfContentsPage(pdfDoc, note, colors, helveticaFont, helveticaBoldFont, contentWidth, margin);
   }
 
   // Page 3+: Content Pages
@@ -105,10 +105,11 @@ export async function generateProfessionalPDF(
   };
 }
 
-async function createTitlePage(pdfDoc: any, note: any, colors: any, regularFont: any, boldFont: any, titleFont: any, aiModels: string[]) {
+async function createTitlePage(pdfDoc: any, note: any, colors: any, regularFont: any, boldFont: any, titleFont: any, aiModels: string[], providedContentWidth: number, providedMargin: number) {
   const page = pdfDoc.addPage([595.28, 841.89]);
   const { width, height } = page.getSize();
-  const margin = 60;
+  const margin = providedMargin;
+  const contentWidth = providedContentWidth;
 
   // Header decoration
   page.drawRectangle({
@@ -239,10 +240,10 @@ async function createTitlePage(pdfDoc: any, note: any, colors: any, regularFont:
   });
 }
 
-async function createTableOfContentsPage(pdfDoc: any, note: any, colors: any, regularFont: any, boldFont: any) {
+async function createTableOfContentsPage(pdfDoc: any, note: any, colors: any, regularFont: any, boldFont: any, providedContentWidth: number, providedMargin: number) {
   const page = pdfDoc.addPage([595.28, 841.89]);
   const { width, height } = page.getSize();
-  const margin = 60;
+  const margin = providedMargin;
 
   // Header
   page.drawText('Table of Contents', {
