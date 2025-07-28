@@ -9,7 +9,7 @@ import { FileText, PaintbrushVertical, Eye, Clock, Lightbulb, List, GitBranch, C
 import type { Note, ProcessedNote } from "@shared/schema";
 import { PDFDesignerEnhanced } from "./pdf-designer-enhanced";
 import { VisualPreview } from "./visual-preview";
-import logoImage from "../assets/notegpt-logo.png";
+// Logo now using attached asset
 
 interface MainWorkspaceProps {
   noteId: number | null;

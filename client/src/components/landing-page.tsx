@@ -213,19 +213,19 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       <div className="modern-landing-container">
         {/* Main Content */}
         <div className="modern-content-container">
-          {/* Animated Logo */}
+          {/* Logo Image */}
           <div className="modern-logo-container">
-            {letters.map((letter, index) => (
-              <span
-                key={index}
-                className={`modern-logo-letter ${isLoaded ? 'animate-in' : ''}`}
-                style={{
-                  animationDelay: `${index * 0.1}s`
-                }}
-              >
-                {letter}
-              </span>
-            ))}
+            <img 
+              src="/attached_assets/file_00000000412061f886ffd331ae4188a5_1753704278184.png" 
+              alt="NoteGPT" 
+              className="modern-logo-image"
+              style={{
+                maxWidth: '80vw',
+                height: 'auto',
+                filter: 'drop-shadow(0 10px 20px rgba(255,255,255,0.1))',
+                animation: isLoaded ? 'modernSlideIn 1s ease-out' : 'none'
+              }}
+            />
           </div>
           
           {/* Tagline */}

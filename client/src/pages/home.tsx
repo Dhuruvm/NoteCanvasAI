@@ -39,24 +39,17 @@ export default function Home() {
       <div className="border-b border-grayale-darker bg-black/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Logo and Title */}
+            {/* Logo */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-grayale to-grayale-dark p-0.5">
-                    <div className="w-full h-full bg-black rounded-lg flex items-center justify-center">
-                      <span className="text-grayale font-bold text-xs">N</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <h1 className="text-xl font-bold text-grayale tracking-tight">
-                    NoteGPT
-                  </h1>
-                  <Badge className="bg-gradient-to-r from-grayale to-grayale-dark text-black text-xs px-2 py-1 rounded-full font-bold">
-                    BETA
-                  </Badge>
-                </div>
+                <img 
+                  src="/attached_assets/file_00000000412061f886ffd331ae4188a5_1753704278184.png" 
+                  alt="NoteGPT Logo" 
+                  className="h-10 w-auto object-contain"
+                />
+                <Badge className="bg-gradient-to-r from-grayale to-grayale-dark text-black text-xs px-2 py-1 rounded-full font-bold">
+                  BETA
+                </Badge>
               </div>
             </div>
 

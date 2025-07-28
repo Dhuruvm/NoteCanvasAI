@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import logoImage from "@assets/file_00000000fe2861f5a8308fe4bd6247b6_1753525054263.png";
+// Using new NOTEGPT logo
 
 interface LoadingPageProps {
   message?: string;
@@ -69,7 +69,7 @@ export function LoadingPage({
             <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full shadow-2xl p-4 animate-flower-bloom">
               <div className="w-full h-full logo-glow animate-flower-spin">
                 <img 
-                  src={logoImage} 
+                  src="/attached_assets/file_00000000412061f886ffd331ae4188a5_1753704278184.png" 
                   alt="NoteGPT" 
                   className="w-full h-full object-contain"
                 />
