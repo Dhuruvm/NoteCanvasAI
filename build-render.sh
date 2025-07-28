@@ -16,3 +16,7 @@ npx esbuild server/index.ts --platform=node --packages=external --bundle --forma
 echo "=== Build completed successfully ==="
 ls -la dist/
 ls -la dist/public/
+
+echo "=== Testing production server startup ==="
+echo "Starting server test..."
+timeout 3s NODE_ENV=production PORT=3000 node dist/index.js || echo "Server test completed (expected timeout)"

@@ -45,6 +45,12 @@ For persistent storage, add a PostgreSQL database:
 - Ensure build completed successfully
 - Verify environment variables are set
 
+**"No open ports detected" error:**
+- Server must bind to `0.0.0.0:$PORT` (not localhost)
+- Render automatically sets PORT environment variable
+- Check server logs for "serving on 0.0.0.0:XXXX" message
+- Ensure no other process is using the port
+
 **API calls fail:**
 - Check `GEMINI_API_KEY` is properly set
 - Verify API key has sufficient permissions

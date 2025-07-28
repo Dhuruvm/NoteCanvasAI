@@ -42,6 +42,16 @@ const processContentSchema = z.object({
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
+  // Health check endpoint for deployment platforms
+  app.get("/health", (req, res) => {
+    res.status(200).json({ 
+      status: "healthy", 
+      timestamp: new Date().toISOString(),
+      port: process.env.PORT || "5000",
+      env: process.env.NODE_ENV || "development"
+    });
+  });
+
   // Upload and process PDF
   app.post("/api/upload", upload.single('file'), async (req, res) => {
     try {
