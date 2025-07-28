@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import logoImage from "@assets/notegpt-logo.png";
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -214,19 +213,22 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
       <div className="modern-landing-container">
         {/* Main Content */}
         <div className="modern-content-container">
-          {/* Logo Image */}
+          {/* Animated Logo */}
           <div className="modern-logo-container">
-            <img 
-              src={logoImage} 
-              alt="NoteGPT" 
-              className="modern-logo-image"
-              style={{
-                maxWidth: '80vw',
-                height: 'auto',
-                filter: 'drop-shadow(0 10px 20px rgba(255,255,255,0.1))',
-                animation: isLoaded ? 'modernSlideIn 1s ease-out' : 'none'
-              }}
-            />
+            <div className="modern-title-text">
+              {letters.map((letter, index) => (
+                <span 
+                  key={index}
+                  className={`modern-logo-letter ${isLoaded ? 'animate-in' : ''}`}
+                  style={{ 
+                    animationDelay: `${index * 0.1}s`,
+                    textShadow: '4px 4px 0px #444, 8px 8px 0px #333, 12px 12px 0px #222'
+                  }}
+                >
+                  {letter}
+                </span>
+              ))}
+            </div>
           </div>
           
           {/* Tagline */}

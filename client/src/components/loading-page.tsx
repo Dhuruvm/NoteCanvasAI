@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import logoImage from "@assets/notegpt-logo.png";
 
 interface LoadingPageProps {
   message?: string;
@@ -66,13 +65,11 @@ export function LoadingPage({
             <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-2 border-gradient-to-r from-purple-400 to-pink-400 opacity-50 animate-spin-reverse absolute -inset-2"></div>
             
             {/* Main logo container with flower-like rotation */}
-            <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full shadow-2xl p-4 animate-flower-bloom">
-              <div className="w-full h-full logo-glow animate-flower-spin">
-                <img 
-                  src={logoImage} 
-                  alt="NoteGPT" 
-                  className="w-full h-full object-contain"
-                />
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full shadow-2xl p-4 animate-flower-bloom flex items-center justify-center">
+              <div className="w-full h-full logo-glow animate-flower-spin flex items-center justify-center">
+                <h1 className="text-lg sm:text-xl font-bold text-black">
+                  NoteGPT
+                </h1>
               </div>
               
               {/* Petal-like elements */}

@@ -9,7 +9,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, Sparkles, Settings, Palette, Eye, Layout, Send, Plus } from "lucide-react";
-import logoImage from "@assets/notegpt-logo.png";
 
 export default function Home() {
   const [noteId, setNoteId] = useState<number | null>(null);
@@ -43,11 +42,9 @@ export default function Home() {
             {/* Logo */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <img 
-                  src={logoImage} 
-                  alt="NoteGPT Logo" 
-                  className="h-10 w-auto object-contain"
-                />
+                <h1 className="text-2xl font-bold text-black dark:text-white">
+                  NoteGPT
+                </h1>
                 <Badge className="bg-gradient-to-r from-grayale to-grayale-dark text-black text-xs px-2 py-1 rounded-full font-bold">
                   BETA
                 </Badge>
