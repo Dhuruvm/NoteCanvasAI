@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import logoImage from "@assets/notegpt-logo.png";
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -216,7 +217,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           {/* Logo Image */}
           <div className="modern-logo-container">
             <img 
-              src="/attached_assets/file_00000000412061f886ffd331ae4188a5_1753704278184.png" 
+              src={logoImage} 
               alt="NoteGPT" 
               className="modern-logo-image"
               style={{
