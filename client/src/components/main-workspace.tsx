@@ -95,7 +95,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `${note.title || 'notes'}.pdf`;
+      a.download = `${note?.title || 'notes'}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -382,6 +382,43 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
                     )}
                   </div>
                 </div>
+
+                {/* Professional PDF Generation - Only show after content is generated */}
+                <div className="mt-6">
+                  <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+                    <CardContent className="p-6">
+                      <div className="text-center space-y-4">
+                        <div className="flex items-center justify-center space-x-2">
+                          <FileText className="w-8 h-8 text-blue-600" />
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                            Professional PDF Generation
+                          </h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Generate beautifully designed study notes with multi-page layout
+                        </p>
+                        <Button
+                          onClick={handleDirectPDFGeneration}
+                          disabled={isGeneratingPDF}
+                          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-4"
+                          size="lg"
+                        >
+                          {isGeneratingPDF ? (
+                            <>
+                              <div className="w-5 h-5 mr-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Generating Professional PDF...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-5 h-5 mr-3" />
+                              Generate Professional PDF
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </>
             ) : (
               <div className="text-center py-8 sm:py-12">
@@ -402,42 +439,6 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
             )}
           </TabsContent>
         </Tabs>
-              {/* Direct PDF Generation */}
-              <div className="mt-6">
-                <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
-                  <CardContent className="p-6">
-                    <div className="text-center space-y-4">
-                      <div className="flex items-center justify-center space-x-2">
-                        <FileText className="w-8 h-8 text-blue-600" />
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                          Professional PDF Generation
-                        </h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Generate beautifully designed study notes with multi-page layout
-                      </p>
-                      <Button
-                        onClick={handleDirectPDFGeneration}
-                        disabled={isGeneratingPDF}
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-4"
-                        size="lg"
-                      >
-                        {isGeneratingPDF ? (
-                          <>
-                            <div className="w-5 h-5 mr-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Generating Professional PDF...
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-5 h-5 mr-3" />
-                            Generate Professional PDF
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
       </div>
     </div>
   );
