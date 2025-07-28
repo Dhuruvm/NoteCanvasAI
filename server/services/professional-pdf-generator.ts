@@ -31,7 +31,7 @@ export async function generateProfessionalPDF(
   console.log('Starting professional PDF generation with Hugging Face models...');
 
   // Process content with multiple AI models for enhanced structure
-  let enhancedData;
+  let enhancedData: any = null;
   const aiModelsUsed = ['gemini-2.5-flash'];
 
   if (options.useHuggingFaceModels) {
@@ -45,7 +45,13 @@ export async function generateProfessionalPDF(
   }
 
   // Create PDF document
-  const pdfDoc = await PDFDocument.create();
+  let pdfDoc;
+  try {
+    pdfDoc = await PDFDocument.create();
+  } catch (error) {
+    console.error('Failed to create PDF document:', error);
+    throw new Error('PDF document creation failed');
+  }
   
   // Load fonts
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -81,7 +87,7 @@ export async function generateProfessionalPDF(
   await createContentPages(pdfDoc, note, originalContent, enhancedData, colors, helveticaFont, helveticaBoldFont, timesFont, options);
 
   // Add page numbers and footers to all pages
-  await addPageNumbersAndFooters(pdfDoc, colors, helveticaFont, aiModelsUsed);
+  addPageNumbersAndFooters(pdfDoc, colors, helveticaFont, aiModelsUsed);
 
   const pdfBytes = await pdfDoc.save();
   const processingTime = Date.now() - startTime;
@@ -323,7 +329,7 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
 
   // Key Concepts Page
   const conceptsPage = pdfDoc.addPage([pageWidth, pageHeight]);
-  await addPageHeader(conceptsPage, 'Key Concepts', colors, boldFont, pageWidth, margin);
+  addPageHeader(conceptsPage, 'Key Concepts', colors, boldFont, pageWidth, margin);
 
   let yPos = pageHeight - 120;
   
@@ -331,7 +337,7 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
     note.keyConcepts.forEach((concept: any, index: number) => {
       if (yPos < 150) {
         const newPage = pdfDoc.addPage([pageWidth, pageHeight]);
-        await addPageHeader(newPage, 'Key Concepts (continued)', colors, boldFont, pageWidth, margin);
+        addPageHeader(newPage, 'Key Concepts (continued)', colors, boldFont, pageWidth, margin);
         yPos = pageHeight - 120;
       }
 
@@ -393,7 +399,7 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
 
   // Summary Points Page
   const summaryPage = pdfDoc.addPage([pageWidth, pageHeight]);
-  await addPageHeader(summaryPage, 'Summary Points', colors, boldFont, pageWidth, margin);
+  addPageHeader(summaryPage, 'Summary Points', colors, boldFont, pageWidth, margin);
 
   yPos = pageHeight - 120;
   
@@ -401,7 +407,7 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
     note.summaryPoints.forEach((section: any, sectionIndex: number) => {
       if (yPos < 200) {
         const newPage = pdfDoc.addPage([pageWidth, pageHeight]);
-        await addPageHeader(newPage, 'Summary Points (continued)', colors, boldFont, pageWidth, margin);
+        addPageHeader(newPage, 'Summary Points (continued)', colors, boldFont, pageWidth, margin);
         yPos = pageHeight - 120;
       }
 
@@ -453,7 +459,7 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
   if ((!note.keyConcepts || note.keyConcepts.length === 0) && 
       (!note.summaryPoints || note.summaryPoints.length === 0)) {
     const contentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-    await addPageHeader(contentPage, 'Content Analysis', colors, boldFont, pageWidth, margin);
+    addPageHeader(contentPage, 'Content Analysis', colors, boldFont, pageWidth, margin);
 
     yPos = pageHeight - 120;
     const wrappedContent = wrapText(originalContent, contentWidth, bodyFont, 11);
@@ -461,7 +467,7 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
     wrappedContent.forEach(line => {
       if (yPos < 100) {
         const newPage = pdfDoc.addPage([pageWidth, pageHeight]);
-        await addPageHeader(newPage, 'Content Analysis (continued)', colors, boldFont, pageWidth, margin);
+        addPageHeader(newPage, 'Content Analysis (continued)', colors, boldFont, pageWidth, margin);
         yPos = pageHeight - 120;
       }
 
@@ -477,7 +483,7 @@ async function createContentPages(pdfDoc: any, note: any, originalContent: strin
   }
 }
 
-async function addPageHeader(page: any, title: string, colors: any, font: any, pageWidth: number, margin: number) {
+function addPageHeader(page: any, title: string, colors: any, font: any, pageWidth: number, margin: number) {
   page.drawRectangle({
     x: 0,
     y: page.getSize().height - 60,
@@ -502,7 +508,7 @@ async function addPageHeader(page: any, title: string, colors: any, font: any, p
   });
 }
 
-async function addPageNumbersAndFooters(pdfDoc: any, colors: any, font: any, aiModels: string[]) {
+function addPageNumbersAndFooters(pdfDoc: any, colors: any, font: any, aiModels: string[]) {
   const pages = pdfDoc.getPages();
   const margin = 60;
 

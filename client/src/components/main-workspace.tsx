@@ -57,11 +57,17 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
       if (!response.ok) throw new Error('PDF generation failed');
 
       const blob = await response.blob();
+
+      // Check if the blob is valid
+      if (blob.size === 0) {
+        throw new Error('Generated PDF is empty');
+      }
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `${note.title || 'professional-notes'}.pdf`;
+      a.download = `${note?.title?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'notes'}_professional.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
