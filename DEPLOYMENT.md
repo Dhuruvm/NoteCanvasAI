@@ -7,7 +7,7 @@
 2. **Create a new Web Service** on [Render](https://render.com)
 3. **Connect your GitHub repository**
 4. **Use these settings**:
-   - **Build Command**: `npm run build`
+   - **Build Command**: `npm ci --include=dev && npm run build`
    - **Start Command**: `npm run start` 
    - **Node Version**: 18+ (auto-detected)
 
@@ -30,8 +30,13 @@ For persistent storage, add a PostgreSQL database:
 
 ### Troubleshooting
 
+**Build fails with "vite: not found" error:**
+- Use build command: `npm ci --include=dev && npm run build`
+- This ensures devDependencies (including Vite) are installed
+- Alternative: Use the provided `./build-render.sh` script
+
 **Build fails with status 127:**
-- Ensure `build` script exists in package.json
+- Ensure `build` script exists in package.json  
 - Check Node.js version compatibility (use 18+)
 - Verify all dependencies are in package.json
 
