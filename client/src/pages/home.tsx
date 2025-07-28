@@ -36,24 +36,24 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black">
       {/* Modern Header */}
-      <div className="border-b border-gray-800 bg-black/95 backdrop-blur-sm sticky top-0 z-50">
+      <div className="border-b border-grayale-darker bg-black/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo and Title */}
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-cyan-400 to-blue-500 p-0.5">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-grayale to-grayale-dark p-0.5">
                     <div className="w-full h-full bg-black rounded-lg flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">N</span>
+                      <span className="text-grayale font-bold text-xs">N</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <h1 className="text-xl font-bold text-white tracking-tight">
+                  <h1 className="text-xl font-bold text-grayale tracking-tight">
                     NoteGPT
                   </h1>
-                  <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                  <Badge className="bg-gradient-to-r from-grayale to-grayale-dark text-black text-xs px-2 py-1 rounded-full font-bold">
                     BETA
                   </Badge>
                 </div>
@@ -67,15 +67,15 @@ export default function Home() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-[hsl(var(--border))] hover:border-[hsl(var(--gemini-blue))] bg-[hsl(var(--chat-input))] hover:bg-[hsl(var(--chat-hover))] text-white transition-all duration-200"
+                    className="border-grayale-darker hover:border-grayale bg-black/50 hover:bg-black/70 text-grayale transition-all duration-200"
                   >
                     <Settings className="w-4 h-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="w-80 bg-[hsl(var(--card))] border-[hsl(var(--border))]">
+                <SheetContent className="w-80 bg-black border-grayale-darker">
                   <SheetHeader>
-                    <SheetTitle className="flex items-center text-lg font-semibold text-white">
-                      <Settings className="w-5 h-5 mr-2 text-[hsl(var(--gemini-blue))]" />
+                    <SheetTitle className="flex items-center text-lg font-semibold text-grayale">
+                      <Settings className="w-5 h-5 mr-2 text-grayale" />
                       Settings & Preferences
                     </SheetTitle>
                   </SheetHeader>
@@ -83,7 +83,7 @@ export default function Home() {
                   <div className="space-y-6 mt-6">
                     {/* App Preferences */}
                     <div className="space-y-4">
-                      <Label className="text-sm font-medium text-gray-200 flex items-center">
+                      <Label className="text-sm font-medium text-grayale flex items-center">
                         <Layout className="w-4 h-4 mr-2" />
                         App Preferences
                       </Label>
@@ -95,12 +95,12 @@ export default function Home() {
                           { key: 'compactMode', label: 'Compact mode', desc: 'Reduce spacing for more content' },
                           { key: 'highContrast', label: 'High contrast', desc: 'Better visibility and accessibility' }
                         ].map(({ key, label, desc }) => (
-                          <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--chat-input))] border border-[hsl(var(--border))] hover:bg-[hsl(var(--chat-hover))] transition-colors">
+                          <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-grayale-darker hover:bg-black/50 transition-colors">
                             <div className="flex-1">
-                              <div className="text-sm font-medium text-gray-200">
+                              <div className="text-sm font-medium text-grayale">
                                 {label}
                               </div>
-                              <div className="text-xs text-gray-400">
+                              <div className="text-xs text-grayale-dark">
                                 {desc}
                               </div>
                             </div>
@@ -115,7 +115,7 @@ export default function Home() {
 
                     {/* Quick Actions */}
                     <div className="space-y-3">
-                      <Label className="text-sm font-medium text-gray-200 flex items-center">
+                      <Label className="text-sm font-medium text-grayale flex items-center">
                         <Eye className="w-4 h-4 mr-2" />
                         Quick Actions
                       </Label>
@@ -123,7 +123,7 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-auto p-3 flex-col space-y-1 border-[hsl(var(--border))] hover:bg-[hsl(var(--chat-hover))] hover:border-[hsl(var(--gemini-blue))] text-gray-300 hover:text-white transition-all duration-200"
+                          className="h-auto p-3 flex-col space-y-1 border-grayale-darker hover:bg-black/50 hover:border-grayale text-grayale-dark hover:text-grayale transition-all duration-200"
                         >
                           <FileText className="w-4 h-4" />
                           <span className="text-xs">Clear All</span>
@@ -131,7 +131,7 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-auto p-3 flex-col space-y-1 border-[hsl(var(--border))] hover:bg-[hsl(var(--chat-hover))] hover:border-[hsl(var(--gemini-blue))] text-gray-300 hover:text-white transition-all duration-200"
+                          className="h-auto p-3 flex-col space-y-1 border-grayale-darker hover:bg-black/50 hover:border-grayale text-grayale-dark hover:text-grayale transition-all duration-200"
                         >
                           <Upload className="w-4 h-4" />
                           <span className="text-xs">Export</span>
@@ -152,14 +152,14 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 h-full">
             {/* Left Panel - Input */}
             <div className="space-y-4 sm:space-y-6">
-              <div className="rounded-2xl bg-gray-900/50 border border-gray-800 backdrop-blur-sm">
+              <div className="rounded-2xl bg-black/30 border border-grayale-darker backdrop-blur-sm">
                 <InputPanel onNoteCreated={setNoteId} />
               </div>
             </div>
 
             {/* Right Panel - Workspace */}
             <div className="space-y-4 sm:space-y-6">
-              <div className="rounded-2xl bg-gray-900/50 border border-gray-800 backdrop-blur-sm">
+              <div className="rounded-2xl bg-black/30 border border-grayale-darker backdrop-blur-sm">
                 <MainWorkspace noteId={noteId} />
               </div>
             </div>

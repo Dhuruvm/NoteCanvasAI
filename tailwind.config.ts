@@ -58,6 +58,12 @@ export default {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
+        grayale: {
+          DEFAULT: "var(--grayale)",
+          hover: "var(--grayale-hover)",
+          dark: "var(--grayale-dark)",
+          darker: "var(--grayale-darker)",
+        },
         chart: {
           "1": "var(--chart-1)",
           "2": "var(--chart-2)",

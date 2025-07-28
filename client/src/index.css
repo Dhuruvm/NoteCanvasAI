@@ -4,37 +4,37 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Gemini/ChatGPT inspired color scheme */
+/* Black and Grayish Blue color scheme */
 :root {
   /* Dark theme colors */
   --background: 0 0% 0%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 5%;
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 5%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 193 100% 50%;
+  --foreground: 208 22% 67%;
+  --card: 0 0% 3%;
+  --card-foreground: 208 22% 67%;
+  --popover: 0 0% 3%;
+  --popover-foreground: 208 22% 67%;
+  --primary: 208 22% 67%;
   --primary-foreground: 0 0% 0%;
-  --secondary: 0 0% 12%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 12%;
-  --muted-foreground: 0 0% 60%;
-  --accent: 193 100% 50%;
+  --secondary: 0 0% 8%;
+  --secondary-foreground: 208 22% 67%;
+  --muted: 0 0% 8%;
+  --muted-foreground: 208 22% 50%;
+  --accent: 208 22% 67%;
   --accent-foreground: 0 0% 0%;
   --destructive: 0 62.8% 55.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 15%;
-  --input: 0 0% 12%;
-  --ring: 193 100% 50%;
+  --destructive-foreground: 208 22% 67%;
+  --border: 208 22% 20%;
+  --input: 0 0% 8%;
+  --ring: 208 22% 67%;
   --radius: 0.75rem;
   
-  /* Custom Gemini-inspired colors */
-  --gemini-blue: 193 100% 50%;
-  --gemini-blue-hover: 193 100% 45%;
-  --gemini-purple: 270 95% 75%;
-  --gemini-green: 142 76% 36%;
-  --chat-input: 0 0% 8%;
-  --chat-hover: 0 0% 12%;
+  /* Custom grayish blue colors (#99AAB5) */
+  --grayale: 208 22% 67%;
+  --grayale-hover: 208 22% 72%;
+  --grayale-dark: 208 22% 50%;
+  --grayale-darker: 208 22% 35%;
+  --chat-input: 0 0% 5%;
+  --chat-hover: 0 0% 8%;
 }
 
 /* Landing Page Animations */
@@ -92,52 +92,52 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Glassmorphism Effect */
+/* Glassmorphism Effect with Grayale */
 .glass-effect {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(153, 170, 181, 0.1);
   backdrop-filter: blur(10px) saturate(100%);
   -webkit-backdrop-filter: blur(10px) saturate(100%);
-  border: 1px solid rgba(255, 255, 255, 0.125);
+  border: 1px solid rgba(153, 170, 181, 0.125);
 }
 
-/* Enhanced Gradient Text */
+/* Enhanced Gradient Text with Black and Grayale */
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #99AAB5 0%, #5a6670 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-blue {
-  background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+  background: linear-gradient(135deg, #99AAB5 0%, #6b7882 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.gradient-text-purple {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+.gradient-text-grayale {
+  background: linear-gradient(135deg, #99AAB5 0%, #b8c4cf 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Premium Button Effects */
+/* Premium Button Effects with Grayale */
 .btn-premium {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #99AAB5 0%, #5a6670 100%);
   box-shadow: 
-    0 4px 15px 0 rgba(102, 126, 234, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    0 4px 15px 0 rgba(153, 170, 181, 0.4),
+    0 0 0 1px rgba(153, 170, 181, 0.1) inset;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-premium:hover {
   transform: translateY(-2px);
   box-shadow: 
-    0 8px 25px 0 rgba(102, 126, 234, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    0 8px 25px 0 rgba(153, 170, 181, 0.6),
+    0 0 0 1px rgba(153, 170, 181, 0.2) inset;
 }
 
 .btn-premium:before {
@@ -155,14 +155,14 @@
   left: 100%;
 }
 
-/* Logo Enhancement */
+/* Logo Enhancement with Grayale */
 .logo-glow {
-  filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.3));
+  filter: drop-shadow(0 0 20px rgba(153, 170, 181, 0.3));
   transition: filter 0.3s ease;
 }
 
 .logo-glow:hover {
-  filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.5));
+  filter: drop-shadow(0 0 30px rgba(153, 170, 181, 0.5));
 }
 
 /* Loading Page Animations */

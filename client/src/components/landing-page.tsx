@@ -89,21 +89,21 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
         .modern-logo-letter:hover {
           transform: scale(1.05) translateY(-5px);
-          color: hsl(193, 100%, 50%);
+          color: #99AAB5;
           text-shadow: 
             2px 2px 0px #333333,
             4px 4px 0px #222222,
             6px 6px 0px #111111,
-            8px 8px 20px hsla(193, 100%, 50%, 0.5),
-            0 0 30px hsla(193, 100%, 50%, 0.8),
-            0 0 60px hsla(193, 100%, 50%, 0.6);
+            8px 8px 20px rgba(153, 170, 181, 0.5),
+            0 0 30px rgba(153, 170, 181, 0.8),
+            0 0 60px rgba(153, 170, 181, 0.6);
         }
 
         .modern-tagline {
           font-family: 'Roboto Condensed', sans-serif;
           font-size: clamp(0.9rem, 2.5vw, 1.2rem);
           font-weight: 700;
-          color: #888888;
+          color: #99AAB5;
           letter-spacing: 0.3em;
           margin-bottom: 4rem;
           opacity: 0;
@@ -133,8 +133,8 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           font-size: 1.1rem;
           font-weight: 700;
           color: #000000;
-          background: hsl(193, 100%, 50%);
-          border: 2px solid hsl(193, 100%, 50%);
+          background: #99AAB5;
+          border: 2px solid #99AAB5;
           padding: 1rem 3rem;
           letter-spacing: 0.2em;
           cursor: pointer;
@@ -164,12 +164,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         }
 
         .modern-enter-button:hover {
-          background: hsl(193, 100%, 45%);
-          border: 2px solid hsl(193, 100%, 45%);
+          background: #b8c4cf;
+          border: 2px solid #b8c4cf;
           transform: scale(1.05);
           box-shadow: 
-            0 0 20px hsla(193, 100%, 50%, 0.5),
-            0 0 40px hsla(193, 100%, 50%, 0.3);
+            0 0 20px rgba(153, 170, 181, 0.5),
+            0 0 40px rgba(153, 170, 181, 0.3);
         }
 
         .modern-enter-button:active {
