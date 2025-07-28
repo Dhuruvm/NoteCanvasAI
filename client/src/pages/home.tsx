@@ -67,15 +67,15 @@ export default function Home() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-gray-700 hover:border-gray-600 bg-gray-900 hover:bg-gray-800 text-white transition-all duration-200"
+                    className="border-[hsl(var(--border))] hover:border-[hsl(var(--gemini-blue))] bg-[hsl(var(--chat-input))] hover:bg-[hsl(var(--chat-hover))] text-white transition-all duration-200"
                   >
                     <Settings className="w-4 h-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="w-80 bg-gray-900 border-gray-700">
+                <SheetContent className="w-80 bg-[hsl(var(--card))] border-[hsl(var(--border))]">
                   <SheetHeader>
                     <SheetTitle className="flex items-center text-lg font-semibold text-white">
-                      <Settings className="w-5 h-5 mr-2 text-cyan-400" />
+                      <Settings className="w-5 h-5 mr-2 text-[hsl(var(--gemini-blue))]" />
                       Settings & Preferences
                     </SheetTitle>
                   </SheetHeader>
@@ -95,7 +95,7 @@ export default function Home() {
                           { key: 'compactMode', label: 'Compact mode', desc: 'Reduce spacing for more content' },
                           { key: 'highContrast', label: 'High contrast', desc: 'Better visibility and accessibility' }
                         ].map(({ key, label, desc }) => (
-                          <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-gray-800 border border-gray-700">
+                          <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--chat-input))] border border-[hsl(var(--border))] hover:bg-[hsl(var(--chat-hover))] transition-colors">
                             <div className="flex-1">
                               <div className="text-sm font-medium text-gray-200">
                                 {label}
@@ -123,7 +123,7 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-auto p-3 flex-col space-y-1 border-gray-600 hover:bg-gray-800 text-gray-300"
+                          className="h-auto p-3 flex-col space-y-1 border-[hsl(var(--border))] hover:bg-[hsl(var(--chat-hover))] hover:border-[hsl(var(--gemini-blue))] text-gray-300 hover:text-white transition-all duration-200"
                         >
                           <FileText className="w-4 h-4" />
                           <span className="text-xs">Clear All</span>
@@ -131,7 +131,7 @@ export default function Home() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-auto p-3 flex-col space-y-1 border-gray-600 hover:bg-gray-800 text-gray-300"
+                          className="h-auto p-3 flex-col space-y-1 border-[hsl(var(--border))] hover:bg-[hsl(var(--chat-hover))] hover:border-[hsl(var(--gemini-blue))] text-gray-300 hover:text-white transition-all duration-200"
                         >
                           <Upload className="w-4 h-4" />
                           <span className="text-xs">Export</span>

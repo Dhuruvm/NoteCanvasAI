@@ -89,14 +89,14 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
 
         .modern-logo-letter:hover {
           transform: scale(1.05) translateY(-5px);
-          color: #00ffff;
+          color: hsl(193, 100%, 50%);
           text-shadow: 
             2px 2px 0px #333333,
             4px 4px 0px #222222,
             6px 6px 0px #111111,
-            8px 8px 20px rgba(0, 255, 255, 0.5),
-            0 0 30px rgba(0, 255, 255, 0.8),
-            0 0 60px rgba(0, 255, 255, 0.6);
+            8px 8px 20px hsla(193, 100%, 50%, 0.5),
+            0 0 30px hsla(193, 100%, 50%, 0.8),
+            0 0 60px hsla(193, 100%, 50%, 0.6);
         }
 
         .modern-tagline {
@@ -132,9 +132,9 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           font-family: 'Roboto Condensed', sans-serif;
           font-size: 1.1rem;
           font-weight: 700;
-          color: #ffffff;
-          background: transparent;
-          border: 2px solid #ffffff;
+          color: #000000;
+          background: hsl(193, 100%, 50%);
+          border: 2px solid hsl(193, 100%, 50%);
           padding: 1rem 3rem;
           letter-spacing: 0.2em;
           cursor: pointer;
@@ -143,6 +143,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           transform: translateY(30px);
           position: relative;
           overflow: hidden;
+          border-radius: 12px;
         }
 
         .modern-enter-button.animate-in {
@@ -163,12 +164,12 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         }
 
         .modern-enter-button:hover {
-          background: #ffffff;
-          color: #000000;
+          background: hsl(193, 100%, 45%);
+          border: 2px solid hsl(193, 100%, 45%);
           transform: scale(1.05);
           box-shadow: 
-            0 0 20px rgba(255, 255, 255, 0.5),
-            0 0 40px rgba(255, 255, 255, 0.3);
+            0 0 20px hsla(193, 100%, 50%, 0.5),
+            0 0 40px hsla(193, 100%, 50%, 0.3);
         }
 
         .modern-enter-button:active {

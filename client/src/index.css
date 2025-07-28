@@ -4,6 +4,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Gemini/ChatGPT inspired color scheme */
+:root {
+  /* Dark theme colors */
+  --background: 0 0% 0%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 5%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 193 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 193 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 62.8% 55.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 15%;
+  --input: 0 0% 12%;
+  --ring: 193 100% 50%;
+  --radius: 0.75rem;
+  
+  /* Custom Gemini-inspired colors */
+  --gemini-blue: 193 100% 50%;
+  --gemini-blue-hover: 193 100% 45%;
+  --gemini-purple: 270 95% 75%;
+  --gemini-green: 142 76% 36%;
+  --chat-input: 0 0% 8%;
+  --chat-hover: 0 0% 12%;
+}
+
 /* Landing Page Animations */
 @keyframes blob {
   0% {

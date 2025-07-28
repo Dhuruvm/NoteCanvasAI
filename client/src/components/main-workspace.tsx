@@ -160,13 +160,13 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
       )}
 
       {/* Main Content */}
-      <div className="bg-gray-900 rounded-xl border border-gray-700">
+      <div className="bg-[hsl(var(--card))] rounded-xl border border-[hsl(var(--border))] shadow-lg">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="border-b border-gray-700 bg-gray-800/50">
+          <div className="border-b border-[hsl(var(--border))] bg-[hsl(var(--chat-input))]">
             <TabsList className="px-6 py-0 h-auto bg-transparent overflow-x-auto w-full justify-start">
               <TabsTrigger
                 value="notes"
-                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-cyan-500 text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent"
+                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-[hsl(var(--gemini-blue))] text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent hover:bg-[hsl(var(--chat-hover))] transition-all duration-200"
               >
                 <FileText className="w-4 h-4 mr-2" />
                 AI Generated Notes
@@ -174,7 +174,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
 
               <TabsTrigger
                 value="designer"
-                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-cyan-500 text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent"
+                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-[hsl(var(--gemini-blue))] text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent hover:bg-[hsl(var(--chat-hover))] transition-all duration-200 disabled:opacity-50"
                 disabled={note.status !== "completed"}
               >
                 <PaintbrushVertical className="w-4 h-4 mr-2" />
@@ -182,7 +182,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-cyan-500 text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent"
+                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-[hsl(var(--gemini-blue))] text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent hover:bg-[hsl(var(--chat-hover))] transition-all duration-200 disabled:opacity-50"
                 disabled={note.status !== "completed"}
               >
                 <Eye className="w-4 h-4 mr-2" />
@@ -195,7 +195,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
             {note.status === "completed" && processedContent ? (
               <>
                 {/* Generated Title */}
-                <div className="border-l-4 border-cyan-500 pl-4 bg-gray-800/30 p-4 rounded-r-lg">
+                <div className="border-l-4 border-[hsl(var(--gemini-blue))] pl-4 bg-[hsl(var(--chat-input))] p-4 rounded-r-lg">
                   <h2 className="text-2xl font-bold text-white mb-2">
                     {processedContent.title || note.title}
                   </h2>

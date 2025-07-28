@@ -38,10 +38,10 @@ export function UploadZone({ onFileUpload, isUploading }: UploadZoneProps) {
     <Card
       {...getRootProps()}
       className={cn(
-        "border-2 border-dashed cursor-pointer transition-colors bg-gray-800 border-gray-700",
+        "border-2 border-dashed cursor-pointer transition-all duration-200 bg-[hsl(var(--chat-input))] border-gray-700",
         isDragActive || dragActive
-          ? "border-cyan-500 bg-cyan-500/10"
-          : "hover:border-gray-600",
+          ? "border-[hsl(var(--gemini-blue))] bg-[hsl(var(--gemini-blue))]/10 shadow-lg"
+          : "hover:border-gray-600 hover:bg-[hsl(var(--chat-hover))]",
         isUploading && "opacity-50 cursor-not-allowed"
       )}
     >
@@ -49,9 +49,9 @@ export function UploadZone({ onFileUpload, isUploading }: UploadZoneProps) {
         <input {...getInputProps()} />
         <div className="flex flex-col items-center">
           {isUploading ? (
-            <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full mb-3" />
+            <div className="animate-spin w-8 h-8 border-2 border-[hsl(var(--gemini-blue))] border-t-transparent rounded-full mb-3" />
           ) : (
-            <Upload className="w-8 h-8 text-gray-400 mb-3" />
+            <Upload className="w-8 h-8 text-gray-400 mb-3 group-hover:text-[hsl(var(--gemini-blue))] transition-colors" />
           )}
           <p className="text-sm font-medium text-gray-300 mb-1">
             {isUploading

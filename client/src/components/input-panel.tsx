@@ -130,13 +130,13 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
         
         {/* Modern Chat-like Input */}
         <div className="relative">
-          <div className="relative bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden focus-within:border-cyan-500 transition-colors">
+          <div className="relative bg-[hsl(var(--chat-input))] border border-gray-700 rounded-2xl overflow-hidden focus-within:border-[hsl(var(--gemini-blue))] transition-all duration-200 shadow-lg">
             <Textarea
               value={textContent}
               onChange={(e) => setTextContent(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Paste your content here or describe what you'd like to learn about..."
-              className="min-h-[120px] max-h-[300px] bg-transparent border-0 text-white placeholder-gray-400 resize-none focus:ring-0 focus:border-0 p-4 pr-16"
+              placeholder="Message NoteGPT... What would you like to learn about?"
+              className="min-h-[120px] max-h-[300px] bg-transparent border-0 text-white placeholder-gray-500 resize-none focus:ring-0 focus:border-0 p-4 pr-16 text-sm leading-relaxed"
             />
             
             {/* Input Actions */}
@@ -145,7 +145,7 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSettings(!showSettings)}
-                className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
+                className="h-9 w-9 p-0 text-gray-400 hover:text-white hover:bg-[hsl(var(--chat-hover))] rounded-xl transition-all duration-200"
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -154,10 +154,10 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
                 onClick={handleGenerateNotes}
                 disabled={!textContent.trim() || processTextMutation.isPending}
                 size="sm"
-                className="h-8 w-8 p-0 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg disabled:opacity-50"
+                className="h-9 w-9 p-0 bg-[hsl(var(--gemini-blue))] hover:bg-[hsl(var(--gemini-blue-hover))] text-black rounded-xl disabled:opacity-50 transition-all duration-200 shadow-md"
               >
                 {processTextMutation.isPending ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Send className="w-4 h-4" />
                 )}
@@ -175,10 +175,10 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
 
       {/* Settings Panel */}
       {showSettings && (
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-[hsl(var(--card))] border-[hsl(var(--border))]">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg text-white flex items-center">
-              <Sparkles className="w-5 h-5 mr-2 text-cyan-400" />
+              <Sparkles className="w-5 h-5 mr-2 text-[hsl(var(--gemini-blue))]" />
               AI Processing Options
             </CardTitle>
           </CardHeader>
@@ -186,14 +186,14 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
             <div className="space-y-2">
               <Label className="text-sm font-medium text-gray-300">Note Style</Label>
               <Select value={summaryStyle} onValueChange={(value: any) => setSummaryStyle(value)}>
-                <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                <SelectTrigger className="bg-[hsl(var(--chat-input))] border-[hsl(var(--border))] text-white hover:border-[hsl(var(--gemini-blue))] transition-colors">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="academic" className="text-white">Academic Summary</SelectItem>
-                  <SelectItem value="bulletPoints" className="text-white">Bullet Points</SelectItem>
-                  <SelectItem value="mindMap" className="text-white">Mind Map</SelectItem>
-                  <SelectItem value="qna" className="text-white">Q&A Format</SelectItem>
+                <SelectContent className="bg-[hsl(var(--card))] border-[hsl(var(--border))]">
+                  <SelectItem value="academic" className="text-white hover:bg-[hsl(var(--chat-hover))]">Academic Summary</SelectItem>
+                  <SelectItem value="bulletPoints" className="text-white hover:bg-[hsl(var(--chat-hover))]">Bullet Points</SelectItem>
+                  <SelectItem value="mindMap" className="text-white hover:bg-[hsl(var(--chat-hover))]">Mind Map</SelectItem>
+                  <SelectItem value="qna" className="text-white hover:bg-[hsl(var(--chat-hover))]">Q&A Format</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -205,14 +205,14 @@ export function InputPanel({ onNoteCreated }: InputPanelProps) {
       <div className="flex space-x-3">
         <Button
           variant="outline"
-          className="flex-1 border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 bg-gray-800/50"
+          className="flex-1 border-gray-700 text-gray-300 hover:text-white hover:border-[hsl(var(--gemini-blue))] bg-gray-900/50 hover:bg-[hsl(var(--chat-hover))] transition-all duration-200"
         >
           <Brain className="w-4 h-4 mr-2" />
           Quick Summary
         </Button>
         <Button
           variant="outline"
-          className="flex-1 border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 bg-gray-800/50"
+          className="flex-1 border-gray-700 text-gray-300 hover:text-white hover:border-[hsl(var(--gemini-blue))] bg-gray-900/50 hover:bg-[hsl(var(--chat-hover))] transition-all duration-200"
         >
           <Zap className="w-4 h-4 mr-2" />
           Flash Cards
