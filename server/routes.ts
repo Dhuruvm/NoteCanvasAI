@@ -6,6 +6,7 @@ import { generateNotePDF, extractTextFromPDF } from "./services/pdf";
 import { generateAdvancedPDF } from "./services/advanced-pdf";
 import { generateEnhancedPDF } from "./services/pdf-generator";
 import { generateRobustPDF } from "./services/robust-pdf-generator";
+import { generateProfessionalPDF } from "./services/professional-pdf-generator";
 import { processWithMultipleModels } from "./services/multi-model-ai";
 import { chatAIService } from "./services/chat-ai";
 import { 
@@ -154,6 +155,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get notes error:", error);
       res.status(500).json({ message: "Failed to retrieve notes" });
+    }
+  });
+
+  // Generate professional PDF endpoint
+  app.post("/api/notes/:id/generate-professional-pdf", async (req, res) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      if (isNaN(noteId)) {
+        return res.status(400).json({ error: "Invalid note ID" });
+      }
+      const note = await storage.getNote(noteId);
+
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      console.log(`Generating professional PDF for note ${noteId}: ${note.title}`);
+
+      // Use professional PDF generator with multi-page layout
+      const pdfResult = await generateProfessionalPDF(
+        note,
+        note.originalContent || '',
+        {
+          designStyle: "professional",
+          multiPage: true,
+          enhancedLayout: true,
+          useHuggingFaceModels: true
+        }
+      );
+      
+      const pdfBuffer = pdfResult.buffer;
+      const metadata = pdfResult.metadata;
+
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error("Generated PDF buffer is empty");
+      }
+
+      console.log(`Professional PDF generated successfully:`, metadata);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_professional.pdf"`);
+      res.setHeader('X-PDF-Metadata', JSON.stringify(metadata));
+      res.send(pdfBuffer);
+
+    } catch (error) {
+      console.error("Professional PDF generation error:", error);
+      res.status(500).json({ 
+        error: "Failed to generate professional PDF",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ProcessingStatus } from "./processing-status";
-import { FileText, PaintbrushVertical, Eye, Clock, Lightbulb, List, GitBranch, CheckCircle } from "lucide-react";
+import { FileText, PaintbrushVertical, Eye, Clock, Lightbulb, List, GitBranch, CheckCircle, Download } from "lucide-react";
 import type { Note, ProcessedNote } from "@shared/schema";
 import { PDFDesignerEnhanced } from "./pdf-designer-enhanced";
 import { VisualPreview } from "./visual-preview";
@@ -41,50 +41,61 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
     useEnhancedLayout: true
   });
 
-  const handleGeneratePDF = async () => {
-    if (!noteId || !note) return;
-
+  const handleDirectPDFGeneration = async () => {
     setIsGeneratingPDF(true);
-
     try {
-      // Use enhanced PDF generation with multiple AI models
-      const response = await fetch(`/api/notes/${noteId}/generate-pdf`, {
+      const response = await fetch(`/api/notes/${noteId}/generate-professional-pdf`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(pdfOptions),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          designStyle: 'professional',
+          multiPage: true,
+          enhancedLayout: true
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'PDF generation failed' }));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error('PDF generation failed');
 
       const blob = await response.blob();
-
-      // Verify we got a PDF blob
-      if (blob.size === 0) {
-        throw new Error('Empty PDF file received');
-      }
-
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `${note.title || 'enhanced-notes'}-ai-generated.pdf`;
       a.style.display = 'none';
+      a.href = url;
+      a.download = `${note.title || 'professional-notes'}.pdf`;
       document.body.appendChild(a);
       a.click();
-
-      // Clean up
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }, 100);
-
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
-      console.error("PDF generation failed:", error);
-      alert(`AI-enhanced PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('PDF generation error:', error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleGeneratePDF = async (options: any) => {
+    setIsGeneratingPDF(true);
+    try {
+      const response = await fetch(`/api/notes/${noteId}/generate-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(options),
+      });
+
+      if (!response.ok) throw new Error('PDF generation failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${note.title || 'notes'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('PDF generation error:', error);
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -170,23 +181,6 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
               >
                 <FileText className="w-4 h-4 mr-2" />
                 AI Generated Notes
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="designer"
-                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-[hsl(var(--gemini-blue))] text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent hover:bg-[hsl(var(--chat-hover))] transition-all duration-200 disabled:opacity-50"
-                disabled={note.status !== "completed"}
-              >
-                <PaintbrushVertical className="w-4 h-4 mr-2" />
-                PDF Designer
-              </TabsTrigger>
-              <TabsTrigger
-                value="preview"
-                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-[hsl(var(--gemini-blue))] text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent hover:bg-[hsl(var(--chat-hover))] transition-all duration-200 disabled:opacity-50"
-                disabled={note.status !== "completed"}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
               </TabsTrigger>
             </TabsList>
           </div>
@@ -401,31 +395,43 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
               </div>
             )}
           </TabsContent>
-
-
-
-          <TabsContent value="designer" className="p-3 sm:p-6">
-            <PDFDesignerEnhanced 
-              note={processedContent}
-              onGeneratePDF={handleGeneratePDF}
-              isGenerating={isGeneratingPDF}
-            />
-          </TabsContent>
-
-          <TabsContent value="preview" className="p-3 sm:p-6">
-            <VisualPreview 
-              noteId={note.id}
-              processedContent={processedContent}
-              pdfOptions={{
-                designStyle: 'modern',
-                colorScheme: 'blue',
-                includeVisualElements: true,
-                includeCharts: true,
-                includeInfographic: true
-              }}
-            />
-          </TabsContent>
         </Tabs>
+              {/* Direct PDF Generation */}
+              <div className="mt-6">
+                <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+                  <CardContent className="p-6">
+                    <div className="text-center space-y-4">
+                      <div className="flex items-center justify-center space-x-2">
+                        <FileText className="w-8 h-8 text-blue-600" />
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                          Professional PDF Generation
+                        </h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Generate beautifully designed study notes with multi-page layout
+                      </p>
+                      <Button
+                        onClick={handleDirectPDFGeneration}
+                        disabled={isGeneratingPDF}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-4"
+                        size="lg"
+                      >
+                        {isGeneratingPDF ? (
+                          <>
+                            <div className="w-5 h-5 mr-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Generating Professional PDF...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-5 h-5 mr-3" />
+                            Generate Professional PDF
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
       </div>
     </div>
   );
