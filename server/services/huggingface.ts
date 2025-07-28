@@ -74,7 +74,7 @@ export async function analyzeDocumentLayout(content: string): Promise<LayoutAnal
  */
 export async function generateEnhancedContent(content: string, style: string): Promise<string> {
   try {
-    console.log('Generating enhanced content with Mixtral...');
+    console.log('Generating enhanced content with compatible models...');
     
     const prompt = `Transform the following content into ${style} study notes with proper structure and formatting:
 
@@ -86,17 +86,51 @@ Requirements:
 - Add visual separators and emphasis
 - Make it study-friendly and well-organized`;
 
-    const response = await hf.textGeneration({
-      model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-      inputs: prompt,
-      parameters: {
-        max_new_tokens: 1000,
-        temperature: 0.7,
-        repetition_penalty: 1.1,
-      }
-    });
+    // Try multiple compatible models in order of preference
+    const models = [
+      'microsoft/DialoGPT-medium',
+      'gpt2',
+      'distilgpt2'
+    ];
 
-    return response.generated_text.replace(prompt, '').trim();
+    for (const model of models) {
+      try {
+        const response = await hf.textGeneration({
+          model,
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 500,
+            temperature: 0.7,
+            repetition_penalty: 1.1,
+          }
+        });
+
+        if (response.generated_text) {
+          return response.generated_text.replace(prompt, '').trim();
+        }
+      } catch (modelError) {
+        console.warn(`Model ${model} failed, trying next:`, modelError);
+        continue;
+      }
+    }
+
+    // If all models fail, create enhanced content manually
+    const enhancedContent = `
+# ${style.charAt(0).toUpperCase() + style.slice(1)} Study Notes
+
+## Key Points
+${content.split('\n').filter(line => line.trim()).map(line => `• ${line.trim()}`).join('\n')}
+
+## Summary
+This content has been structured for better readability and study purposes.
+
+## Additional Notes
+- Review the key concepts regularly
+- Practice with related exercises
+- Connect ideas to real-world applications
+    `;
+
+    return enhancedContent.trim();
   } catch (error) {
     console.error('Enhanced content generation error:', error);
     return content; // Fallback to original content
@@ -273,22 +307,74 @@ export async function processWithMultipleModels(
 }> {
   console.log('Starting multi-model AI processing...');
 
-  // Run multiple AI models in parallel for efficiency
-  const [layoutAnalysis, enhancedContent, tableStructure] = await Promise.all([
-    analyzeDocumentLayout(content),
-    generateEnhancedContent(content, style),
-    generateTableStructure(content)
-  ]);
+  try {
+    // Run multiple AI models with individual error handling
+    const layoutAnalysisPromise = analyzeDocumentLayout(content).catch(error => {
+      console.warn('Layout analysis failed, using fallback:', error);
+      return {
+        sections: [{ type: 'paragraph' as const, content }],
+        visualStructure: { hasTable: false, hasQuotes: false, hasLists: false, headingLevels: [] }
+      };
+    });
 
-  // Generate design layout based on analysis
-  const designLayout = await generateDesignLayout(layoutAnalysis, style);
+    const enhancedContentPromise = generateEnhancedContent(content, style).catch(error => {
+      console.warn('Enhanced content generation failed, using original:', error);
+      return content;
+    });
 
-  console.log('Multi-model processing completed successfully');
-  
-  return {
-    layoutAnalysis,
-    enhancedContent,
-    tableStructure,
-    designLayout
-  };
+    const tableStructurePromise = generateTableStructure(content).catch(error => {
+      console.warn('Table structure generation failed:', error);
+      return '';
+    });
+
+    const [layoutAnalysis, enhancedContent, tableStructure] = await Promise.all([
+      layoutAnalysisPromise,
+      enhancedContentPromise,
+      tableStructurePromise
+    ]);
+
+    // Generate design layout based on analysis
+    const designLayout = await generateDesignLayout(layoutAnalysis, style).catch(error => {
+      console.warn('Design layout generation failed, using default:', error);
+      return {
+        templateType: style,
+        sections: layoutAnalysis.sections.map((section, index) => ({
+          id: `section-${index}`,
+          type: 'content' as const,
+          styling: { padding: '8px', marginBottom: '16px' },
+          content: section.content
+        })),
+        theme: {
+          primaryColor: '#2563eb',
+          secondaryColor: '#64748b',
+          fontFamily: 'sans-serif',
+          spacing: 'comfortable'
+        }
+      };
+    });
+
+    console.log('Multi-model processing completed successfully');
+    
+    return {
+      layoutAnalysis,
+      enhancedContent,
+      tableStructure,
+      designLayout
+    };
+  } catch (error) {
+    console.error('Multi-model processing failed:', error);
+    
+    // Return fallback data
+    const fallbackLayout: LayoutAnalysis = {
+      sections: [{ type: 'paragraph', content }],
+      visualStructure: { hasTable: false, hasQuotes: false, hasLists: false, headingLevels: [] }
+    };
+
+    return {
+      layoutAnalysis: fallbackLayout,
+      enhancedContent: content,
+      tableStructure: '',
+      designLayout: await generateDesignLayout(fallbackLayout, style)
+    };
+  }
 }

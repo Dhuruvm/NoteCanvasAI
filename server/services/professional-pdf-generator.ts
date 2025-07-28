@@ -121,13 +121,13 @@ async function createTitlePage(pdfDoc: any, note: any, colors: any, regularFont:
 
   // Gradient effect with multiple rectangles
   for (let i = 0; i < 8; i++) {
-    const opacity = 0.1 - (i * 0.01);
+    const opacity = Math.max(0.02, 0.1 - (i * 0.01));
     page.drawRectangle({
       x: 0,
       y: height - 120 - (i * 5),
       width: width,
       height: 120 + (i * 10),
-      color: rgb(colors.primary.r * opacity, colors.primary.g * opacity, colors.primary.b * opacity)
+      color: rgb(0.15 * opacity, 0.25 * opacity, 0.45 * opacity)
     });
   }
 
