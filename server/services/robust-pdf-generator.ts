@@ -196,7 +196,7 @@ async function addHeaderSection(
   });
 
   // Title
-  const title = note.title || 'AI-Generated Study Notes';
+  const title = sanitizeText(note.title || 'AI-Generated Study Notes');
   page.drawText(title, {
     x: 60,
     y: yPos + 30,
@@ -247,7 +247,7 @@ async function addKeyConceptsSection(
   let currentY = yPos;
 
   // Section header
-  page.drawText('📖 Key Concepts', {
+  page.drawText('Key Concepts', {
     x: 60,
     y: currentY,
     size: 18,
@@ -272,7 +272,8 @@ async function addKeyConceptsSection(
     });
 
     // Concept title
-    page.drawText(`• ${concept.title || `Concept ${i + 1}`}`, {
+    const conceptTitle = sanitizeText(concept.title || `Concept ${i + 1}`);
+    page.drawText(`• ${conceptTitle}`, {
       x: 80,
       y: currentY - 5,
       size: 14,
@@ -312,7 +313,7 @@ async function addSummaryPointsSection(
   let currentY = yPos;
 
   // Section header
-  page.drawText('📋 Summary Points', {
+  page.drawText('Summary Points', {
     x: 60,
     y: currentY,
     size: 18,
@@ -326,7 +327,8 @@ async function addSummaryPointsSection(
     const point = summaryPoints[i];
     
     // Point header
-    page.drawText(`${i + 1}. ${point.heading || `Point ${i + 1}`}`, {
+    const pointHeading = sanitizeText(point.heading || `Point ${i + 1}`);
+    page.drawText(`${i + 1}. ${pointHeading}`, {
       x: 60,
       y: currentY,
       size: 14,
@@ -372,7 +374,7 @@ async function addProcessFlowSection(
   let currentY = yPos;
 
   // Section header
-  page.drawText('🔄 Process Flow', {
+  page.drawText('Process Flow', {
     x: 60,
     y: currentY,
     size: 18,
@@ -403,7 +405,8 @@ async function addProcessFlowSection(
     });
 
     // Step title
-    page.drawText(`${step.title || `Step ${i + 1}`}`, {
+    const stepTitle = sanitizeText(step.title || `Step ${i + 1}`);
+    page.drawText(stepTitle, {
       x: 90,
       y: currentY - 5,
       size: 14,
@@ -441,7 +444,7 @@ async function addContentSection(
   let currentY = yPos;
 
   // Section header
-  page.drawText('📄 Content Overview', {
+  page.drawText('Content Overview', {
     x: 60,
     y: currentY,
     size: 18,
@@ -492,7 +495,7 @@ async function addVisualElementsSection(
   let currentY = yPos;
 
   // Section header
-  page.drawText('📊 Visual Elements', {
+  page.drawText('Visual Elements', {
     x: 60,
     y: currentY,
     size: 18,
@@ -550,7 +553,7 @@ async function addChartsSection(
   let currentY = yPos;
 
   // Section header
-  page.drawText('📈 Charts & Analytics', {
+  page.drawText('Charts & Analytics', {
     x: 60,
     y: currentY,
     size: 18,
@@ -608,7 +611,7 @@ async function addInfographicSection(
   let currentY = yPos;
 
   // Section header
-  page.drawText('🎨 Infographic Elements', {
+  page.drawText('Infographic Elements', {
     x: 60,
     y: currentY,
     size: 18,
@@ -691,10 +694,26 @@ async function addFooterSection(
   });
 }
 
-function wrapText(text: string, maxChars: number, fontSize: number): string {
-  if (!text || text.length <= maxChars) return text;
+function sanitizeText(text: string): string {
+  if (!text) return '';
   
-  const words = text.split(' ');
+  // Remove or replace characters that can't be encoded in WinAnsi
+  return text
+    .replace(/[^\x00-\xFF]/g, '') // Remove non-Latin characters including emojis
+    .replace(/[\u0080-\u00FF]/g, (char) => {
+      // Handle extended ASCII characters
+      const charCode = char.charCodeAt(0);
+      if (charCode > 255) return '';
+      return char;
+    })
+    .trim();
+}
+
+function wrapText(text: string, maxChars: number, fontSize: number): string {
+  if (!text || text.length <= maxChars) return sanitizeText(text);
+  
+  const sanitizedText = sanitizeText(text);
+  const words = sanitizedText.split(' ');
   let line = '';
   let result = '';
   
