@@ -38,29 +38,29 @@ export function UploadZone({ onFileUpload, isUploading }: UploadZoneProps) {
     <Card
       {...getRootProps()}
       className={cn(
-        "border-2 border-dashed cursor-pointer transition-colors",
+        "border-2 border-dashed cursor-pointer transition-colors bg-gray-800 border-gray-700",
         isDragActive || dragActive
-          ? "border-primary bg-primary/5"
-          : "border-gray-300 dark:border-gray-600 hover:border-primary dark:hover:border-primary",
+          ? "border-cyan-500 bg-cyan-500/10"
+          : "hover:border-gray-600",
         isUploading && "opacity-50 cursor-not-allowed"
       )}
     >
-      <div className="p-4 sm:p-6 text-center">
+      <div className="p-6 text-center">
         <input {...getInputProps()} />
         <div className="flex flex-col items-center">
           {isUploading ? (
-            <div className="animate-spin w-6 h-6 sm:w-8 sm:h-8 border-2 border-primary border-t-transparent rounded-full mb-2 sm:mb-3" />
+            <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full mb-3" />
           ) : (
-            <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 dark:text-gray-500 mb-2 sm:mb-3" />
+            <Upload className="w-8 h-8 text-gray-400 mb-3" />
           )}
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <p className="text-sm font-medium text-gray-300 mb-1">
             {isUploading
               ? "Processing file..."
               : isDragActive
               ? "Drop file here"
               : "Drop PDF, TXT, or MD files"}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             {isUploading ? "Extracting text and generating notes..." : "or click to browse (10MB max)"}
           </p>
         </div>

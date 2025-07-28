@@ -92,17 +92,19 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
 
   if (!noteId) {
     return (
-      <Card className="h-64 sm:h-96 flex items-center justify-center">
-        <CardContent className="text-center px-4">
-          <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-3 sm:mb-4" />
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
+      <div className="h-96 flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-2">
             Ready to Generate Notes
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-gray-400 max-w-sm">
             Upload a file or paste text content to get started with AI-powered note generation.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
@@ -158,48 +160,48 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
       )}
 
       {/* Main Content */}
-      <Card>
+      <div className="bg-gray-900 rounded-xl border border-gray-700">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="border-b border-gray-200 dark:border-gray-700">
-            <TabsList className="px-3 sm:px-6 py-0 h-auto bg-transparent overflow-x-auto">
+          <div className="border-b border-gray-700 bg-gray-800/50">
+            <TabsList className="px-6 py-0 h-auto bg-transparent overflow-x-auto w-full justify-start">
               <TabsTrigger
                 value="notes"
-                className="px-2 sm:px-4 py-3 sm:py-4 border-b-2 border-transparent data-[state=active]:border-primary text-sm whitespace-nowrap"
+                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-cyan-500 text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent"
               >
-                <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                <span className="hidden xs:inline">AI Generated </span>Notes
+                <FileText className="w-4 h-4 mr-2" />
+                AI Generated Notes
               </TabsTrigger>
 
               <TabsTrigger
                 value="designer"
-                className="px-2 sm:px-4 py-3 sm:py-4 border-b-2 border-transparent data-[state=active]:border-primary text-sm whitespace-nowrap"
+                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-cyan-500 text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent"
                 disabled={note.status !== "completed"}
               >
-                <PaintbrushVertical className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                <span className="hidden xs:inline">PDF </span>Designer
+                <PaintbrushVertical className="w-4 h-4 mr-2" />
+                PDF Designer
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                className="px-2 sm:px-4 py-3 sm:py-4 border-b-2 border-transparent data-[state=active]:border-primary text-sm whitespace-nowrap"
+                className="px-4 py-4 border-b-2 border-transparent data-[state=active]:border-cyan-500 text-gray-400 data-[state=active]:text-white text-sm whitespace-nowrap bg-transparent"
                 disabled={note.status !== "completed"}
               >
-                <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <Eye className="w-4 h-4 mr-2" />
                 Preview
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="notes" className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          <TabsContent value="notes" className="p-6 space-y-6">
             {note.status === "completed" && processedContent ? (
               <>
                 {/* Generated Title */}
-                <div className="border-l-4 border-accent pl-3 sm:pl-4">
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                <div className="border-l-4 border-cyan-500 pl-4 bg-gray-800/30 p-4 rounded-r-lg">
+                  <h2 className="text-2xl font-bold text-white mb-2">
                     {processedContent.title || note.title}
                   </h2>
-                  <div className="text-muted-foreground text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="text-gray-400 text-sm flex items-center gap-4">
                     <span className="flex items-center">
-                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <Clock className="w-4 h-4 mr-1" />
                       Generated {new Date(note.createdAt).toLocaleString()}
                     </span>
                     <span className="flex items-center">
@@ -424,7 +426,7 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
             />
           </TabsContent>
         </Tabs>
-      </Card>
+      </div>
     </div>
   );
 }
