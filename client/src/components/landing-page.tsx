@@ -262,7 +262,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             
             {/* Prototype Tag */}
             <div className={`modern-prototype-tag ${isLoaded ? 'animate-in' : ''}`}>
-              PROTOTYPE
+              PROTOTYPE.DEV BY DHURUV
             </div>
           </div>
           
