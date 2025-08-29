@@ -61,9 +61,7 @@ export function setupRateLimiting(app: Express) {
     handler: (req, res) => {
       res.status(429).json({
         error: 'Rate limit exceeded',
-        retryAfter: Math.round(req.rateLimit.resetTime / 1000),
-        limit: req.rateLimit.limit,
-        remaining: req.rateLimit.remaining
+        retryAfter: '15 minutes'
       });
     }
   });

@@ -14,6 +14,9 @@ import {
 
 const app = express();
 
+// Configure Express to trust proxy headers (required for Replit environment)
+app.set('trust proxy', true);
+
 // Initialize performance optimizations
 setupSecurity(app);
 setupCompression(app);

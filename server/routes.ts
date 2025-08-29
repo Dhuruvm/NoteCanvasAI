@@ -131,13 +131,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         templateId: settings.summaryStyle,
       });
 
-      // Queue AI processing job
-      await jobProcessor.queueAIProcessing({
+      // Queue AI processing job - don't await to prevent 500 errors
+      jobProcessor.queueAIProcessing({
         noteId: note.id,
         content,
         settings,
         priority: 'normal',
         userId: req.headers['user-id']?.toString() // TODO: Get from auth
+      }).catch(error => {
+        console.error(`AI processing queue error for note ${note.id}:`, error);
+        // Processing will continue in background with fallback handling
       });
 
       res.json({ noteId: note.id, message: "Processing started" });
