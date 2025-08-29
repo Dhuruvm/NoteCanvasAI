@@ -8,11 +8,54 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || "" 
 });
 
+// Check if API key is available
+const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY);
+
+/**
+ * Create fallback content when API is not available
+ */
+function createFallbackContent(content: string, settings: AISettings): ProcessedNote {
+  const title = content.length > 50 ? content.substring(0, 50) + "..." : content;
+  
+  return {
+    title,
+    keyConcepts: [
+      {
+        title: "Original Content",
+        definition: "The content you provided is available for processing. Please set up your AI API keys to enable automatic analysis."
+      }
+    ],
+    summaryPoints: [
+      {
+        heading: "Content Available",
+        points: [
+          "Your content has been saved successfully",
+          "To enable AI processing, please configure your API keys",
+          "You can still export this content as a PDF"
+        ]
+      }
+    ],
+    processFlow: [],
+    metadata: {
+      source: "User input",
+      generatedAt: new Date().toISOString(),
+      style: settings.summaryStyle || "academic",
+      aiModelsUsed: ["fallback-mode"]
+    }
+  };
+}
+
 export async function summarizeContentWithGemini(
   content: string,
   settings: AISettings,
   pdfBuffer?: Buffer
 ): Promise<ProcessedNote> {
+  // Check if API key is available, if not return fallback content
+  if (!hasApiKey) {
+    console.warn("Gemini API key not found, returning fallback content");
+    return createFallbackContent(content, settings);
+  }
+
   // If multi-model processing is enabled, use the enhanced approach
   if (settings.useMultipleModels) {
     return await summarizeWithMultipleModels(content, settings, pdfBuffer);
