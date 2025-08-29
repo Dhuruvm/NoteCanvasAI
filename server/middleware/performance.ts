@@ -27,7 +27,9 @@ export function setupSecurity(app: Express) {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        scriptSrc: ["'self'", "'unsafe-eval'"], // Required for Vite in development
+        scriptSrc: process.env.NODE_ENV === 'development' 
+          ? ["'self'", "'unsafe-eval'", "'unsafe-inline'"] // Vite needs inline scripts in dev
+          : ["'self'", "'unsafe-eval'"], // More restrictive in production
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: ["'self'", "ws:", "wss:", "https:"],
         frameSrc: ["'none'"],
