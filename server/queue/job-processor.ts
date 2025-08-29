@@ -46,9 +46,9 @@ interface EmailNotificationJob {
 
 // Queue setup with different priorities
 class JobProcessor {
-  private aiQueue: Queue.Queue<AIProcessingJob>;
-  private pdfQueue: Queue.Queue<PDFGenerationJob>;
-  private notificationQueue: Queue.Queue<EmailNotificationJob>;
+  private aiQueue!: Queue.Queue<AIProcessingJob>;
+  private pdfQueue!: Queue.Queue<PDFGenerationJob>;
+  private notificationQueue!: Queue.Queue<EmailNotificationJob>;
 
   constructor() {
     if (!redisAvailable) {

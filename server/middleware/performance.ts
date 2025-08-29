@@ -58,7 +58,7 @@ export function setupRateLimiting(app: Express) {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    trustProxy: false, // Disable trust proxy for rate limiting to prevent bypass
+    // Note: trustProxy option removed as it's not supported in this version
     handler: (req, res) => {
       res.status(429).json({
         error: 'Rate limit exceeded',
