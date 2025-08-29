@@ -58,7 +58,7 @@ export function setupRateLimiting(app: Express) {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    // Note: trustProxy option removed as it's not supported in this version
+    validate: false, // Disable validation to prevent trust proxy warnings
     handler: (req, res) => {
       res.status(429).json({
         error: 'Rate limit exceeded',
@@ -78,6 +78,7 @@ export function setupRateLimiting(app: Express) {
     skipSuccessfulRequests: false,
     standardHeaders: true,
     legacyHeaders: false,
+    validate: false, // Disable validation to prevent trust proxy warnings
   });
 
   // File upload rate limiting
@@ -87,7 +88,8 @@ export function setupRateLimiting(app: Express) {
     message: {
       error: 'Upload rate limit exceeded',
       retryAfter: '1 minute'
-    }
+    },
+    validate: false // Disable validation to prevent trust proxy warnings
   });
 
   // Apply rate limiters

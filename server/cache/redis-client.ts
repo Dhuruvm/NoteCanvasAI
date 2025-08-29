@@ -22,7 +22,7 @@ try {
       }
     });
   } else {
-    console.log('🔄 No Redis URL provided, using memory cache');
+    // Using memory cache (Redis not configured)
   }
 } catch (error) {
   console.warn('🔄 Redis initialization failed, using memory cache:', error);
@@ -194,7 +194,7 @@ export async function initializeCache(): Promise<CacheManager> {
       throw new Error('Redis not available');
     }
   } catch (error) {
-    console.log('🔄 Redis unavailable, using memory cache');
+    // Falling back to memory cache
     cacheManager = new MemoryCacheManager();
     return cacheManager;
   }

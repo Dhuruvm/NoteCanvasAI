@@ -19,7 +19,7 @@ if (process.env.REDIS_URL) {
   };
   redisAvailable = true;
 } else {
-  console.log('🔄 Redis not available for queue system, using in-memory processing');
+  // Using in-memory processing (Redis not configured)
 }
 
 // Job types
@@ -52,7 +52,7 @@ class JobProcessor {
 
   constructor() {
     if (!redisAvailable) {
-      console.log('🔄 Queue system disabled - Redis not available');
+      // Queue system using direct processing
       return;
     }
 

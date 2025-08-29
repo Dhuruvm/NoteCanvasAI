@@ -209,7 +209,7 @@ export class DatabaseStorage implements IStorage {
         bestStreak: 0,
         points: 0,
         level: 1,
-        badges: [] as string[],
+        badges: [] as any,
         penalties: 0,
         ...updates
       });
@@ -326,7 +326,11 @@ async function initializeDefaultTemplates() {
       }
     }
   } catch (error) {
-    console.log("Templates already exist or error inserting:", error);
+    // Silently handle template initialization - templates likely already exist
+    // Only log critical errors
+    if (error && typeof error === 'object' && 'message' in error && !(error.message as string).includes('duplicate key')) {
+      console.error("Template initialization error:", error);
+    }
   }
 }
 

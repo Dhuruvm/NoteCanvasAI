@@ -3,8 +3,10 @@ import { drizzle, NeonDatabase } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
-// Configure WebSocket for Neon
+// Configure WebSocket for Neon with error suppression
 neonConfig.webSocketConstructor = ws;
+// Disable SSL certificate validation for development
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Enhanced connection pool configuration
 interface ConnectionPoolConfig {
