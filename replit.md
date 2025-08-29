@@ -39,10 +39,20 @@ NoteGPT employs a modern full-stack architecture with clear separation of concer
 - AI processing speed optimization through the use of the faster gemini-2.5-flash model, timeouts, and content length limits.
 
 **System Design Choices:**
-- **Database**: PostgreSQL with Drizzle ORM and Neon Database (serverless PostgreSQL) for robust data storage and scalability. Schema includes tables for notes, templates, chat sessions, chat messages, user progress, and predicted questions.
-- **Data Flow**: Content input (text/file) leads to AI processing via Gemini AI, structured response parsing, storage in PostgreSQL, and retrieval for export (PDF generation).
+- **Database**: PostgreSQL with Drizzle ORM and Neon Database (serverless PostgreSQL) with enterprise-grade connection pooling for robust data storage and scalability. Schema includes tables for notes, templates, chat sessions, chat messages, user progress, and predicted questions.
+- **Data Flow**: Content input (text/file) leads to intelligent AI processing via unified orchestrator, structured response parsing, storage in PostgreSQL, and retrieval for export (PDF generation).
 - **Deployment Strategy**: Utilizes Vite for frontend build and esbuild for backend bundling. Designed for deployment on platforms like Render and Cloudflare Workers, with proper environment configurations for API keys and database connections.
-- **Key Design Decisions**: Focus on a multi-model AI architecture for superior visual output, real-time user feedback, comprehensive PDF generation, PostgreSQL for scalability, React with TypeScript for frontend, and TanStack Query for state management.
+- **Key Design Decisions**: Focus on a unified multi-model AI architecture for superior output, real-time user feedback, comprehensive PDF generation, PostgreSQL for scalability, React with TypeScript for frontend, TanStack Query for state management, and enterprise-grade performance optimizations.
+
+**Performance & Enterprise Architecture (January 2025):**
+- **Unified AI Orchestrator**: Single intelligent routing system that automatically selects optimal AI models (Gemini 2.5 Flash/Pro, Mixtral 8x7B, LayoutLMv3) based on content type, user tier, cost constraints, and performance requirements.
+- **Multi-Layer Caching Strategy**: Redis-based caching with fallback to in-memory cache, intelligent cache key generation, and TTL management for AI responses, user progress, and frequently accessed data.
+- **Background Job Processing**: Bull queue system with Redis for scalable background processing of AI tasks, PDF generation, and notifications with intelligent prioritization and retry logic.
+- **Performance Optimizations**: Comprehensive middleware stack including gzip compression, security headers (Helmet), rate limiting (15 min windows), response time tracking, and memory monitoring.
+- **Database Enhancements**: Connection pooling with configurable min/max connections, health checks, graceful shutdown handling, and query performance monitoring.
+- **Enterprise Security**: Removed SSL certificate bypass, implemented proper rate limiting, added request validation, and comprehensive error handling with fallback mechanisms.
+- **Monitoring & Metrics**: Real-time metrics collection for requests, AI processing, database queries, memory usage, and queue statistics with formatted dashboard endpoints.
+- **Intelligent Model Selection**: Dynamic AI model routing based on task type (summarization, layout analysis, question generation), user tier, cost constraints, and processing priority.
 
 ### External Dependencies
 **AI Services**:

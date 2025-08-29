@@ -209,7 +209,7 @@ export class DatabaseStorage implements IStorage {
         bestStreak: 0,
         points: 0,
         level: 1,
-        badges: [],
+        badges: [] as string[],
         penalties: 0,
         ...updates
       });

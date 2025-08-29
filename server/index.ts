@@ -1,15 +1,30 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-
-// Fix SSL certificate issues in development
-if (process.env.NODE_ENV === "development") {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-}
+import { initializeCache } from "./cache/redis-client";
+import { 
+  setupCompression, 
+  setupSecurity, 
+  setupRateLimiting, 
+  setupResponseTimeTracking,
+  setupMemoryMonitoring,
+  setupHealthCheck,
+  setupRequestLogging
+} from "./middleware/performance";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Initialize performance optimizations
+setupSecurity(app);
+setupCompression(app);
+setupRateLimiting(app);
+setupResponseTimeTracking(app);
+setupHealthCheck(app);
+setupRequestLogging(app);
+
+// Body parsing with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -42,6 +57,17 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize cache system
+  try {
+    await initializeCache();
+    console.log('✅ Cache system initialized');
+  } catch (error) {
+    console.warn('⚠️  Cache initialization failed:', error);
+  }
+
+  // Start memory monitoring
+  setupMemoryMonitoring();
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
