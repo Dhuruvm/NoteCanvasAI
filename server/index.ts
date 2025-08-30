@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeCache } from "./cache/redis-client";
+import { initializeDefaultTemplates } from "./storage";
 import { 
   setupCompression, 
   setupSecurity, 
@@ -95,10 +96,18 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '5000', 10);
   const host = '0.0.0.0'; // Always bind to 0.0.0.0 for deployment platforms
   
-  server.listen(port, host, () => {
+  server.listen(port, host, async () => {
     log(`serving on ${host}:${port}`);
     console.log(`✅ Server is running on http://${host}:${port}`);
     console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ Process PID: ${process.pid}`);
+    
+    // Initialize templates after server starts
+    try {
+      await initializeDefaultTemplates();
+      console.log('✅ Default templates initialized');
+    } catch (error) {
+      console.warn('⚠️  Template initialization failed:', error);
+    }
   });
 })();

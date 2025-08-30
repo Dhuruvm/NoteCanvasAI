@@ -336,5 +336,5 @@ async function initializeDefaultTemplates() {
 
 export const storage = new DatabaseStorage();
 
-// Initialize templates on first run
-initializeDefaultTemplates().catch(console.error);
+// Export the initialization function to be called after server starts
+export { initializeDefaultTemplates };
