@@ -77,7 +77,14 @@ export interface ProcessedNote {
     generatedAt: string;
     style: string;
     aiModelsUsed: string[];
+    enhancementCount?: number;
+    processingMethod?: string;
+    processingTime?: number;
+    successRate?: number;
+    multiModelEnhanced?: boolean;
+    enhancementType?: string;
   };
+  studyQuestions?: string[];
 }
 
 export interface AISettings {

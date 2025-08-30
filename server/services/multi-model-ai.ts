@@ -69,7 +69,7 @@ export async function generateVisualElements(content: any, options: MultiModelOp
         title: 'Key Concepts Distribution',
         data: pieChartData,
         position: { x: 50, y: 200, width: 300, height: 200 },
-        colors: pieChartData.map(d => d.color)
+        colors: pieChartData.map((d: any) => d.color)
       });
 
       // Generate bar chart from summary points
@@ -85,7 +85,7 @@ export async function generateVisualElements(content: any, options: MultiModelOp
           title: 'Summary Points Analysis',
           data: barChartData,
           position: { x: 400, y: 200, width: 300, height: 200 },
-          colors: barChartData.map(d => d.color)
+          colors: barChartData.map((d: any) => d.color)
         });
       }
     }
@@ -242,29 +242,6 @@ export async function generateColorScheme(designStyle: string, colorScheme: stri
 
   console.log(`Color AI: Generated color scheme in ${Date.now() - startTime}ms`);
 
-// Interface definitions for multi-model processing
-export interface MultiModelOptions {
-  includeCharts?: boolean;
-  includeInfographic?: boolean;
-  includeVisualElements?: boolean;
-  designStyle?: string;
-  colorScheme?: string;
-}
-
-export interface MultiModelProcessingResult {
-  primaryContent: any;
-  visualElements: any[];
-  layoutOptimization: any;
-  fontRecommendations: any;
-  colorScheme: any;
-  structureAnalysis: any;
-  designSystem?: any;
-  processingStats: {
-    totalTime: number;
-    modelsUsed: string[];
-    successRate: number;
-  };
-}
   return {
     ...selectedScheme,
     processingTime: Date.now() - startTime,
@@ -451,8 +428,6 @@ export async function processWithMultipleModels(
   } catch (error) {
     console.error('Multi-Model AI Processing error:', error);
     throw new Error(`Multi-Model AI processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}r}`);
   }
 }
 

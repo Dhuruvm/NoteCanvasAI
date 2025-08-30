@@ -12,6 +12,8 @@ import {
   setupHealthCheck,
   setupRequestLogging
 } from "./middleware/performance";
+import { setupDeploymentMiddleware, setupGracefulShutdown } from "./middleware/deployment";
+import { securityHeaders, requestId, devAuth } from "./middleware/auth";
 
 const app = express();
 
@@ -25,6 +27,14 @@ setupRateLimiting(app);
 setupResponseTimeTracking(app);
 setupHealthCheck(app);
 setupRequestLogging(app);
+
+// Initialize NoteGPT Beta deployment middleware
+setupDeploymentMiddleware(app);
+
+// Add enhanced security and request tracking
+app.use(securityHeaders);
+app.use(requestId);
+app.use(devAuth); // Development authentication bypass
 
 // Body parsing with size limits
 app.use(express.json({ limit: '10mb' }));
@@ -101,6 +111,8 @@ app.use((req, res, next) => {
     console.log(`✅ Server is running on http://${host}:${port}`);
     console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ Process PID: ${process.pid}`);
+    console.log(`🚀 NoteGPT Beta AI Architecture: Ready`);
+    console.log(`🔥 Features: Transformer-based processing, Multimodal support, GraphQL API`);
     
     // Initialize templates after server starts
     try {
@@ -109,5 +121,8 @@ app.use((req, res, next) => {
     } catch (error) {
       console.warn('⚠️  Template initialization failed:', error);
     }
+
+    // Setup graceful shutdown
+    setupGracefulShutdown(server);
   });
 })();

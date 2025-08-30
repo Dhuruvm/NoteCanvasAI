@@ -368,7 +368,7 @@ export class UnifiedAIOrchestrator {
     if (result.title) confidence += 0.1;
     if (result.keyConcepts?.length > 0) confidence += 0.15;
     if (result.summaryPoints?.length > 0) confidence += 0.15;
-    if (result.processFlow?.length > 0) confidence += 0.1;
+    if (result.processFlow && result.processFlow.length > 0) confidence += 0.1;
     
     return Math.min(confidence, 1.0);
   }

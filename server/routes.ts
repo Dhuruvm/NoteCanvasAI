@@ -17,6 +17,9 @@ import {
 } from "@shared/schema";
 import { metricsCollector } from "./monitoring/metrics";
 import { jobProcessor } from "./queue/job-processor";
+import { enhancedApiRoutes } from "./api/enhanced-routes";
+import { noteGPTBeta } from "./ai/notegpt-beta-core";
+import { multimodalProcessor } from "./ai/multimodal-processor";
 import multer from "multer";
 import { z } from "zod";
 
@@ -47,6 +50,9 @@ const processContentSchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  // Mount enhanced API routes for NoteGPT Beta
+  app.use("/api/v2", enhancedApiRoutes);
 
   // Metrics endpoint for monitoring
   app.get("/api/metrics", async (req, res) => {
