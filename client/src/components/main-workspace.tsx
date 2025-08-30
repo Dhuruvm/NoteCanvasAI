@@ -82,26 +82,80 @@ export function MainWorkspace({ noteId }: MainWorkspaceProps) {
   const handleGeneratePDF = async (options: any) => {
     setIsGeneratingPDF(true);
     try {
-      const response = await fetch(`/api/notes/${noteId}/generate-pdf`, {
+      // Use the new advanced PDF generation endpoint
+      const response = await fetch(`/api/notes/${noteId}/generate-advanced-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(options),
       });
 
-      if (!response.ok) throw new Error('PDF generation failed');
+      if (!response.ok) {
+        // Fallback to legacy endpoint if advanced fails
+        const fallbackResponse = await fetch(`/api/notes/${noteId}/generate-pdf`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(options),
+        });
+        
+        if (!fallbackResponse.ok) throw new Error('PDF generation failed');
+        
+        const blob = await fallbackResponse.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${note?.title || 'notes'}_legacy.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        return;
+      }
+
+      // Get metadata from response headers
+      const metadataHeader = response.headers.get('X-PDF-Metadata');
+      let metadata = null;
+      try {
+        metadata = metadataHeader ? JSON.parse(metadataHeader) : null;
+      } catch (e) {
+        console.log('Could not parse PDF metadata');
+      }
 
       const blob = await response.blob();
+      
+      // Check blob size
+      if (blob.size === 0) {
+        throw new Error('Generated PDF is empty');
+      }
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `${note?.title || 'notes'}.pdf`;
+      
+      // Use style-specific filename
+      const styleText = metadata?.style || options.style || 'advanced';
+      a.download = `${note?.title?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'notes'}_${styleText.replace(/-/g, '_')}.pdf`;
+      
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      // Log success with metadata
+      if (metadata) {
+        console.log('Advanced PDF generated successfully:', {
+          style: metadata.style,
+          pages: metadata.pages,
+          processingTime: metadata.processingTime,
+          qualityScore: metadata.qualityScore,
+          aiModelsUsed: metadata.aiModelsUsed?.length || 0
+        });
+      }
+      
     } catch (error) {
       console.error('PDF generation error:', error);
+      alert(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsGeneratingPDF(false);
     }

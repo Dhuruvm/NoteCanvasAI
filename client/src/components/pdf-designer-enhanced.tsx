@@ -18,7 +18,7 @@ interface PDFDesignerProps {
 
 export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDesignerProps) {
   const [designOptions, setDesignOptions] = useState({
-    style: 'modern' as 'academic' | 'modern' | 'minimal' | 'colorful',
+    style: 'modern-minimal' as 'handwriting-casual' | 'handwriting-elegant' | 'office-corporate' | 'office-executive' | 'academic-research' | 'modern-minimal' | 'technical-specification',
     colorScheme: 'blue',
     fontSize: [12],
     spacing: [1.5],
@@ -39,7 +39,23 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
     includePatterns: false,
     interactiveElements: false,
     customWatermark: '',
-    borderStyle: 'modern' as 'none' | 'simple' | 'modern' | 'decorative'
+    borderStyle: 'modern' as 'none' | 'simple' | 'modern' | 'decorative',
+    // Advanced options
+    aiProcessing: true,
+    multiModelEnhancement: true,
+    quality: 'premium' as 'draft' | 'standard' | 'premium' | 'ultra',
+    optimization: 'balanced' as 'speed' | 'quality' | 'balanced',
+    accessibility: false,
+    // Handwriting specific options
+    handwritingPenType: 'ballpoint' as 'ballpoint' | 'fountain' | 'marker' | 'pencil' | 'gel',
+    handwritingPaperStyle: 'lined' as 'lined' | 'grid' | 'blank' | 'dotted' | 'legal',
+    handwritingDecorations: true,
+    handwritingPersonalTouch: true,
+    // Office specific options
+    officeBranding: true,
+    officeHeaderFooter: true,
+    officeTableOfContents: true,
+    officeConfidentiality: 'internal' as 'public' | 'internal' | 'confidential' | 'restricted'
   });
 
   const colorSchemes = {
@@ -52,13 +68,48 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
   };
 
   const designStyles = {
-    academic: { name: 'Academic', desc: 'Traditional academic paper style with formal typography' },
-    modern: { name: 'Modern', desc: 'Clean, contemporary design with visual elements' },
-    minimal: { name: 'Minimal', desc: 'Simple, distraction-free layout focused on content' },
-    colorful: { name: 'Colorful', desc: 'Vibrant design with rich colors and graphics' },
-    executive: { name: 'Executive', desc: 'Professional business style with elegant gradients' },
-    creative: { name: 'Creative', desc: 'Artistic layout with patterns, icons, and dynamic colors' },
-    technical: { name: 'Technical', desc: 'Code-focused monospace design for technical content' }
+    'handwriting-casual': { 
+      name: '✍️ Casual Handwriting', 
+      desc: 'Natural handwriting style with ballpoint pen effects and lined paper',
+      category: 'handwriting',
+      icon: '✍️'
+    },
+    'handwriting-elegant': { 
+      name: '🖋️ Elegant Script', 
+      desc: 'Sophisticated handwriting with fountain pen and decorative elements',
+      category: 'handwriting',
+      icon: '🖋️'
+    },
+    'office-corporate': { 
+      name: '🏢 Corporate Professional', 
+      desc: 'Corporate business style with branding and professional layout',
+      category: 'office',
+      icon: '🏢'
+    },
+    'office-executive': { 
+      name: '👔 Executive Summary', 
+      desc: 'Executive-level documents with premium formatting and charts',
+      category: 'office',
+      icon: '👔'
+    },
+    'academic-research': { 
+      name: '🎓 Academic Research', 
+      desc: 'Traditional academic paper style with citations and formal typography',
+      category: 'academic',
+      icon: '🎓'
+    },
+    'modern-minimal': { 
+      name: '✨ Modern Minimal', 
+      desc: 'Clean, contemporary design with enhanced visual elements',
+      category: 'modern',
+      icon: '✨'
+    },
+    'technical-specification': { 
+      name: '⚙️ Technical Docs', 
+      desc: 'Technical documentation with code-focused monospace design',
+      category: 'technical',
+      icon: '⚙️'
+    }
   };
 
   const handleOptionChange = (key: string, value: any) => {
@@ -67,6 +118,16 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
 
   const handleGeneratePDF = () => {
     onGeneratePDF({
+      style: designOptions.style,
+      aiProcessing: designOptions.aiProcessing,
+      multiModelEnhancement: designOptions.multiModelEnhancement,
+      visualElements: designOptions.includeVisualElements,
+      interactiveElements: designOptions.interactiveElements,
+      quality: designOptions.quality,
+      optimization: designOptions.optimization,
+      accessibility: designOptions.accessibility,
+      
+      // Legacy options for backward compatibility
       designStyle: designOptions.style,
       colorScheme: designOptions.colorScheme,
       includeVisualElements: designOptions.includeVisualElements,
@@ -81,11 +142,34 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
       pageBreaks: designOptions.pageBreaks,
       margins: designOptions.margins[0],
       multiModelProcessing: designOptions.multiModelProcessing,
-      pageMargins: {
-        top: designOptions.margins[0],
-        right: designOptions.margins[0],
-        bottom: designOptions.margins[0],
-        left: designOptions.margins[0]
+      
+      // Handwriting options
+      handwritingOptions: {
+        style: designOptions.style.includes('elegant') ? 'elegant' : 'casual',
+        penType: designOptions.handwritingPenType,
+        paperStyle: designOptions.handwritingPaperStyle,
+        margins: true,
+        decorations: designOptions.handwritingDecorations,
+        personalTouch: designOptions.handwritingPersonalTouch
+      },
+      
+      // Office options
+      officeOptions: {
+        style: designOptions.style.includes('executive') ? 'executive' : 'corporate',
+        branding: designOptions.officeBranding,
+        headerFooter: designOptions.officeHeaderFooter,
+        tableOfContents: designOptions.officeTableOfContents,
+        charts: designOptions.includeCharts,
+        appendices: false,
+        confidentiality: designOptions.officeConfidentiality
+      },
+      
+      // Branding info
+      branding: {
+        companyName: 'NoteGPT',
+        logoPosition: 'header',
+        colorScheme: 'primary',
+        fontProfile: 'modern'
       }
     });
   };
@@ -113,15 +197,23 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
             <PaintbrushVertical className="w-6 h-6 mr-2 text-blue-600" />
-            Enhanced PDF Designer
+            Advanced PDF Designer
           </h2>
           <p className="text-muted-foreground mt-1">
-            Multi-model AI-powered PDF generation with visual elements and smart layout
+            Revolutionary PDF generation with handwriting effects, office templates & 26+ AI models
           </p>
         </div>
-        <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-          Multi-Model AI
-        </Badge>
+        <div className="flex gap-2">
+          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+            26 AI Models
+          </Badge>
+          <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
+            Handwriting
+          </Badge>
+          <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+            Office
+          </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue="design" className="w-full">
@@ -212,6 +304,59 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
             </CardContent>
           </Card>
 
+          {/* Quality & AI Processing */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg">
+                <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
+                AI Processing & Quality
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-900 dark:text-white">Quality Level</label>
+                  <Select value={designOptions.quality} onValueChange={(value) => handleOptionChange('quality', value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">🚀 Draft (Fast)</SelectItem>
+                      <SelectItem value="standard">⚡ Standard</SelectItem>
+                      <SelectItem value="premium">✨ Premium</SelectItem>
+                      <SelectItem value="ultra">💎 Ultra (Best)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-900 dark:text-white">Optimization</label>
+                  <Select value={designOptions.optimization} onValueChange={(value) => handleOptionChange('optimization', value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="speed">🏃 Speed First</SelectItem>
+                      <SelectItem value="balanced">⚖️ Balanced</SelectItem>
+                      <SelectItem value="quality">🎯 Quality First</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Accessibility Features</h4>
+                  <p className="text-sm text-muted-foreground">WCAG compliance and screen reader optimization</p>
+                </div>
+                <Switch
+                  checked={designOptions.accessibility}
+                  onCheckedChange={(checked) => handleOptionChange('accessibility', checked)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Design Style Selection */}
           <Card>
             <CardHeader>
@@ -239,6 +384,141 @@ export function PDFDesignerEnhanced({ note, onGeneratePDF, isGenerating }: PDFDe
               </div>
             </CardContent>
           </Card>
+
+          {/* Style-Specific Options */}
+          {(designOptions.style.includes('handwriting')) && (
+            <Card className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
+              <CardHeader>
+                <CardTitle className="flex items-center text-lg">
+                  <span className="text-lg mr-2">✍️</span>
+                  Handwriting Options
+                  <Badge className="ml-2 bg-orange-500 text-white">Handwriting</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-900 dark:text-white">Pen Type</label>
+                    <Select value={designOptions.handwritingPenType} onValueChange={(value) => handleOptionChange('handwritingPenType', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ballpoint">🖊️ Ballpoint Pen</SelectItem>
+                        <SelectItem value="fountain">🖋️ Fountain Pen</SelectItem>
+                        <SelectItem value="marker">🖍️ Marker</SelectItem>
+                        <SelectItem value="pencil">✏️ Pencil</SelectItem>
+                        <SelectItem value="gel">🖊️ Gel Pen</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-900 dark:text-white">Paper Style</label>
+                    <Select value={designOptions.handwritingPaperStyle} onValueChange={(value) => handleOptionChange('handwritingPaperStyle', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="lined">📝 Lined Paper</SelectItem>
+                        <SelectItem value="grid">📊 Grid Paper</SelectItem>
+                        <SelectItem value="blank">📄 Blank Paper</SelectItem>
+                        <SelectItem value="dotted">⚫ Dotted Paper</SelectItem>
+                        <SelectItem value="legal">📋 Legal Pad</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Decorative Elements</h4>
+                    <p className="text-sm text-muted-foreground">Add doodles, arrows, and highlighting</p>
+                  </div>
+                  <Switch
+                    checked={designOptions.handwritingDecorations}
+                    onCheckedChange={(checked) => handleOptionChange('handwritingDecorations', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Personal Touch</h4>
+                    <p className="text-sm text-muted-foreground">Natural variations in handwriting style</p>
+                  </div>
+                  <Switch
+                    checked={designOptions.handwritingPersonalTouch}
+                    onCheckedChange={(checked) => handleOptionChange('handwritingPersonalTouch', checked)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {(designOptions.style.includes('office')) && (
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+              <CardHeader>
+                <CardTitle className="flex items-center text-lg">
+                  <span className="text-lg mr-2">🏢</span>
+                  Office Document Options
+                  <Badge className="ml-2 bg-blue-500 text-white">Corporate</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-900 dark:text-white">Confidentiality Level</label>
+                    <Select value={designOptions.officeConfidentiality} onValueChange={(value) => handleOptionChange('officeConfidentiality', value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">🌍 Public</SelectItem>
+                        <SelectItem value="internal">🏢 Internal Use</SelectItem>
+                        <SelectItem value="confidential">🔒 Confidential</SelectItem>
+                        <SelectItem value="restricted">🚫 Restricted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-white">Corporate Branding</h4>
+                        <p className="text-xs text-muted-foreground">Company logos and colors</p>
+                      </div>
+                      <Switch
+                        checked={designOptions.officeBranding}
+                        onCheckedChange={(checked) => handleOptionChange('officeBranding', checked)}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Header & Footer</h4>
+                    <p className="text-sm text-muted-foreground">Professional headers with page numbers</p>
+                  </div>
+                  <Switch
+                    checked={designOptions.officeHeaderFooter}
+                    onCheckedChange={(checked) => handleOptionChange('officeHeaderFooter', checked)}
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white">Table of Contents</h4>
+                    <p className="text-sm text-muted-foreground">Auto-generated TOC for longer documents</p>
+                  </div>
+                  <Switch
+                    checked={designOptions.officeTableOfContents}
+                    onCheckedChange={(checked) => handleOptionChange('officeTableOfContents', checked)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Color Scheme */}
           <Card>
