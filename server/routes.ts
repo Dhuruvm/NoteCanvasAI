@@ -181,7 +181,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate professional PDF endpoint
+  // Advanced PDF Generation with Multiple Styles
+  app.post("/api/notes/:id/generate-advanced-pdf", async (req, res) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      if (isNaN(noteId)) {
+        return res.status(400).json({ error: "Invalid note ID" });
+      }
+      const note = await storage.getNote(noteId);
+
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      // Import the master PDF controller
+      const { masterPDFController } = await import('./services/master-pdf-controller');
+      
+      console.log(`Generating advanced PDF for note ${noteId}: ${note.title} with style: ${req.body.style || 'modern-minimal'}`);
+
+      // Advanced PDF generation options
+      const options = {
+        style: req.body.style || 'modern-minimal',
+        aiProcessing: req.body.aiProcessing !== false,
+        multiModelEnhancement: req.body.multiModelEnhancement !== false,
+        visualElements: req.body.visualElements !== false,
+        interactiveElements: req.body.interactiveElements || false,
+        quality: req.body.quality || 'premium',
+        optimization: req.body.optimization || 'balanced',
+        accessibility: req.body.accessibility || false,
+        multilingual: req.body.multilingual || false,
+        responsive: req.body.responsive || false,
+        analytics: req.body.analytics || false,
+        
+        // Style-specific options
+        handwritingOptions: req.body.handwritingOptions || {
+          style: 'casual',
+          penType: 'ballpoint',
+          paperStyle: 'lined',
+          margins: true,
+          decorations: true,
+          personalTouch: true
+        },
+        
+        officeOptions: req.body.officeOptions || {
+          style: 'corporate',
+          branding: true,
+          headerFooter: true,
+          tableOfContents: true,
+          charts: req.body.visualElements !== false,
+          appendices: false,
+          confidentiality: 'internal'
+        },
+        
+        branding: req.body.branding || {
+          companyName: 'NoteGPT',
+          logoPosition: 'header',
+          colorScheme: 'primary',
+          fontProfile: 'modern'
+        }
+      };
+
+      const pdfResult = await masterPDFController.generateAdvancedPDF(
+        note,
+        note.originalContent || '',
+        options
+      );
+      
+      const pdfBuffer = pdfResult.buffer;
+      const metadata = pdfResult.metadata;
+
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error("Generated PDF buffer is empty");
+      }
+
+      console.log(`Advanced PDF generated successfully:`, {
+        style: metadata.style,
+        pages: metadata.pages,
+        processingTime: metadata.processingTime,
+        qualityScore: metadata.qualityScore,
+        aiModelsUsed: metadata.aiModelsUsed.length
+      });
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${metadata.style.replace(/-/g, '_')}.pdf"`);
+      res.setHeader('X-PDF-Metadata', JSON.stringify(metadata));
+      res.send(pdfBuffer);
+
+    } catch (error) {
+      console.error("Advanced PDF generation error:", error);
+      res.status(500).json({ 
+        error: "Failed to generate advanced PDF",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Generate professional PDF endpoint (legacy support)
   app.post("/api/notes/:id/generate-professional-pdf", async (req, res) => {
     try {
       const noteId = parseInt(req.params.id);
@@ -228,6 +323,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: "Failed to generate professional PDF",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  });
+
+  // Handwriting Style PDF Generation
+  app.post("/api/notes/:id/generate-handwriting-pdf", async (req, res) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      const note = await storage.getNote(noteId);
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      const { handwritingPDFGenerator } = await import('./services/handwriting-pdf-generator');
+      
+      const options = {
+        style: req.body.style || 'casual',
+        penType: req.body.penType || 'ballpoint',
+        paperStyle: req.body.paperStyle || 'lined',
+        margins: req.body.margins !== false,
+        decorations: req.body.decorations !== false,
+        personalTouch: req.body.personalTouch !== false
+      };
+
+      const result = await handwritingPDFGenerator.generateHandwritingPDF(note, note.originalContent || '', options);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_handwriting.pdf"`);
+      res.setHeader('X-PDF-Metadata', JSON.stringify(result.metadata));
+      res.send(result.buffer);
+
+    } catch (error) {
+      console.error("Handwriting PDF generation error:", error);
+      res.status(500).json({ 
+        error: "Failed to generate handwriting PDF",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Office Style PDF Generation
+  app.post("/api/notes/:id/generate-office-pdf", async (req, res) => {
+    try {
+      const noteId = parseInt(req.params.id);
+      const note = await storage.getNote(noteId);
+      if (!note) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      const { officePDFGenerator } = await import('./services/office-pdf-generator');
+      
+      const options = {
+        style: req.body.style || 'corporate',
+        branding: req.body.branding !== false,
+        headerFooter: req.body.headerFooter !== false,
+        tableOfContents: req.body.tableOfContents !== false,
+        charts: req.body.charts !== false,
+        appendices: req.body.appendices || false,
+        confidentiality: req.body.confidentiality || 'internal'
+      };
+
+      const branding = req.body.brandingInfo || {
+        companyName: 'NoteGPT Professional',
+        logoPosition: 'header',
+        colorScheme: 'primary',
+        fontProfile: 'modern'
+      };
+
+      const result = await officePDFGenerator.generateOfficePDF(note, note.originalContent || '', options, branding);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${note.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_office.pdf"`);
+      res.setHeader('X-PDF-Metadata', JSON.stringify(result.metadata));
+      res.send(result.buffer);
+
+    } catch (error) {
+      console.error("Office PDF generation error:", error);
+      res.status(500).json({ 
+        error: "Failed to generate office PDF",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Get Available PDF Styles
+  app.get("/api/pdf-styles", async (req, res) => {
+    try {
+      const { masterPDFController } = await import('./services/master-pdf-controller');
+      const styles = masterPDFController.getAvailableStyles();
+      
+      res.json({
+        styles,
+        categories: {
+          handwriting: styles.filter(s => s.startsWith('handwriting')),
+          office: styles.filter(s => s.startsWith('office')),
+          academic: styles.filter(s => s.startsWith('academic')),
+          modern: styles.filter(s => s.startsWith('modern')),
+          technical: styles.filter(s => s.startsWith('technical'))
+        }
+      });
+    } catch (error) {
+      console.error("Error getting PDF styles:", error);
+      res.status(500).json({ error: "Failed to get PDF styles" });
+    }
+  });
+
+  // Get Style Recommendations
+  app.post("/api/pdf-style-recommendations", async (req, res) => {
+    try {
+      const { masterPDFController } = await import('./services/master-pdf-controller');
+      const { content, purpose } = req.body;
+      
+      if (!content || !purpose) {
+        return res.status(400).json({ error: "Content and purpose are required" });
+      }
+      
+      const recommendations = masterPDFController.getStyleRecommendations(content, purpose);
+      
+      res.json({ recommendations });
+    } catch (error) {
+      console.error("Error getting style recommendations:", error);
+      res.status(500).json({ error: "Failed to get style recommendations" });
     }
   });
 
