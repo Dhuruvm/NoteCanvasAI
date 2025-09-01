@@ -6,37 +6,43 @@
 
 /* Black and Grayish Blue color scheme */
 :root {
-  /* Dark theme colors */
-  --background: 0 0% 0%;
-  --foreground: 208 22% 67%;
-  --card: 0 0% 3%;
-  --card-foreground: 208 22% 67%;
-  --popover: 0 0% 3%;
-  --popover-foreground: 208 22% 67%;
-  --primary: 208 22% 67%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 0% 8%;
-  --secondary-foreground: 208 22% 67%;
-  --muted: 0 0% 8%;
-  --muted-foreground: 208 22% 50%;
-  --accent: 208 22% 67%;
-  --accent-foreground: 0 0% 0%;
+  /* Kiro Dark Theme - Main colors */
+  --background: 210 14% 7%;  /* #0D1117 */
+  --foreground: 210 17% 98%; /* #F6F8FA */
+  --card: 217 19% 9%;        /* #161B22 */
+  --card-foreground: 210 17% 98%;
+  --popover: 217 19% 9%;
+  --popover-foreground: 210 17% 98%;
+  --primary: 250 100% 69%;   /* #7B61FF purple accent */
+  --primary-foreground: 210 17% 98%;
+  --secondary: 217 19% 9%;
+  --secondary-foreground: 210 17% 98%;
+  --muted: 217 10% 12%;      /* #21262D */
+  --muted-foreground: 215 14% 50%;
+  --accent: 181 100% 33%;    /* #0DA9A0 teal accent */
+  --accent-foreground: 210 17% 98%;
   --destructive: 0 62.8% 55.6%;
-  --destructive-foreground: 208 22% 67%;
-  --border: 208 22% 20%;
-  --input: 0 0% 8%;
-  --ring: 208 22% 67%;
-  --radius: 0.75rem;
+  --destructive-foreground: 210 17% 98%;
+  --border: 217 10% 15%;     /* #30363D */
+  --input: 217 19% 9%;       /* #161B22 */
+  --ring: 250 100% 69%;
+  --radius: 0.5rem;
   
-  /* Custom grayish blue colors (#99AAB5) */
-  --grayale: 208 22% 67%;
-  --grayale-hover: 208 22% 72%;
-  --grayale-dark: 208 22% 50%;
-  --grayale-darker: 208 22% 35%;
-  --chat-input: 0 0% 5%;
-  --chat-hover: 0 0% 8%;
+  /* Kiro specific colors */
+  --kiro-bg: 210 14% 7%;     /* #0D1117 main background */
+  --kiro-card: 217 19% 9%;   /* #161B22 card/panel background */
+  --kiro-border: 217 10% 15%; /* #30363D borders */
+  --kiro-purple: 250 100% 69%; /* #7B61FF accent */
+  --kiro-teal: 181 100% 33%;   /* #0DA9A0 secondary accent */
+  --kiro-text: 210 17% 98%;    /* #F6F8FA primary text */
+  --kiro-text-muted: 215 14% 50%; /* muted text */
+  --kiro-hover: 217 10% 12%;   /* #21262D hover state */
   
-  /* Gemini Blue Colors for Send Button */
+  /* Chat specific */
+  --chat-input: 217 19% 9%;
+  --chat-hover: 217 10% 12%;
+  
+  /* Legacy support */
   --gemini-blue: 210 100% 60%;
   --gemini-blue-hover: 210 100% 65%;
 }
