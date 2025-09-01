@@ -31,7 +31,12 @@ import {
   Eye,
   Download,
   Menu,
-  X
+  X,
+  FolderOpen,
+  Code,
+  GitBranch,
+  Terminal,
+  AlertTriangle
 } from "lucide-react";
 
 interface Message {
@@ -427,24 +432,28 @@ export function KiroChatInterface() {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="h-14 bg-[hsl(var(--kiro-card))] border-b border-[hsl(var(--kiro-border))] flex items-center justify-between px-4">
-          <div className="flex items-center gap-2">
+        {/* Header - Kiro Style */}
+        <div className="h-12 bg-[hsl(var(--kiro-card))] border-b border-[hsl(var(--kiro-border))] flex items-center justify-between px-4">
+          <div className="flex items-center gap-3">
             {!leftSidebarOpen && (
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => setLeftSidebarOpen(true)}
-                className="hover:bg-[hsl(var(--kiro-hover))]"
+                className="hover:bg-[hsl(var(--kiro-hover))] h-6 w-6 p-0"
               >
-                <Menu className="h-4 w-4" />
+                <Menu className="h-3 w-3" />
               </Button>
             )}
-            <h1 className="text-lg font-semibold">New Session</h1>
+            <span className="text-sm font-medium text-[hsl(var(--kiro-text-muted))] uppercase tracking-wide">NEW SESSION</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="hover:bg-[hsl(var(--kiro-hover))]">
-              <Settings className="h-4 w-4" />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="hover:bg-[hsl(var(--kiro-hover))] h-6 w-6 p-0"
+            >
+              <ChevronDown className="h-3 w-3" />
             </Button>
           </div>
         </div>
@@ -480,77 +489,81 @@ export function KiroChatInterface() {
           </div>
         </ScrollArea>
 
-        {/* Input Bar */}
-        <div className="border-t border-[hsl(var(--kiro-border))] bg-[hsl(var(--kiro-card))] p-4">
-          <div className="max-w-4xl mx-auto">
-            {/* Model Selector and Autopilot */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-4">
-                <Select value={selectedModel} onValueChange={setSelectedModel}>
-                  <SelectTrigger className="w-48 bg-[hsl(var(--kiro-bg))] border-[hsl(var(--kiro-border))]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="claude-sonnet-4.0">Claude Sonnet 4.0</SelectItem>
-                    <SelectItem value="gemini">Gemini</SelectItem>
-                    <SelectItem value="huggingface">Hugging Face</SelectItem>
-                    <SelectItem value="hybrid">Hybrid</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <div className="flex items-center gap-2">
-                  <Switch checked={autopilot} onCheckedChange={setAutopilot} />
-                  <span className="text-sm text-[hsl(var(--kiro-text-muted))]">Autopilot</span>
+        {/* Input Bar - Kiro Style */}
+        <div className="border-t border-[hsl(var(--kiro-border))] bg-[hsl(var(--kiro-card))] p-6">
+          <div className="max-w-3xl mx-auto">
+            {/* Main Input Row */}
+            <div className="relative">
+              <div className="flex items-center gap-3 bg-[hsl(var(--kiro-bg))] border border-[hsl(var(--kiro-border))] rounded-xl p-3">
+                {/* Icon and Input */}
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="text-[hsl(var(--kiro-text-muted))]">
+                    <MessageSquare className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Ask a question or describe a task..."
+                    className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-[hsl(var(--kiro-text-muted))] text-[hsl(var(--kiro-text))]"
+                  />
                 </div>
+                
+                {/* Action Buttons */}
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleVoiceInput}
+                    className={`h-8 w-8 p-0 hover:bg-[hsl(var(--kiro-hover))] ${isListening ? 'text-red-500' : 'text-[hsl(var(--kiro-text-muted))]'} rounded-lg`}
+                  >
+                    <Mic className="h-3.5 w-3.5" />
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleFileUpload}
+                    className="h-8 w-8 p-0 hover:bg-[hsl(var(--kiro-hover))] text-[hsl(var(--kiro-text-muted))] rounded-lg"
+                  >
+                    <Paperclip className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                
+                {/* Model Selector and Autopilot */}
+                <div className="flex items-center gap-3 border-l border-[hsl(var(--kiro-border))] pl-3">
+                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <SelectTrigger className="w-auto border-none bg-transparent text-sm text-[hsl(var(--kiro-text))] hover:bg-[hsl(var(--kiro-hover))] focus:ring-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[hsl(var(--kiro-card))] border-[hsl(var(--kiro-border))]">
+                      <SelectItem value="claude-sonnet-4.0">Claude Sonnet 4.0</SelectItem>
+                      <SelectItem value="gemini">Gemini</SelectItem>
+                      <SelectItem value="huggingface">Hugging Face</SelectItem>
+                      <SelectItem value="hybrid">Hybrid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[hsl(var(--kiro-text-muted))]">Autopilot</span>
+                    <Switch 
+                      checked={autopilot} 
+                      onCheckedChange={setAutopilot}
+                      className="scale-75"
+                    />
+                  </div>
+                </div>
+                
+                {/* Send Button */}
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim()}
+                  className="h-8 w-8 p-0 bg-[hsl(var(--kiro-purple))] hover:bg-[hsl(var(--kiro-purple))]/90 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </Button>
               </div>
-            </div>
-
-            {/* Input Row */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Ask a question or describe a task..."
-                  className="w-full px-4 py-3 bg-[hsl(var(--kiro-bg))] border border-[hsl(var(--kiro-border))] rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--kiro-purple))] text-sm"
-                />
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleVoiceInput}
-                className={`hover:bg-[hsl(var(--kiro-hover))] ${isListening ? 'text-red-500' : ''}`}
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleFileUpload}
-                className="hover:bg-[hsl(var(--kiro-hover))]"
-              >
-                <Paperclip className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:bg-[hsl(var(--kiro-hover))]"
-              >
-                <Link className="h-4 w-4" />
-              </Button>
-              
-              <Button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim()}
-                className="bg-[hsl(var(--kiro-purple))] hover:bg-[hsl(var(--kiro-purple))]/90 text-white"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
@@ -565,22 +578,106 @@ export function KiroChatInterface() {
         />
       </div>
 
-      {/* Right Sidebar - Analysis Results */}
+      {/* Right Sidebar - Files Panel */}
       <div className={`transition-all duration-300 ${rightSidebarOpen ? 'w-80' : 'w-0 overflow-hidden'}`}>
-        <div className="h-full bg-[hsl(var(--kiro-card))] border-l border-[hsl(var(--kiro-border))] p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold">Analysis</h2>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setRightSidebarOpen(false)}
-              className="hover:bg-[hsl(var(--kiro-hover))]"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+        <div className="h-full bg-[hsl(var(--kiro-card))] border-l border-[hsl(var(--kiro-border))]">
+          {/* Files Header */}
+          <div className="flex items-center justify-between p-4 border-b border-[hsl(var(--kiro-border))]">
+            <div className="flex items-center gap-2">
+              <FolderOpen className="h-4 w-4 text-[hsl(var(--kiro-text))]" />
+              <h3 className="text-sm font-medium text-[hsl(var(--kiro-text))]">Files</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Type to search"
+                className="text-xs bg-[hsl(var(--kiro-bg))] border border-[hsl(var(--kiro-border))] rounded px-2 py-1 w-28 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--kiro-purple))]" 
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setRightSidebarOpen(false)}
+                className="h-6 w-6 p-0 hover:bg-[hsl(var(--kiro-hover))]"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
 
-          <ScrollArea className="h-[calc(100vh-100px)]">
+          {/* File Categories */}
+          <div className="p-4 space-y-1">
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <FileText className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Codebase</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <Code className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Code</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <BookOpen className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Docs</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <GitBranch className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Repository Map</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <Plus className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Git Diff</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <Terminal className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Terminal</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <AlertTriangle className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Problems</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <FolderOpen className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Folder</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <Globe className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">URL</span>
+            </div>
+            
+            <div className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+              <FileText className="h-4 w-4 text-[hsl(var(--kiro-text-muted))]" />
+              <span className="text-sm text-[hsl(var(--kiro-text))]">Current File</span>
+            </div>
+          </div>
+
+          {/* Recent Files/Analysis */}
+          {analysis && (
+            <div className="border-t border-[hsl(var(--kiro-border))] p-4 space-y-3">
+              <h4 className="text-xs font-medium text-[hsl(var(--kiro-text-muted))] uppercase tracking-wide">Recent Analysis</h4>
+              
+              {analysis.readSources?.map((source, idx) => (
+                <div key={idx} className="flex items-center gap-2 p-2 hover:bg-[hsl(var(--kiro-hover))] rounded-lg cursor-pointer">
+                  <FileText className="h-3 w-3 text-[hsl(var(--kiro-purple))]" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-[hsl(var(--kiro-text))] truncate">{source.name}</div>
+                    <div className="text-xs text-[hsl(var(--kiro-text-muted))]">{source.type}</div>
+                  </div>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full text-white ${
+                    source.status === 'processed' ? 'bg-green-500' : 'bg-yellow-500'
+                  }`}>
+                    {source.status}
+                  </span>
+                </div>
+              )) || []}
+            </div>
+          )}
             <div className="space-y-4">
               {analysis ? (
                 <>
@@ -701,7 +798,6 @@ export function KiroChatInterface() {
                 </div>
               )}
             </div>
-          </ScrollArea>
         </div>
       </div>
 
