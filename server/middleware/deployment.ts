@@ -51,7 +51,9 @@ export interface DeploymentConfig {
 export const performanceMonitoring = (req: Request, res: Response, next: NextFunction) => {
   const startTime = performance.now();
   
-  res.on('finish', () => {
+  // Override res.end to set headers before response is sent
+  const originalEnd = res.end;
+  res.end = function(chunk?: any, encoding?: any) {
     const duration = performance.now() - startTime;
     
     // Log slow requests
@@ -59,9 +61,13 @@ export const performanceMonitoring = (req: Request, res: Response, next: NextFun
       console.warn(`⚠️ Slow request: ${req.method} ${req.path} took ${duration.toFixed(0)}ms`);
     }
     
-    // Set performance headers
-    res.setHeader('X-Response-Time', `${duration.toFixed(2)}ms`);
-  });
+    // Set performance headers before ending response
+    if (!res.headersSent) {
+      res.setHeader('X-Response-Time', `${duration.toFixed(2)}ms`);
+    }
+    
+    return originalEnd.call(this, chunk, encoding);
+  };
   
   next();
 };
