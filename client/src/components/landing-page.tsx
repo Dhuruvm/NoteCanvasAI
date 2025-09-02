@@ -514,17 +514,17 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         {/* Main Content */}
         <main className="kiro-main-content">
           <div className="kiro-intro-text">
-            Introducing NoteGPT →
+            Welcome to NoteGPT → Your AI Study Companion
           </div>
           
           <h1 className="kiro-main-title">
-            The AI IDE<br />
-            for prototype<br />
-            to production
+            Transform Learning<br />
+            with AI-Powered<br />
+            Study Notes
           </h1>
           
           <p className="kiro-subtitle">
-            NoteGPT helps you do your best work by bringing structure to AI coding with spec-driven development.
+            Transform any text, PDF, or document into beautiful, structured study notes with our advanced AI. Upload your content and watch it become organized, visual learning material in seconds.
           </p>
           
           <div className="kiro-buttons">
@@ -542,11 +542,11 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         <section className="kiro-purple-section">
           <div className="kiro-purple-content">
             <h2 className="kiro-purple-title">
-              Build something<br />
-              real in minutes
+              Create stunning<br />
+              study notes instantly
             </h2>
             <p className="kiro-purple-subtitle">
-              NoteGPT is free during preview
+              🎓 Join thousands of students already using NoteGPT to revolutionize their learning experience. Transform any content into beautiful, organized notes with AI.
             </p>
             <button className="kiro-waitlist-btn" onClick={onGetStarted}>
               Try Now
