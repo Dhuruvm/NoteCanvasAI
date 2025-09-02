@@ -50,15 +50,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         }
 
         .kiro-logo-icon {
-          width: 24px;
-          height: 24px;
-          background: #ffffff;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 12px;
-          color: #0a0a0a;
+          width: 32px;
+          height: 32px;
+          background-image: url('@assets/Your_paragraph_text_20250902_153838_0000-removebg-preview_1756807918114.png');
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
+          border-radius: 6px;
         }
 
         .kiro-preview {
@@ -424,7 +422,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         {/* Navigation */}
         <nav className="kiro-nav">
           <div className="kiro-logo">
-            <div className="kiro-logo-icon">N</div>
+            <div className="kiro-logo-icon"></div>
             NoteGPT
             <span className="kiro-preview">PREVIEW</span>
           </div>
