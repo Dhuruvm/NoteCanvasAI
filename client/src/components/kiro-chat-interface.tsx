@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import logoIcon from '@assets/Your_paragraph_text_20250902_153838_0000-removebg-preview_1756807918114.png';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -350,7 +351,10 @@ export function KiroChatInterface() {
       <div className={`transition-all duration-300 ${leftSidebarOpen ? 'w-64' : 'w-0 overflow-hidden'}`}>
         <div className="h-full bg-[hsl(var(--kiro-card))] border-r border-[hsl(var(--kiro-border))] p-4">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold">Workspace</h2>
+            <div className="flex items-center gap-2">
+              <img src={logoIcon} alt="NoteGPT Logo" className="w-6 h-6" />
+              <h2 className="text-lg font-semibold">NoteGPT</h2>
+            </div>
             <Button 
               variant="ghost" 
               size="sm"

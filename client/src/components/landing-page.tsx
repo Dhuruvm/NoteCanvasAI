@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import logoIcon from '@assets/Your_paragraph_text_20250902_153838_0000-removebg-preview_1756807918114.png';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -52,10 +53,6 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         .kiro-logo-icon {
           width: 32px;
           height: 32px;
-          background-image: url('@assets/Your_paragraph_text_20250902_153838_0000-removebg-preview_1756807918114.png');
-          background-size: contain;
-          background-repeat: no-repeat;
-          background-position: center;
           border-radius: 6px;
         }
 
@@ -422,7 +419,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         {/* Navigation */}
         <nav className="kiro-nav">
           <div className="kiro-logo">
-            <div className="kiro-logo-icon"></div>
+            <img src={logoIcon} alt="NoteGPT Logo" className="kiro-logo-icon" />
             NoteGPT
             <span className="kiro-preview">PREVIEW</span>
           </div>
