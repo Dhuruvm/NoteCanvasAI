@@ -37,7 +37,7 @@ export function KiroChatInterface() {
     {
       id: '1',
       type: 'assistant',
-      content: "Hey Dhuruv 👋\nHow's it going?",
+      content: "Hey Dhuruv 👋\nHow's it going? I'm NoteGPT, your AI study companion. I can help you transform any content into structured notes!",
       timestamp: new Date()
     }
   ]);
@@ -72,7 +72,7 @@ export function KiroChatInterface() {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: "I'll analyze the repository and create the requested steering rules. Let me first explore the project structure in more detail to understand the codebase better.",
+        content: "I'll help you create comprehensive study notes from your content. Whether it's a PDF, text, or research material, I can transform it into structured, easy-to-understand notes with key concepts and summaries.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMessage]);
