@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import logoIcon from '@assets/Your_paragraph_text_20250902_153838_0000-removebg-preview_1756807918114.png';
 import { Button } from "@/components/ui/button";
+import { useDropzone } from 'react-dropzone';
+import { useToast } from '@/hooks/use-toast';
 import { 
   MessageSquare, 
   Mic, 
@@ -22,7 +24,25 @@ import {
   PenTool,
   ChevronDown,
   Hash,
-  ArrowUp
+  ArrowUp,
+  Upload,
+  FileText,
+  Brain,
+  Wand2,
+  Download,
+  Eye,
+  Settings,
+  Palette,
+  Type,
+  Zap,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  FileImage,
+  File,
+  PlusCircle,
+  Sparkles
 } from "lucide-react";
 
 interface Message {
@@ -30,6 +50,23 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  documentData?: any;
+  isGeneratingDocument?: boolean;
+}
+
+interface ProcessingStage {
+  id: string;
+  name: string;
+  description: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+}
+
+interface AISettings {
+  summaryStyle: string;
+  detailLevel: number;
+  includeExamples: boolean;
+  useMultipleModels: boolean;
+  designStyle: string;
 }
 
 export function KiroChatInterface() {
@@ -37,7 +74,7 @@ export function KiroChatInterface() {
     {
       id: '1',
       type: 'assistant',
-      content: "Hey Dhuruv 👋\nHow's it going? I'm NoteGPT, your AI study companion. I can help you transform any content into structured notes!",
+      content: "Hey Dhuruv 👋\nHow's it going? I'm NoteGPT, your AI study companion. I can help you transform any content into structured notes!\n\n**What I can do:**\n• Transform PDFs, documents, and text into structured notes\n• Generate beautiful, formatted documents with multiple themes\n• Chat with you about your content for deeper understanding\n• Export notes as HTML or PDF\n\nJust upload a file or paste some text to get started!",
       timestamp: new Date()
     }
   ]);
@@ -46,39 +83,246 @@ export function KiroChatInterface() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [autopilot, setAutopilot] = useState(true);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStages, setProcessingStages] = useState<ProcessingStage[]>([]);
+  const [currentStage, setCurrentStage] = useState(0);
+  const [selectedTheme, setSelectedTheme] = useState('modern-card');
+  const [aiSettings, setAiSettings] = useState<AISettings>({
+    summaryStyle: 'academic',
+    detailLevel: 3,
+    includeExamples: true,
+    useMultipleModels: true,
+    designStyle: 'modern'
+  });
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+  // Initialize processing stages
+  useEffect(() => {
+    setProcessingStages([
+      { id: 'upload', name: 'Content Upload', description: 'Processing uploaded content', status: 'pending' },
+      { id: 'extract', name: 'Text Extraction', description: 'Extracting text from documents', status: 'pending' },
+      { id: 'ai-analysis', name: 'AI Analysis', description: 'Analyzing content with multi-model AI', status: 'pending' },
+      { id: 'structure', name: 'Content Structuring', description: 'Creating structured document format', status: 'pending' },
+      { id: 'template', name: 'Template Application', description: 'Applying design template and styling', status: 'pending' },
+      { id: 'generation', name: 'Document Generation', description: 'Generating final documents', status: 'pending' }
+    ]);
+  }, []);
 
+  // File upload configuration
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: (acceptedFiles) => {
+      setUploadedFiles(prev => [...prev, ...acceptedFiles]);
+      handleFileUpload(acceptedFiles);
+    },
+    accept: {
+      'application/pdf': ['.pdf'],
+      'text/plain': ['.txt'],
+      'text/markdown': ['.md'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+    },
+    maxSize: 10 * 1024 * 1024, // 10MB
+    noClick: true
+  });
+
+  const handleFileUpload = async (files: File[]) => {
+    const fileNames = files.map(f => f.name).join(', ');
+    toast({
+      title: "Files uploaded",
+      description: `${files.length} files ready for processing: ${fileNames}`,
+    });
+    
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
-      content: inputValue,
+      content: `📁 Uploaded ${files.length} file(s): ${fileNames}\n\nReady to process with AI!`,
       timestamp: new Date()
     };
-
     setMessages(prev => [...prev, userMessage]);
-    setInputValue("");
-    setIsTyping(true);
+  };
 
-    // Simulate AI response
-    setTimeout(() => {
-      const assistantMessage: Message = {
+  const processContent = async () => {
+    if (!inputValue.trim() && uploadedFiles.length === 0) {
+      toast({
+        title: "No content to process",
+        description: "Please enter text or upload files to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    setIsTyping(true);
+    
+    const processingMessage: Message = {
+      id: Date.now().toString(),
+      type: 'assistant',
+      content: "🔄 Starting AI processing pipeline...\n\nI'll transform your content through multiple AI models to create comprehensive, structured notes.",
+      timestamp: new Date(),
+      isGeneratingDocument: true
+    };
+    setMessages(prev => [...prev, processingMessage]);
+
+    try {
+      // Stage updates with realistic timing
+      for (let i = 0; i < processingStages.length; i++) {
+        setCurrentStage(i);
+        updateStageStatus(processingStages[i].id, 'processing');
+        await delay(800 + Math.random() * 400); // Realistic processing time
+        updateStageStatus(processingStages[i].id, 'completed');
+      }
+
+      // Call NoteGPT processing API
+      const response = await fetch('/api/notegpt/process', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: inputValue,
+          settings: aiSettings
+        })
+      });
+
+      if (!response.ok) throw new Error('AI processing failed');
+      const result = await response.json();
+
+      // Generate document preview
+      const previewResponse = await fetch('/api/templates/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          document: result.document,
+          options: { format: 'html', includeAnnotations: true, includeTOC: true }
+        })
+      });
+
+      let documentPreview = '';
+      if (previewResponse.ok) {
+        documentPreview = await previewResponse.text();
+      }
+
+      const completionMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: "I'll help you create comprehensive study notes from your content. Whether it's a PDF, text, or research material, I can transform it into structured, easy-to-understand notes with key concepts and summaries.",
+        content: `✅ **Document Generated Successfully!**\n\n📄 **Title:** ${result.document.meta.title}\n🎨 **Theme:** ${selectedTheme}\n📊 **Blocks:** ${result.document.blocks.length}\n⚡ **AI Model:** ${result.metadata.aiModel}\n\nYour structured notes are ready! You can:\n• View the document preview below\n• Download as PDF\n• Chat with me about the content\n• Regenerate with different settings`,
+        timestamp: new Date(),
+        documentData: {
+          document: result.document,
+          preview: documentPreview,
+          metadata: result.metadata
+        }
+      };
+
+      setMessages(prev => [...prev, completionMessage]);
+      setInputValue("");
+
+    } catch (error) {
+      console.error('Processing error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        type: 'assistant',
+        content: `❌ **Processing Failed**\n\nSorry, there was an error processing your content. This might be because:\n• API keys are not configured\n• The content is too large\n• Network connectivity issues\n\nIn development mode, some AI features require API keys to be configured. You can still use the template system with sample content!`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsProcessing(false);
       setIsTyping(false);
-    }, 1500);
+      setUploadedFiles([]);
+    }
   };
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() && uploadedFiles.length === 0) return;
+
+    if (uploadedFiles.length > 0 || inputValue.length > 50) {
+      // Process with AI if files or substantial text
+      await processContent();
+    } else {
+      // Regular chat
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: inputValue,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      setInputValue("");
+      setIsTyping(true);
+
+      // Simulate AI response for regular chat
+      setTimeout(() => {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: "I'm here to help you create amazing study notes! Here are some ways to get started:\n\n📝 **Paste your text** - Copy and paste any content you want to convert\n📁 **Upload files** - Drop PDFs, Word docs, or text files\n⚙️ **Adjust settings** - Click the settings icon to customize the AI processing\n🎨 **Choose themes** - Select from multiple document design styles\n\nWhat would you like to transform into structured notes today?",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+        setIsTyping(false);
+      }, 1500);
+    }
+  };
+
+  const downloadPDF = async (documentData: any) => {
+    try {
+      const response = await fetch('/api/templates/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          document: documentData.document,
+          options: { format: 'pdf', includeAnnotations: true, includeTOC: true, pageNumbers: true }
+        })
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${documentData.document.meta.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: "PDF Downloaded",
+          description: "Your document has been saved successfully.",
+        });
+      } else {
+        toast({
+          title: "Download failed",
+          description: "PDF generation service is currently unavailable. Try exporting as HTML instead.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Download error",
+        description: "Unable to generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateStageStatus = (stageId: string, status: ProcessingStage['status']) => {
+    setProcessingStages(prev => 
+      prev.map(stage => 
+        stage.id === stageId ? { ...stage, status } : stage
+      )
+    );
+  };
+
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const adjustTextareaHeight = () => {
     const textarea = inputRef.current;
@@ -637,6 +881,262 @@ export function KiroChatInterface() {
           margin: 0.5rem 0;
         }
 
+        /* NoteGPT Enhanced Styles */
+        .drag-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(168, 85, 247, 0.1);
+          border: 2px dashed #a855f7;
+          border-radius: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+        }
+
+        .drag-content {
+          text-align: center;
+          padding: 2rem;
+        }
+
+        .processing-stages {
+          background: #2a2a2a;
+          border-radius: 0.75rem;
+          padding: 1rem;
+          margin-top: 1rem;
+          border: 1px solid #3a3a3a;
+        }
+
+        .stages-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 1rem;
+        }
+
+        .stage-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.5rem;
+          border-radius: 0.5rem;
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stage-icon {
+          flex-shrink: 0;
+        }
+
+        .stage-info {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .stage-name {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #ffffff;
+        }
+
+        .stage-desc {
+          font-size: 0.75rem;
+          color: #888888;
+        }
+
+        .progress-bar {
+          width: 100%;
+          height: 4px;
+          background: #404040;
+          border-radius: 2px;
+          overflow: hidden;
+        }
+
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #a855f7, #8b5cf6);
+          border-radius: 2px;
+          transition: width 0.3s ease;
+        }
+
+        .document-preview {
+          background: #2a2a2a;
+          border-radius: 0.75rem;
+          padding: 1rem;
+          margin-top: 1rem;
+          border: 1px solid #3a3a3a;
+        }
+
+        .preview-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        .preview-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .preview-btn {
+          display: flex;
+          align-items: center;
+          padding: 0.5rem 0.75rem;
+          background: #a855f7;
+          color: #ffffff;
+          border: none;
+          border-radius: 0.5rem;
+          font-size: 0.875rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .preview-btn:hover {
+          background: #9333ea;
+          transform: translateY(-1px);
+        }
+
+        .document-iframe-container {
+          width: 100%;
+          height: 400px;
+          background: #ffffff;
+          border-radius: 0.5rem;
+          overflow: hidden;
+          margin-bottom: 1rem;
+        }
+
+        .document-iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+          border-radius: 0.5rem;
+        }
+
+        .document-meta {
+          display: flex;
+          gap: 1rem;
+          padding: 0.75rem;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 0.5rem;
+          font-size: 0.875rem;
+        }
+
+        .meta-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .meta-label {
+          color: #888888;
+          font-weight: 500;
+        }
+
+        .meta-value {
+          color: #ffffff;
+        }
+
+        .upload-area {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-right: 0.5rem;
+        }
+
+        .upload-btn {
+          padding: 0.5rem;
+          background: none;
+          border: none;
+          border-radius: 0.5rem;
+          color: #888888;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .upload-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #a855f7;
+        }
+
+        .upload-btn.active {
+          color: #a855f7;
+          background: rgba(168, 85, 247, 0.1);
+        }
+
+        .file-indicator {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          padding: 0.25rem 0.5rem;
+          background: rgba(168, 85, 247, 0.2);
+          border-radius: 0.75rem;
+          font-size: 0.75rem;
+          color: #a855f7;
+        }
+
+        .settings-panel {
+          position: absolute;
+          bottom: 100%;
+          right: 0;
+          background: #2a2a2a;
+          border: 1px solid #3a3a3a;
+          border-radius: 0.75rem;
+          padding: 1rem;
+          margin-bottom: 0.5rem;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+          z-index: 20;
+          min-width: 250px;
+        }
+
+        .settings-header {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #ffffff;
+          margin-bottom: 0.75rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .setting-item {
+          margin-bottom: 0.75rem;
+        }
+
+        .setting-label {
+          display: block;
+          font-size: 0.75rem;
+          color: #888888;
+          margin-bottom: 0.25rem;
+          font-weight: 500;
+        }
+
+        .setting-select {
+          width: 100%;
+          background: #3a3a3a;
+          border: 1px solid #444444;
+          border-radius: 0.5rem;
+          padding: 0.5rem;
+          color: #ffffff;
+          font-size: 0.875rem;
+        }
+
+        .setting-slider {
+          width: 100%;
+          margin: 0.5rem 0;
+        }
+
+        .setting-checkbox {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: #cccccc;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
           .sidebar {
@@ -802,7 +1302,18 @@ export function KiroChatInterface() {
           </header>
 
           {/* Messages */}
-          <div className="messages-container">
+          <div className="messages-container" {...getRootProps()}>
+            <input {...getInputProps()} />
+            {isDragActive && (
+              <div className="drag-overlay">
+                <div className="drag-content">
+                  <Upload className="h-12 w-12 mb-4 mx-auto text-purple-400" />
+                  <p className="text-lg font-medium text-white">Drop files here to process with AI</p>
+                  <p className="text-sm text-gray-400">Supports PDF, DOC, TXT, MD files (max 10MB)</p>
+                </div>
+              </div>
+            )}
+            
             {messages.map((message) => (
               <div key={message.id} className={`message ${message.type}`}>
                 <div className="message-content">
@@ -822,6 +1333,85 @@ export function KiroChatInterface() {
                   <div className={message.type === 'assistant' ? 'assistant-message' : ''}>
                     {message.content}
                   </div>
+
+                  {/* Processing Stages Indicator */}
+                  {message.isGeneratingDocument && isProcessing && (
+                    <div className="processing-stages">
+                      <div className="stages-header">
+                        <h4 className="text-sm font-medium text-white mb-3">AI Processing Pipeline</h4>
+                      </div>
+                      <div className="stages-list">
+                        {processingStages.map((stage, index) => (
+                          <div key={stage.id} className="stage-item">
+                            <div className="stage-icon">
+                              {stage.status === 'completed' && <CheckCircle className="h-4 w-4 text-green-400" />}
+                              {stage.status === 'processing' && <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />}
+                              {stage.status === 'error' && <AlertCircle className="h-4 w-4 text-red-400" />}
+                              {stage.status === 'pending' && <Clock className="h-4 w-4 text-gray-500" />}
+                            </div>
+                            <div className="stage-info">
+                              <span className="stage-name">{stage.name}</span>
+                              <span className="stage-desc">{stage.description}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ width: `${(currentStage / processingStages.length) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Document Preview */}
+                  {message.documentData && (
+                    <div className="document-preview">
+                      <div className="preview-header">
+                        <h4 className="text-sm font-medium text-white mb-2">📄 Generated Document</h4>
+                        <div className="preview-actions">
+                          <button 
+                            className="preview-btn"
+                            onClick={() => downloadPDF(message.documentData)}
+                            data-testid="button-download-pdf"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download PDF
+                          </button>
+                          <button className="preview-btn" data-testid="button-view-full">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Full
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {message.documentData.preview && (
+                        <div className="document-iframe-container">
+                          <iframe
+                            srcDoc={message.documentData.preview}
+                            className="document-iframe"
+                            title="Document Preview"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="document-meta">
+                        <div className="meta-item">
+                          <span className="meta-label">Theme:</span>
+                          <span className="meta-value">{selectedTheme}</span>
+                        </div>
+                        <div className="meta-item">
+                          <span className="meta-label">Blocks:</span>
+                          <span className="meta-value">{message.documentData.document.blocks.length}</span>
+                        </div>
+                        <div className="meta-item">
+                          <span className="meta-label">AI Model:</span>
+                          <span className="meta-value">{message.documentData.metadata.aiModel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {message.type === 'assistant' && (
                     <div className="message-actions">

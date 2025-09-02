@@ -11,8 +11,7 @@ import { NoteGPTWorkspace } from "@/components/notegpt-workspace";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={NoteGPTWorkspace} />
-      <Route path="/home" component={Home} />
+      <Route path="/" component={Home} />
       <Route path="/templates" component={TemplateDesigner} />
       <Route component={NotFound} />
     </Switch>
