@@ -20,41 +20,52 @@ interface ConnectionPoolConfig {
 }
 
 class DatabaseConnectionManager {
-  private pool: Pool;
-  private database: NeonDatabase<typeof schema>;
+  private pool: Pool | null = null;
+  private database: NeonDatabase<typeof schema> | null = null;
   private isInitialized = false;
+  private isAvailable = false;
 
   constructor() {
     if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+      console.warn('⚠️ DATABASE_URL not set. Database features will be disabled.');
+      this.isAvailable = false;
+      return;
     }
 
-    const config: ConnectionPoolConfig = {
-      connectionString: process.env.DATABASE_URL,
-      max: parseInt(process.env.DB_POOL_MAX || '20'), // Maximum connections
-      min: parseInt(process.env.DB_POOL_MIN || '2'),  // Minimum connections
-      idleTimeoutMillis: 30000, // 30 seconds
-      connectionTimeoutMillis: 5000, // 5 seconds
-    };
+    try {
+      const config: ConnectionPoolConfig = {
+        connectionString: process.env.DATABASE_URL,
+        max: parseInt(process.env.DB_POOL_MAX || '20'), // Maximum connections
+        min: parseInt(process.env.DB_POOL_MIN || '2'),  // Minimum connections
+        idleTimeoutMillis: 30000, // 30 seconds
+        connectionTimeoutMillis: 5000, // 5 seconds
+      };
 
-    this.pool = new Pool({
-      connectionString: config.connectionString,
-      max: config.max,
-      min: config.min,
-      idleTimeoutMillis: config.idleTimeoutMillis,
-      connectionTimeoutMillis: config.connectionTimeoutMillis,
-    });
+      this.pool = new Pool({
+        connectionString: config.connectionString,
+        max: config.max,
+        min: config.min,
+        idleTimeoutMillis: config.idleTimeoutMillis,
+        connectionTimeoutMillis: config.connectionTimeoutMillis,
+      });
 
-    this.database = drizzle({ 
-      client: this.pool, 
-      schema,
-      logger: process.env.NODE_ENV === 'development'
-    });
+      this.database = drizzle({ 
+        client: this.pool, 
+        schema,
+        logger: process.env.NODE_ENV === 'development'
+      });
 
-    this.setupEventHandlers();
+      this.setupEventHandlers();
+      this.isAvailable = true;
+    } catch (error) {
+      console.error('❌ Failed to initialize database connection:', error);
+      this.isAvailable = false;
+    }
   }
 
   private setupEventHandlers() {
+    if (!this.pool) return;
+    
     this.pool.on('error', (err) => {
       console.error('💾 Database pool error:', err);
       this.handlePoolError(err);
@@ -76,11 +87,19 @@ class DatabaseConnectionManager {
     }
   }
 
-  public getDatabase(): NeonDatabase<typeof schema> {
+  public getDatabase(): NeonDatabase<typeof schema> | null {
     return this.database;
   }
 
+  public isDbAvailable(): boolean {
+    return this.isAvailable && this.database !== null;
+  }
+
   public async healthCheck(): Promise<boolean> {
+    if (!this.database) {
+      return false;
+    }
+    
     try {
       // Simple query to check database connectivity
       await this.database.execute('SELECT 1');
@@ -92,6 +111,10 @@ class DatabaseConnectionManager {
   }
 
   public getPoolStats() {
+    if (!this.pool) {
+      return null;
+    }
+    
     return {
       totalCount: this.pool.totalCount,
       idleCount: this.pool.idleCount,
@@ -100,6 +123,10 @@ class DatabaseConnectionManager {
   }
 
   public async gracefulShutdown(): Promise<void> {
+    if (!this.pool) {
+      return;
+    }
+    
     try {
       await this.pool.end();
       console.log('✅ Database connections closed gracefully');
@@ -112,6 +139,9 @@ class DatabaseConnectionManager {
 // Singleton instance
 export const dbManager = new DatabaseConnectionManager();
 export const db = dbManager.getDatabase();
+
+// Helper function to check if database is available
+export const isDatabaseAvailable = () => dbManager.isDbAvailable();
 
 // Health check function
 export const checkDatabaseHealth = () => dbManager.healthCheck();

@@ -286,20 +286,25 @@ export const notFoundHandler = (req: Request, res: Response) => {
  * Environment Variables Validation
  */
 export const validateEnvironment = () => {
-  const required = [
-    'DATABASE_URL',
-    'GEMINI_API_KEY'
-  ];
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  // In development, be more flexible with database requirements
+  const required = isDevelopment ? [] : ['DATABASE_URL'];
 
   const optional = [
+    'DATABASE_URL', // Optional in development
     'REDIS_URL',
     'JWT_SECRET',
+    'GEMINI_API_KEY',
     'HUGGINGFACE_API_KEY',
+    'OPENAI_API_KEY',
+    'ANTHROPIC_API_KEY',
     'FRONTEND_URL',
     'API_KEY'
   ];
 
   console.log('🔍 Validating environment variables...');
+  console.log(`🔧 Environment: ${isDevelopment ? 'development' : 'production'}`);
 
   // Check required variables
   const missing = required.filter(var_name => !process.env[var_name]);
@@ -308,10 +313,16 @@ export const validateEnvironment = () => {
     process.exit(1);
   }
 
-  // Warn about optional variables
+  // Warn about optional variables (but don't exit)
   const missingOptional = optional.filter(var_name => !process.env[var_name]);
   if (missingOptional.length > 0) {
     console.warn('⚠️ Missing optional environment variables:', missingOptional);
+    if (isDevelopment) {
+      console.warn('💡 In development mode, the app will run with limited functionality');
+      console.warn('💡 Add API keys to enable full AI features');
+    } else {
+      console.warn('⚠️ Some features may not work without proper configuration');
+    }
   }
 
   console.log('✅ Environment validation completed');
