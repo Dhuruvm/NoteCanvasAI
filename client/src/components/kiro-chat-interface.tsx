@@ -42,7 +42,16 @@ import {
   FileImage,
   File,
   PlusCircle,
-  Sparkles
+  Sparkles,
+  User,
+  Trophy,
+  Target,
+  BookOpen,
+  HelpCircle,
+  Lightbulb,
+  Award,
+  Star,
+  Zap as ZapIcon
 } from "lucide-react";
 
 interface Message {
@@ -50,8 +59,39 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  messageType?: "text" | "question" | "answer" | "quiz" | "explanation" | "research";
+  metadata?: any;
   documentData?: any;
   isGeneratingDocument?: boolean;
+  quizData?: {
+    question: string;
+    options: string[];
+    correctAnswer: string;
+    explanation: string;
+    difficulty: string;
+    topic: string;
+  };
+}
+
+interface ChatSession {
+  id: number;
+  noteId: number;
+  title: string;
+  difficulty: string;
+  subject: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+interface UserProgress {
+  totalQuestions: number;
+  correctAnswers: number;
+  currentStreak: number;
+  bestStreak: number;
+  points: number;
+  level: number;
+  badges: string[];
+  penalties: number;
 }
 
 interface ProcessingStage {
@@ -69,20 +109,17 @@ interface AISettings {
   designStyle: string;
 }
 
-export function KiroChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'assistant',
-      content: "Hey Dhuruv 👋\nHow's it going? I'm NoteGPT, your AI study companion. I can help you transform any content into structured notes!\n\n**What I can do:**\n• Transform PDFs, documents, and text into structured notes\n• Generate beautiful, formatted documents with multiple themes\n• Chat with you about your content for deeper understanding\n• Export notes as HTML or PDF\n\nJust upload a file or paste some text to get started!",
-      timestamp: new Date()
-    }
-  ]);
+interface KiroChatInterfaceProps {
+  noteId?: number;
+  initialSession?: ChatSession;
+}
+
+export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceProps = {}) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
-  const [autopilot, setAutopilot] = useState(true);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStages, setProcessingStages] = useState<ProcessingStage[]>([]);
@@ -96,6 +133,23 @@ export function KiroChatInterface() {
     designStyle: 'modern'
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [currentSession, setCurrentSession] = useState<ChatSession | null>(initialSession || null);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [userProgress, setUserProgress] = useState<UserProgress>({
+    totalQuestions: 0,
+    correctAnswers: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+    points: 0,
+    level: 1,
+    badges: [],
+    penalties: 0
+  });
+  const [userId] = useState(() => `user_${Date.now()}`);
+  const [isQuizMode, setIsQuizMode] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
+  const [answerStartTime, setAnswerStartTime] = useState<number>(0);
+  const [autopilot, setAutopilot] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -103,6 +157,23 @@ export function KiroChatInterface() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Initialize chat session
+  useEffect(() => {
+    if (noteId && !currentSession) {
+      initializeChatSession();
+    } else if (currentSession) {
+      loadChatMessages();
+      loadUserProgress();
+    }
+  }, [noteId, currentSession]);
+
+  // Load existing chat sessions
+  useEffect(() => {
+    if (noteId) {
+      loadChatSessions();
+    }
+  }, [noteId]);
 
   // Initialize processing stages
   useEffect(() => {
@@ -115,6 +186,91 @@ export function KiroChatInterface() {
       { id: 'generation', name: 'Document Generation', description: 'Generating final documents', status: 'pending' }
     ]);
   }, []);
+
+  const initializeChatSession = async () => {
+    if (!noteId) return;
+    
+    try {
+      const response = await fetch(`/api/notes/${noteId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          difficulty: 'intermediate',
+          subject: 'General Study'
+        })
+      });
+      
+      if (response.ok) {
+        const session = await response.json();
+        setCurrentSession(session);
+        toast({
+          title: "Chat session started",
+          description: "Ready to help you learn from your notes!"
+        });
+      }
+    } catch (error) {
+      console.error('Failed to create chat session:', error);
+      // Initialize with welcome message if API fails
+      setMessages([{
+        id: '1',
+        type: 'assistant',
+        content: "👋 Welcome to NoteGPT! I'm your AI study companion. I can help you understand your content, answer questions, and quiz you to reinforce learning.\n\n**How to get started:**\n• Upload a document or paste text to begin\n• Ask questions about any topic\n• Request a quiz to test your knowledge\n• Get explanations for complex concepts\n\nWhat would you like to explore today?",
+        timestamp: new Date(),
+        messageType: 'text'
+      }]);
+    }
+  };
+
+  const loadChatSessions = async () => {
+    if (!noteId) return;
+    
+    try {
+      const response = await fetch(`/api/notes/${noteId}/chat`);
+      if (response.ok) {
+        const sessions = await response.json();
+        setChatSessions(sessions);
+      }
+    } catch (error) {
+      console.error('Failed to load chat sessions:', error);
+    }
+  };
+
+  const loadChatMessages = async () => {
+    if (!currentSession) return;
+    
+    try {
+      const response = await fetch(`/api/chat/${currentSession.id}/messages`);
+      if (response.ok) {
+        const chatMessages = await response.json();
+        const formattedMessages = chatMessages.map((msg: any) => ({
+          id: msg.id.toString(),
+          type: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content,
+          timestamp: new Date(msg.timestamp),
+          messageType: msg.messageType,
+          metadata: msg.metadata
+        }));
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+    }
+  };
+
+  const loadUserProgress = async () => {
+    if (!currentSession) return;
+    
+    try {
+      const response = await fetch(`/api/chat/${currentSession.id}/progress/${userId}`);
+      if (response.ok) {
+        const progress = await response.json();
+        setUserProgress(progress);
+      }
+    } catch (error) {
+      console.error('Failed to load user progress:', error);
+    }
+  };
 
   // File upload configuration
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -144,9 +300,15 @@ export function KiroChatInterface() {
       id: Date.now().toString(),
       type: 'user',
       content: `📁 Uploaded ${files.length} file(s): ${fileNames}\n\nReady to process with AI!`,
-      timestamp: new Date()
+      timestamp: new Date(),
+      messageType: 'text'
     };
     setMessages(prev => [...prev, userMessage]);
+    
+    // If we have a chat session, we could process the files for that context
+    if (currentSession) {
+      // TODO: Implement file processing for chat context
+    }
   };
 
   const processContent = async () => {
@@ -241,34 +403,21 @@ export function KiroChatInterface() {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() && uploadedFiles.length === 0) return;
+    if (!currentSession) {
+      toast({
+        title: "No active session",
+        description: "Please create a chat session first by uploading content.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     if (uploadedFiles.length > 0 || inputValue.length > 50) {
       // Process with AI if files or substantial text
       await processContent();
     } else {
-      // Regular chat
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        type: 'user',
-        content: inputValue,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, userMessage]);
-      setInputValue("");
-      setIsTyping(true);
-
-      // Simulate AI response for regular chat
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: "I'm here to help you create amazing study notes! Here are some ways to get started:\n\n📝 **Paste your text** - Copy and paste any content you want to convert\n📁 **Upload files** - Drop PDFs, Word docs, or text files\n⚙️ **Adjust settings** - Click the settings icon to customize the AI processing\n🎨 **Choose themes** - Select from multiple document design styles\n\nWhat would you like to transform into structured notes today?",
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-        setIsTyping(false);
-      }, 1500);
+      // Send regular chat message
+      await sendChatMessage(inputValue);
     }
   };
 
@@ -323,6 +472,174 @@ export function KiroChatInterface() {
   };
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const sendChatMessage = async (message: string) => {
+    if (!currentSession) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: message,
+      timestamp: new Date(),
+      messageType: 'text'
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue("");
+    setIsTyping(true);
+
+    try {
+      const response = await fetch(`/api/chat/${currentSession.id}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: message,
+          userId
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const assistantMessage: Message = {
+          id: result.assistantMessage.id.toString(),
+          type: 'assistant',
+          content: result.assistantMessage.content,
+          timestamp: new Date(result.assistantMessage.timestamp),
+          messageType: result.assistantMessage.messageType || 'text',
+          metadata: result.assistantMessage.metadata
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        // Update user progress if provided
+        if (result.context) {
+          setUserProgress(prev => ({
+            ...prev,
+            currentStreak: result.context.currentStreak,
+            points: result.context.points,
+            level: result.context.level
+          }));
+        }
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "I'm having trouble processing your message right now. This might be because API keys aren't configured or there's a connectivity issue. Please try again, or upload content to start a new session.",
+        timestamp: new Date(),
+        messageType: 'text'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const generateQuiz = async () => {
+    if (!currentSession) {
+      toast({
+        title: "No active session",
+        description: "Please start a chat session first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsTyping(true);
+    try {
+      const response = await fetch(`/api/chat/${currentSession.id}/quiz`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      
+      if (response.ok) {
+        const quiz = await response.json();
+        const quizMessage: Message = {
+          id: Date.now().toString(),
+          type: 'assistant',
+          content: `🧠 **Quiz Time!**\n\n${quiz.question}`,
+          timestamp: new Date(),
+          messageType: 'quiz',
+          quizData: quiz
+        };
+        
+        setMessages(prev => [...prev, quizMessage]);
+        setIsQuizMode(true);
+        setAnswerStartTime(Date.now());
+        
+        toast({
+          title: "Quiz generated!",
+          description: "Test your knowledge with this question."
+        });
+      }
+    } catch (error) {
+      console.error('Quiz generation error:', error);
+      toast({
+        title: "Quiz unavailable",
+        description: "Unable to generate quiz. API configuration may be required.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const submitQuizAnswer = async (selectedAnswer: string, correctAnswer: string, difficulty: string) => {
+    if (!currentSession) return;
+    
+    const timeTaken = Math.floor((Date.now() - answerStartTime) / 1000);
+    
+    try {
+      const response = await fetch(`/api/chat/${currentSession.id}/quiz/answer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answer: selectedAnswer,
+          correctAnswer,
+          difficulty,
+          timeTaken,
+          userId
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Show result message
+        const resultMessage: Message = {
+          id: Date.now().toString(),
+          type: 'assistant',
+          content: `${result.isCorrect ? '✅' : '❌'} **${result.isCorrect ? 'Correct!' : 'Incorrect'}**\n\n${result.encouragement}\n\n**Points earned:** ${result.rewards.pointsEarned}\n**Current streak:** ${result.progress.currentStreak}\n**Level:** ${result.progress.level}`,
+          timestamp: new Date(),
+          messageType: 'answer'
+        };
+        
+        setMessages(prev => [...prev, resultMessage]);
+        setUserProgress(result.progress);
+        setIsQuizMode(false);
+        setSelectedAnswer("");
+        
+        // Show badges if earned
+        if (result.rewards.newBadges.length > 0) {
+          toast({
+            title: "New badges earned!",
+            description: result.rewards.newBadges.join(', ')
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Quiz submission error:', error);
+      toast({
+        title: "Submission failed",
+        description: "Unable to submit quiz answer. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const adjustTextareaHeight = () => {
     const textarea = inputRef.current;
@@ -1137,6 +1454,155 @@ export function KiroChatInterface() {
           color: #cccccc;
         }
 
+        /* Progress Stats */
+        .progress-stats {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          margin-top: 0.5rem;
+        }
+
+        .stat-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.25rem 0;
+          font-size: 0.875rem;
+          color: #cccccc;
+        }
+
+        .badges-section {
+          margin-top: 1rem;
+        }
+
+        .badges-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.25rem;
+          margin-top: 0.5rem;
+        }
+
+        .badge-item {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          padding: 0.25rem 0.5rem;
+          background: rgba(168, 85, 247, 0.1);
+          border-radius: 0.5rem;
+          border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+
+        /* Quiz Messages */
+        .quiz-container {
+          background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(99, 102, 241, 0.1));
+          border: 1px solid rgba(168, 85, 247, 0.3);
+          border-radius: 1rem;
+          padding: 1.5rem;
+          margin-top: 1rem;
+        }
+
+        .quiz-header {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+          color: #a855f7;
+          font-weight: 600;
+        }
+
+        .quiz-question {
+          font-size: 1.1rem;
+          color: #ffffff;
+          margin-bottom: 1.5rem;
+          line-height: 1.5;
+        }
+
+        .quiz-options {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .quiz-option {
+          padding: 1rem;
+          background: rgba(255, 255, 255, 0.05);
+          border: 2px solid transparent;
+          border-radius: 0.75rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: #ffffff;
+        }
+
+        .quiz-option:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(168, 85, 247, 0.5);
+        }
+
+        .quiz-option.selected {
+          background: rgba(168, 85, 247, 0.2);
+          border-color: #a855f7;
+        }
+
+        .quiz-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 0.75rem;
+          margin-top: 1.5rem;
+        }
+
+        .quiz-btn {
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 0.5rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .quiz-btn-submit {
+          background: #a855f7;
+          color: #ffffff;
+        }
+
+        .quiz-btn-submit:hover {
+          background: #9333ea;
+          transform: translateY(-1px);
+        }
+
+        .quiz-btn-submit:disabled {
+          background: #666666;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        /* Message Type Indicators */
+        .message-type-indicator {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.25rem;
+          padding: 0.25rem 0.5rem;
+          background: rgba(168, 85, 247, 0.1);
+          border-radius: 0.5rem;
+          font-size: 0.75rem;
+          color: #a855f7;
+          margin-bottom: 0.5rem;
+        }
+
+        .message-type-quiz {
+          background: rgba(34, 197, 94, 0.1);
+          color: #22c55e;
+        }
+
+        .message-type-explanation {
+          background: rgba(59, 130, 246, 0.1);
+          color: #3b82f6;
+        }
+
+        .message-type-research {
+          background: rgba(245, 101, 101, 0.1);
+          color: #f59e0b;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
           .sidebar {
@@ -1217,54 +1683,82 @@ export function KiroChatInterface() {
           </div>
 
           <nav className="sidebar-nav">
-            <div className="nav-item active" data-testid="nav-new-chat">
+            <div className="nav-item active" data-testid="nav-new-chat" onClick={() => noteId && initializeChatSession()}>
               <Edit className="h-5 w-5" />
               <span>New chat</span>
             </div>
             
-            <div className="nav-item" data-testid="nav-library">
-              <Library className="h-5 w-5" />
-              <span>Library</span>
+            <div className="nav-item" data-testid="nav-quiz" onClick={generateQuiz}>
+              <Brain className="h-5 w-5" />
+              <span>Generate Quiz</span>
             </div>
             
-            <div className="nav-item" data-testid="nav-gpts">
-              <Grid3X3 className="h-5 w-5" />
-              <span>GPTs</span>
+            <div className="nav-item" data-testid="nav-progress">
+              <Trophy className="h-5 w-5" />
+              <span>Progress</span>
             </div>
 
-            <div className="sidebar-section">
-              <div className="section-title">Recent Chats</div>
-              
-              <div className="chat-item active" data-testid="chat-greeting">
-                <span>Greeting exchange</span>
+            {chatSessions.length > 0 && (
+              <div className="sidebar-section">
+                <div className="section-title">Chat Sessions</div>
+                {chatSessions.map((session) => (
+                  <div 
+                    key={session.id}
+                    className={`chat-item ${currentSession?.id === session.id ? 'active' : ''}`}
+                    onClick={() => setCurrentSession(session)}
+                    data-testid={`chat-${session.id}`}
+                  >
+                    <span>{session.title}</span>
+                    <span className="text-xs text-gray-400">{session.difficulty}</span>
+                  </div>
+                ))}
               </div>
-              
-              <div className="chat-item" data-testid="chat-replit">
-                <span>Replit Agent prompt</span>
+            )}
+
+            {userProgress && (
+              <div className="sidebar-section">
+                <div className="section-title">Your Progress</div>
+                <div className="progress-stats">
+                  <div className="stat-item">
+                    <Trophy className="h-4 w-4 text-yellow-400" />
+                    <span>Level {userProgress.level}</span>
+                  </div>
+                  <div className="stat-item">
+                    <Star className="h-4 w-4 text-blue-400" />
+                    <span>{userProgress.points} points</span>
+                  </div>
+                  <div className="stat-item">
+                    <Target className="h-4 w-4 text-green-400" />
+                    <span>{userProgress.currentStreak} streak</span>
+                  </div>
+                  <div className="stat-item">
+                    <BookOpen className="h-4 w-4 text-purple-400" />
+                    <span>{userProgress.correctAnswers}/{userProgress.totalQuestions} correct</span>
+                  </div>
+                </div>
+                {userProgress.badges.length > 0 && (
+                  <div className="badges-section">
+                    <div className="section-title">Badges</div>
+                    <div className="badges-grid">
+                      {userProgress.badges.map((badge, index) => (
+                        <div key={index} className="badge-item">
+                          <Award className="h-4 w-4 text-yellow-400" />
+                          <span className="text-xs">{badge}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              
-              <div className="chat-item" data-testid="chat-indicator">
-                <span>Indicator pattern for NoteGPT</span>
-              </div>
-              
-              <div className="chat-item" data-testid="chat-logo">
-                <span>Logo design variation</span>
-              </div>
-              
-              <div className="chat-item" data-testid="chat-ideas">
-                <span>NoteGPT logo ideas</span>
-              </div>
-              
-              <div className="chat-item" data-testid="chat-evolution">
-                <span>NoteGPT evolution strategy</span>
-              </div>
-            </div>
+            )}
           </nav>
 
           <div className="user-profile">
             <div className="user-info">
-              <div className="user-avatar">D</div>
-              <span>Dhuruv m</span>
+              <div className="user-avatar">
+                <User className="h-4 w-4" />
+              </div>
+              <span>Study Session</span>
               <ChevronDown className="h-4 w-4 ml-auto" />
             </div>
           </div>
@@ -1330,9 +1824,61 @@ export function KiroChatInterface() {
                     </div>
                   )}
                   
+                  {/* Message Type Indicator */}
+                  {message.type === 'assistant' && message.messageType && message.messageType !== 'text' && (
+                    <div className={`message-type-indicator ${message.messageType === 'quiz' ? 'message-type-quiz' : message.messageType === 'explanation' ? 'message-type-explanation' : message.messageType === 'research' ? 'message-type-research' : ''}`}>
+                      {message.messageType === 'quiz' && <HelpCircle className="h-3 w-3" />}
+                      {message.messageType === 'explanation' && <Lightbulb className="h-3 w-3" />}
+                      {message.messageType === 'research' && <Search className="h-3 w-3" />}
+                      {message.messageType === 'question' && <MessageSquare className="h-3 w-3" />}
+                      <span className="capitalize">{message.messageType}</span>
+                    </div>
+                  )}
+
                   <div className={message.type === 'assistant' ? 'assistant-message' : ''}>
                     {message.content}
                   </div>
+
+                  {/* Quiz Interface */}
+                  {message.messageType === 'quiz' && message.quizData && (
+                    <div className="quiz-container">
+                      <div className="quiz-header">
+                        <Brain className="h-5 w-5" />
+                        <span>Interactive Quiz</span>
+                      </div>
+                      
+                      <div className="quiz-question">
+                        {message.quizData.question}
+                      </div>
+                      
+                      <div className="quiz-options">
+                        {message.quizData.options.map((option, index) => (
+                          <div
+                            key={index}
+                            className={`quiz-option ${selectedAnswer === option ? 'selected' : ''}`}
+                            onClick={() => setSelectedAnswer(option)}
+                          >
+                            <strong>{String.fromCharCode(65 + index)}.</strong> {option}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="quiz-actions">
+                        <button
+                          className="quiz-btn quiz-btn-submit"
+                          disabled={!selectedAnswer}
+                          onClick={() => submitQuizAnswer(
+                            selectedAnswer,
+                            message.quizData!.correctAnswer,
+                            message.quizData!.difficulty
+                          )}
+                        >
+                          <ZapIcon className="h-4 w-4 mr-2" />
+                          Submit Answer
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Processing Stages Indicator */}
                   {message.isGeneratingDocument && isProcessing && (
