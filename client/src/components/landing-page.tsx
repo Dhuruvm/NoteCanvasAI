@@ -90,13 +90,14 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           position: fixed;
           top: 0;
           right: 0;
-          width: 300px;
+          width: 100%;
           height: 100vh;
           background: #0a0a0a;
           transform: translateX(100%);
           transition: transform 0.3s ease;
           z-index: 200;
           padding: 2rem;
+          overflow-y: auto;
         }
 
         .kiro-mobile-menu.open {
@@ -114,11 +115,30 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           cursor: pointer;
         }
 
+        .kiro-menu-brand {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #ffffff;
+          margin-bottom: 3rem;
+        }
+
+        .kiro-menu-section {
+          margin-bottom: 3rem;
+        }
+
+        .kiro-menu-section-title {
+          color: #888888;
+          font-size: 0.8rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          margin-bottom: 1rem;
+        }
+
         .kiro-menu-items {
-          margin-top: 4rem;
           display: flex;
           flex-direction: column;
-          gap: 2rem;
+          gap: 1rem;
         }
 
         .kiro-menu-item {
@@ -127,11 +147,33 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           font-weight: 500;
           text-decoration: none;
           padding: 0.5rem 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .kiro-menu-item:hover {
           color: #a855f7;
+        }
+
+        .kiro-social-links {
+          display: flex;
+          gap: 1rem;
+          margin-top: 2rem;
+        }
+
+        .kiro-social-link {
+          width: 40px;
+          height: 40px;
+          background: #333333;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+          text-decoration: none;
+          transition: background 0.3s ease;
+        }
+
+        .kiro-social-link:hover {
+          background: #444444;
         }
 
         .kiro-main-content {
@@ -225,31 +267,119 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           transform: translateY(-2px);
         }
 
-        .kiro-demo-section {
+        .kiro-purple-section {
+          width: 100%;
+          background: linear-gradient(135deg, #a855f7, #8b5cf6, #7c3aed);
+          padding: 4rem 2rem;
+          text-align: center;
           margin-top: 4rem;
-          padding: 2rem;
-          border: 1px solid #333333;
-          border-radius: 0.75rem;
-          background: rgba(255, 255, 255, 0.02);
           opacity: 0;
           transform: translateY(30px);
           animation: fadeInUp 1s ease-out 1s forwards;
+          position: relative;
+          overflow: hidden;
         }
 
-        .kiro-demo-header {
+        .kiro-purple-content {
+          max-width: 600px;
+          margin: 0 auto;
+        }
+
+        .kiro-purple-title {
+          font-size: clamp(2rem, 5vw, 3rem);
+          font-weight: 700;
           color: #ffffff;
-          font-size: 0.9rem;
           margin-bottom: 1rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
+          line-height: 1.2;
         }
 
-        .kiro-demo-indicator {
-          width: 8px;
-          height: 8px;
-          background: #10b981;
+        .kiro-purple-subtitle {
+          font-size: 1.1rem;
+          color: rgba(255, 255, 255, 0.9);
+          margin-bottom: 2rem;
+        }
+
+        .kiro-waitlist-btn {
+          background: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          padding: 1rem 2rem;
+          border-radius: 2rem;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(10px);
+        }
+
+        .kiro-waitlist-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+          border-color: rgba(255, 255, 255, 0.5);
+          transform: translateY(-2px);
+        }
+
+        .kiro-ghost {
+          position: absolute;
+          bottom: -20px;
+          right: 10%;
+          width: 120px;
+          height: 150px;
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 60px 60px 0 0;
+          opacity: 0.8;
+        }
+
+        .kiro-ghost::before,
+        .kiro-ghost::after {
+          content: '';
+          position: absolute;
+          width: 12px;
+          height: 18px;
+          background: #000000;
           border-radius: 50%;
+          top: 40px;
+        }
+
+        .kiro-ghost::before {
+          left: 35px;
+        }
+
+        .kiro-ghost::after {
+          right: 35px;
+        }
+
+        .kiro-footer {
+          background: #0a0a0a;
+          padding: 2rem;
+          border-top: 1px solid #333333;
+          margin-top: 0;
+        }
+
+        .kiro-footer-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 2rem;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .kiro-footer-links {
+          display: flex;
+          gap: 2rem;
+          flex-wrap: wrap;
+        }
+
+        .kiro-footer-link {
+          color: #888888;
+          text-decoration: none;
+          font-size: 0.9rem;
+          transition: color 0.3s ease;
+        }
+
+        .kiro-footer-link:hover {
+          color: #ffffff;
         }
 
         @keyframes fadeInUp {
@@ -309,11 +439,41 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
         {/* Mobile Menu */}
         <div className={`kiro-mobile-menu ${showMenu ? 'open' : ''}`}>
           <button className="kiro-menu-close" onClick={() => setShowMenu(false)}>×</button>
-          <div className="kiro-menu-items">
-            <a href="#" className="kiro-menu-item">CHANGELOG</a>
-            <a href="#" className="kiro-menu-item">PRICING</a>
-            <a href="#" className="kiro-menu-item">DOCS</a>
-            <a href="#" className="kiro-menu-item">RESOURCES ↓</a>
+          
+          <div className="kiro-menu-brand">KIRO</div>
+          
+          <div className="kiro-menu-section">
+            <div className="kiro-menu-section-title">PRODUCT</div>
+            <div className="kiro-menu-items">
+              <a href="#" className="kiro-menu-item">About Kiro</a>
+              <a href="#" className="kiro-menu-item">Pricing</a>
+              <a href="#" className="kiro-menu-item">Changelog</a>
+              <a href="#" className="kiro-menu-item">Downloads</a>
+            </div>
+          </div>
+          
+          <div className="kiro-menu-section">
+            <div className="kiro-menu-section-title">RESOURCES</div>
+            <div className="kiro-menu-items">
+              <a href="#" className="kiro-menu-item">Documentation</a>
+              <a href="#" className="kiro-menu-item">Blog</a>
+              <a href="#" className="kiro-menu-item">FAQs</a>
+              <a href="#" className="kiro-menu-item">Report a bug</a>
+              <a href="#" className="kiro-menu-item">Suggest an idea</a>
+              <a href="#" className="kiro-menu-item">Billing support</a>
+            </div>
+          </div>
+          
+          <div className="kiro-menu-section">
+            <div className="kiro-menu-section-title">SOCIAL</div>
+            <div className="kiro-social-links">
+              <a href="#" className="kiro-social-link">𝕏</a>
+              <a href="#" className="kiro-social-link">📱</a>
+              <a href="#" className="kiro-social-link">💬</a>
+              <a href="#" className="kiro-social-link">📺</a>
+              <a href="#" className="kiro-social-link">🐦</a>
+              <a href="#" className="kiro-social-link">📱</a>
+            </div>
           </div>
         </div>
 
@@ -342,13 +502,38 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             </button>
           </div>
           
-          <div className="kiro-demo-section">
-            <div className="kiro-demo-header">
-              <div className="kiro-demo-indicator"></div>
-              Please create an email opt-in form and have it connected to the Hono backend!
+        </main>
+        
+        {/* Purple Section */}
+        <section className="kiro-purple-section">
+          <div className="kiro-purple-content">
+            <h2 className="kiro-purple-title">
+              Build something<br />
+              real in minutes
+            </h2>
+            <p className="kiro-purple-subtitle">
+              Kiro is free during preview
+            </p>
+            <button className="kiro-waitlist-btn" onClick={onGetStarted}>
+              Try Now
+            </button>
+          </div>
+          <div className="kiro-ghost"></div>
+        </section>
+        
+        {/* Footer */}
+        <footer className="kiro-footer">
+          <div className="kiro-footer-content">
+            <div className="kiro-footer-links">
+              <a href="#" className="kiro-footer-link">Site Terms</a>
+              <a href="#" className="kiro-footer-link">License</a>
+              <a href="#" className="kiro-footer-link">Responsible AI Policy</a>
+              <a href="#" className="kiro-footer-link">Legal</a>
+              <a href="#" className="kiro-footer-link">Privacy Policy</a>
+              <a href="#" className="kiro-footer-link">Cookie Preferences</a>
             </div>
           </div>
-        </main>
+        </footer>
       </div>
     </>
   );
