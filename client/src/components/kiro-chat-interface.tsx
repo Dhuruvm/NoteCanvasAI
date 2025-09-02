@@ -1,25 +1,18 @@
 import { useState, useRef, useEffect } from "react";
 import logoIcon from '@assets/Your_paragraph_text_20250902_153838_0000-removebg-preview_1756807918114.png';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   MessageSquare, 
   Mic, 
-  Paperclip, 
   Send, 
-  Settings,
-  FileText,
-  Sparkles,
-  Brain,
-  Upload,
   Menu,
-  X,
   MoreHorizontal,
-  Hash
+  Edit,
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
+  Share
 } from "lucide-react";
 
 interface Message {
@@ -30,592 +23,496 @@ interface Message {
 }
 
 export function KiroChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      type: 'assistant',
+      content: "Hey Dhuruv 👋\nHow's it going?",
+      timestamp: new Date()
+    }
+  ]);
   const [inputValue, setInputValue] = useState("");
-  const [selectedModel, setSelectedModel] = useState("Claude Sonnet 4.0");
-  const [autopilot, setAutopilot] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (inputValue.trim()) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        type: 'user',
-        content: inputValue,
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: inputValue,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue("");
+    setIsTyping(true);
+
+    // Simulate AI response
+    setTimeout(() => {
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: "I'll analyze the repository and create the requested steering rules. Let me first explore the project structure in more detail to understand the codebase better.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, newMessage]);
-      setInputValue("");
-      
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: "I'll analyze your request and help you create structured notes. Let me process this information...",
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      }, 1000);
-    }
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsTyping(false);
+    }, 1500);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const uploadMessage: Message = {
-        id: Date.now().toString(),
-        type: 'user',
-        content: `📎 Uploaded: ${file.name}`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, uploadMessage]);
+  const adjustTextareaHeight = () => {
+    const textarea = inputRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
     }
-    event.target.value = '';
   };
 
   return (
     <>
       <style>{`
-        .kiro-interface {
-          min-height: 100vh;
-          background: #1a1a1a;
-          font-family: 'Inter', sans-serif;
+        .chat-interface {
+          height: 100vh;
+          background: #0f0f0f;
           color: #ffffff;
+          display: flex;
+          flex-direction: column;
+          font-family: 'Inter', sans-serif;
         }
 
-        .kiro-header {
-          background: rgba(26, 26, 26, 0.95);
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid #333;
-          padding: 1rem;
+        /* Header */
+        .chat-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 1rem 1.5rem;
+          border-bottom: 1px solid #2a2a2a;
+          background: #0f0f0f;
           position: sticky;
           top: 0;
-          z-index: 50;
+          z-index: 10;
         }
 
-        .kiro-header-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .kiro-brand {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-
-        .kiro-brand-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-        }
-
-        .kiro-brand-text {
-          font-size: 1.25rem;
+        .chat-title {
+          font-size: 1.125rem;
           font-weight: 600;
           color: #ffffff;
         }
 
-        .kiro-preview-badge {
-          background: rgba(168, 85, 247, 0.1);
-          color: #a855f7;
-          border: 1px solid rgba(168, 85, 247, 0.2);
-          padding: 0.25rem 0.75rem;
-          border-radius: 1rem;
-          font-size: 0.75rem;
-          font-weight: 500;
-          margin-left: 0.5rem;
-        }
-
-        .kiro-main {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 2rem 1rem;
-          min-height: calc(100vh - 80px);
+        .header-actions {
           display: flex;
-          flex-direction: column;
+          align-items: center;
+          gap: 0.5rem;
         }
 
-        .kiro-welcome {
-          text-align: center;
-          margin-bottom: 3rem;
-        }
-
-        .kiro-welcome-title {
-          font-size: 2rem;
-          font-weight: 700;
-          color: #ffffff;
-          margin-bottom: 0.5rem;
-        }
-
-        .kiro-welcome-subtitle {
+        .header-btn {
+          padding: 0.5rem;
+          background: none;
+          border: none;
+          border-radius: 0.5rem;
           color: #888888;
-          font-size: 1rem;
-        }
-
-        .kiro-cards-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1rem;
-          margin-bottom: 3rem;
-        }
-
-        .kiro-feature-card {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 1.5rem;
-          transition: all 0.3s ease;
           cursor: pointer;
+          transition: all 0.2s ease;
         }
 
-        .kiro-feature-card:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: #a855f7;
-          transform: translateY(-2px);
+        .header-btn:hover {
+          background: #2a2a2a;
+          color: #ffffff;
         }
 
-        .kiro-feature-card.active {
-          background: rgba(168, 85, 247, 0.1);
-          border-color: #a855f7;
+        /* Messages Area */
+        .messages-container {
+          flex: 1;
+          overflow-y: auto;
+          padding: 1rem 0;
         }
 
-        .kiro-card-header {
+        .message {
+          margin-bottom: 2rem;
+          padding: 0 1.5rem;
+        }
+
+        .message.user {
+          display: flex;
+          justify-content: flex-end;
+        }
+
+        .message.assistant {
+          display: flex;
+          justify-content: flex-start;
+        }
+
+        .message-content {
+          max-width: 70%;
+          position: relative;
+        }
+
+        .message.user .message-content {
+          background: #2a2a2a;
+          border-radius: 1.5rem 1.5rem 0.5rem 1.5rem;
+          padding: 1rem 1.25rem;
+          color: #ffffff;
+        }
+
+        .message.assistant .message-content {
+          background: transparent;
+          padding: 0;
+        }
+
+        .assistant-header {
           display: flex;
           align-items: center;
           gap: 0.75rem;
           margin-bottom: 0.75rem;
         }
 
-        .kiro-card-icon {
-          width: 24px;
-          height: 24px;
-          color: #a855f7;
-        }
-
-        .kiro-card-title {
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: #ffffff;
-        }
-
-        .kiro-card-description {
-          color: #888888;
-          font-size: 0.9rem;
-          line-height: 1.5;
-        }
-
-        .kiro-chat-area {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          overflow: hidden;
-          margin-bottom: 1rem;
-        }
-
-        .kiro-messages {
-          flex: 1;
-          padding: 1rem;
-          overflow-y: auto;
-          min-height: 300px;
-        }
-
-        .kiro-message {
-          margin-bottom: 1.5rem;
-          display: flex;
-          gap: 0.75rem;
-        }
-
-        .kiro-message.user {
-          flex-direction: row-reverse;
-        }
-
-        .kiro-avatar {
+        .assistant-avatar {
           width: 32px;
           height: 32px;
-          border-radius: 8px;
-          flex-shrink: 0;
+          border-radius: 50%;
+          background: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        .kiro-avatar.user {
-          background: #a855f7;
-          color: #ffffff;
+        .assistant-name {
           font-weight: 600;
-        }
-
-        .kiro-avatar.assistant {
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        .kiro-message-content {
-          flex: 1;
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 12px;
-          padding: 1rem;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .kiro-message.user .kiro-message-content {
-          background: rgba(168, 85, 247, 0.1);
-          border-color: rgba(168, 85, 247, 0.2);
-        }
-
-        .kiro-input-area {
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 1rem;
-          background: rgba(255, 255, 255, 0.02);
-        }
-
-        .kiro-input-container {
-          display: flex;
-          gap: 0.75rem;
-          align-items: end;
-        }
-
-        .kiro-input {
-          flex: 1;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          padding: 1rem;
           color: #ffffff;
-          font-size: 0.95rem;
-          resize: none;
-          min-height: 44px;
-          max-height: 120px;
         }
 
-        .kiro-input:focus {
-          outline: none;
-          border-color: #a855f7;
-          box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        .assistant-message {
+          color: #e0e0e0;
+          line-height: 1.6;
+          white-space: pre-wrap;
         }
 
-        .kiro-input::placeholder {
-          color: #666666;
-        }
-
-        .kiro-input-controls {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .kiro-control-btn {
-          width: 44px;
-          height: 44px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
+        .message-actions {
           display: flex;
           align-items: center;
-          justify-content: center;
+          gap: 0.5rem;
+          margin-top: 1rem;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+
+        .message:hover .message-actions {
+          opacity: 1;
+        }
+
+        .action-btn {
+          padding: 0.5rem;
+          background: none;
+          border: none;
+          border-radius: 0.375rem;
+          color: #888888;
           cursor: pointer;
           transition: all 0.2s ease;
-          color: #888888;
         }
 
-        .kiro-control-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
+        .action-btn:hover {
+          background: #2a2a2a;
           color: #ffffff;
         }
 
-        .kiro-control-btn.primary {
-          background: #a855f7;
-          border-color: #a855f7;
-          color: #ffffff;
+        /* Typing Indicator */
+        .typing-indicator {
+          padding: 0 1.5rem;
+          margin-bottom: 1rem;
         }
 
-        .kiro-control-btn.primary:hover {
-          background: #9333ea;
-        }
-
-        .kiro-bottom-bar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0.75rem 1rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.02);
-        }
-
-        .kiro-model-selector {
+        .typing-content {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
-          font-size: 0.85rem;
-          color: #888888;
+          gap: 0.75rem;
         }
 
-        .kiro-autopilot {
+        .typing-dots {
           display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.85rem;
-          color: #888888;
+          gap: 0.25rem;
+          padding: 1rem 1.25rem;
+          background: #1a1a1a;
+          border-radius: 1rem;
         }
 
-        .kiro-switch {
-          width: 32px;
-          height: 18px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 9px;
-          position: relative;
-          cursor: pointer;
-          transition: background 0.2s ease;
-        }
-
-        .kiro-switch.active {
-          background: #a855f7;
-        }
-
-        .kiro-switch-thumb {
-          width: 14px;
-          height: 14px;
-          background: #ffffff;
+        .typing-dot {
+          width: 6px;
+          height: 6px;
+          background: #888888;
           border-radius: 50%;
-          position: absolute;
-          top: 2px;
-          left: 2px;
-          transition: transform 0.2s ease;
+          animation: typing 1.5s ease-in-out infinite;
         }
 
-        .kiro-switch.active .kiro-switch-thumb {
-          transform: translateX(14px);
+        .typing-dot:nth-child(2) {
+          animation-delay: 0.2s;
         }
 
-        .kiro-empty-state {
-          flex: 1;
+        .typing-dot:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+          0%, 60%, 100% {
+            opacity: 0.3;
+            transform: scale(1);
+          }
+          30% {
+            opacity: 1;
+            transform: scale(1.2);
+          }
+        }
+
+        /* Input Area */
+        .input-area {
+          padding: 1rem 1.5rem 2rem;
+          background: #0f0f0f;
+          border-top: 1px solid #2a2a2a;
+        }
+
+        .input-container {
+          max-width: 768px;
+          margin: 0 auto;
+          position: relative;
+        }
+
+        .input-wrapper {
           display: flex;
-          flex-direction: column;
+          align-items: end;
+          background: #2a2a2a;
+          border-radius: 1.5rem;
+          padding: 0.75rem 1rem;
+          gap: 0.75rem;
+        }
+
+        .message-input {
+          flex: 1;
+          background: none;
+          border: none;
+          outline: none;
+          color: #ffffff;
+          font-size: 1rem;
+          line-height: 1.5;
+          resize: none;
+          min-height: 24px;
+          max-height: 200px;
+          font-family: inherit;
+        }
+
+        .message-input::placeholder {
+          color: #888888;
+        }
+
+        .input-actions {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex-shrink: 0;
+        }
+
+        .input-btn {
+          padding: 0.5rem;
+          background: none;
+          border: none;
+          border-radius: 0.5rem;
+          color: #888888;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .input-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+        }
+
+        .send-btn {
+          background: #ffffff;
+          color: #000000;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: flex;
           align-items: center;
           justify-content: center;
-          text-align: center;
-          color: #888888;
         }
 
-        .kiro-empty-icon {
-          width: 48px;
-          height: 48px;
-          color: #555555;
-          margin-bottom: 1rem;
+        .send-btn:hover {
+          background: #e0e0e0;
+        }
+
+        .send-btn:disabled {
+          background: #404040;
+          color: #888888;
+          cursor: not-allowed;
         }
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-          .kiro-main {
-            padding: 1rem 0.5rem;
-          }
-          
-          .kiro-cards-grid {
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
-          }
-          
-          .kiro-feature-card {
+          .chat-header {
             padding: 1rem;
           }
-          
-          .kiro-input-container {
-            flex-direction: column;
-            gap: 0.5rem;
+
+          .message {
+            padding: 0 1rem;
           }
-          
-          .kiro-input-controls {
-            justify-content: center;
-            width: 100%;
+
+          .message-content {
+            max-width: 85%;
           }
-          
-          .kiro-bottom-bar {
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: stretch;
+
+          .input-area {
+            padding: 1rem;
+          }
+
+          .typing-indicator {
+            padding: 0 1rem;
           }
         }
 
         @media (max-width: 480px) {
-          .kiro-welcome-title {
-            font-size: 1.5rem;
+          .message-content {
+            max-width: 90%;
           }
-          
-          .kiro-cards-grid {
-            gap: 0.5rem;
-          }
-          
-          .kiro-feature-card {
-            padding: 0.75rem;
+
+          .input-wrapper {
+            padding: 0.5rem 0.75rem;
           }
         }
       `}</style>
 
-      <div className="kiro-interface">
+      <div className="chat-interface">
         {/* Header */}
-        <header className="kiro-header">
-          <div className="kiro-header-content">
-            <div className="kiro-brand">
-              <img src={logoIcon} alt="NoteGPT Logo" className="kiro-brand-icon" />
-              <span className="kiro-brand-text">Let's build</span>
-              <span className="kiro-preview-badge">PREVIEW</span>
-            </div>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="md:hidden"
-            >
+        <header className="chat-header">
+          <div className="header-left">
+            <Button variant="ghost" size="sm" className="header-btn md:hidden">
               <Menu className="h-5 w-5" />
             </Button>
+            <h1 className="chat-title">NoteGPT</h1>
+          </div>
+          
+          <div className="header-actions">
+            <button className="header-btn" data-testid="button-edit">
+              <Edit className="h-5 w-5" />
+            </button>
+            <button className="header-btn" data-testid="button-menu">
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="kiro-main">
-          {/* Welcome Section */}
-          <div className="kiro-welcome">
-            <h1 className="kiro-welcome-title">Plan, search, or build anything</h1>
-          </div>
-
-          {/* Feature Cards */}
-          <div className="kiro-cards-grid">
-            <div className="kiro-feature-card active" data-testid="card-note-generation">
-              <div className="kiro-card-header">
-                <Sparkles className="kiro-card-icon" />
-                <span className="kiro-card-title">Note Coding</span>
-              </div>
-              <p className="kiro-card-description">
-                Free-form chat for general assistance and note coding
-              </p>
-            </div>
-
-            <div className="kiro-feature-card" data-testid="card-research-spec">
-              <div className="kiro-card-header">
-                <FileText className="kiro-card-icon" />
-                <span className="kiro-card-title">Code with Spec</span>
-              </div>
-              <p className="kiro-card-description">
-                Structured approach for building features or new apps.
-              </p>
-            </div>
-          </div>
-
-          {/* Chat Area */}
-          <div className="kiro-chat-area">
-            <div className="kiro-messages">
-              {messages.length === 0 ? (
-                <div className="kiro-empty-state">
-                  <MessageSquare className="kiro-empty-icon" />
-                  <p>Start a conversation to generate your first AI note</p>
-                </div>
-              ) : (
-                messages.map((message) => (
-                  <div key={message.id} className={`kiro-message ${message.type}`}>
-                    <div className={`kiro-avatar ${message.type}`}>
-                      {message.type === 'user' ? (
-                        'U'
-                      ) : (
-                        <img src={logoIcon} alt="Assistant" className="w-full h-full object-contain" />
-                      )}
+        {/* Messages */}
+        <div className="messages-container">
+          {messages.map((message) => (
+            <div key={message.id} className={`message ${message.type}`}>
+              <div className="message-content">
+                {message.type === 'assistant' && (
+                  <div className="assistant-header">
+                    <div className="assistant-avatar">
+                      <img 
+                        src={logoIcon} 
+                        alt="Kiro" 
+                        className="w-6 h-6 object-contain"
+                      />
                     </div>
-                    <div className="kiro-message-content">
-                      {message.content}
-                    </div>
+                    <span className="assistant-name">Kiro</span>
                   </div>
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area */}
-            <div className="kiro-input-area">
-              <div className="kiro-input-container">
-                <textarea
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask a question or describe a task..."
-                  className="kiro-input"
-                  rows={1}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }
-                  }}
-                  data-testid="input-message"
-                />
+                )}
                 
-                <div className="kiro-input-controls">
-                  <button 
-                    className="kiro-control-btn"
-                    onClick={() => fileInputRef.current?.click()}
-                    data-testid="button-attach"
-                  >
-                    <Paperclip className="h-5 w-5" />
-                  </button>
-                  
-                  <button 
-                    className="kiro-control-btn"
-                    data-testid="button-mic"
-                  >
-                    <Mic className="h-5 w-5" />
-                  </button>
-                  
-                  <button 
-                    className="kiro-control-btn primary"
-                    onClick={handleSendMessage}
-                    disabled={!inputValue.trim()}
-                    data-testid="button-send"
-                  >
-                    <Send className="h-5 w-5" />
-                  </button>
+                <div className={message.type === 'assistant' ? 'assistant-message' : ''}>
+                  {message.content}
+                </div>
+
+                {message.type === 'assistant' && (
+                  <div className="message-actions">
+                    <button className="action-btn" data-testid="button-copy">
+                      <Copy className="h-4 w-4" />
+                    </button>
+                    <button className="action-btn" data-testid="button-thumbs-up">
+                      <ThumbsUp className="h-4 w-4" />
+                    </button>
+                    <button className="action-btn" data-testid="button-thumbs-down">
+                      <ThumbsDown className="h-4 w-4" />
+                    </button>
+                    <button className="action-btn" data-testid="button-regenerate">
+                      <RotateCcw className="h-4 w-4" />
+                    </button>
+                    <button className="action-btn" data-testid="button-share">
+                      <Share className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="typing-indicator">
+              <div className="typing-content">
+                <div className="assistant-avatar">
+                  <img 
+                    src={logoIcon} 
+                    alt="Kiro" 
+                    className="w-6 h-6 object-contain"
+                  />
+                </div>
+                <div className="typing-dots">
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Bottom Controls */}
-              <div className="kiro-bottom-bar">
-                <div className="kiro-model-selector">
-                  <Hash className="h-4 w-4" />
-                  <span>{selectedModel}</span>
-                </div>
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input Area */}
+        <div className="input-area">
+          <div className="input-container">
+            <div className="input-wrapper">
+              <textarea
+                ref={inputRef}
+                value={inputValue}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  adjustTextareaHeight();
+                }}
+                placeholder="Ask anything"
+                className="message-input"
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                data-testid="input-message"
+              />
+              
+              <div className="input-actions">
+                <button className="input-btn" data-testid="button-mic">
+                  <Mic className="h-5 w-5" />
+                </button>
                 
-                <div className="kiro-autopilot">
-                  <span>Autopilot</span>
-                  <div 
-                    className={`kiro-switch ${autopilot ? 'active' : ''}`}
-                    onClick={() => setAutopilot(!autopilot)}
-                    data-testid="switch-autopilot"
-                  >
-                    <div className="kiro-switch-thumb"></div>
-                  </div>
-                </div>
+                <button 
+                  className={`input-btn send-btn ${!inputValue.trim() ? 'opacity-50' : ''}`}
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim()}
+                  data-testid="button-send"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
               </div>
             </div>
           </div>
-        </main>
-
-        {/* Hidden File Input */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileUpload}
-          accept=".pdf,.txt,.md,.doc,.docx"
-          style={{ display: 'none' }}
-        />
+        </div>
       </div>
     </>
   );
