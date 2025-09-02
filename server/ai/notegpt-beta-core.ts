@@ -159,7 +159,7 @@ export class NoteGPTBeta {
       const styleSettings: AISettings = {
         ...baseSettings,
         summaryStyle: this.mapStyleToSummaryStyle(style),
-        designStyle: style
+        designStyle: this.mapStyleToDesignStyle(style)
       };
       
       return this.processSingleStyle(content, styleSettings);
@@ -233,8 +233,8 @@ export class NoteGPTBeta {
       processFlow: this.enhanceProcessFlow(note.processFlow, formattingRules),
       metadata: {
         ...note.metadata,
-        formattingVersion: '2.0',
-        contextualEnhancements: true,
+        // formattingVersion: '2.0',
+        // contextualEnhancements: true,
         processingTime: Date.now()
       }
     };
@@ -494,6 +494,16 @@ OUTPUT REQUIREMENTS:
       professional: 'qna' as const
     };
     return mapping[style as keyof typeof mapping] || 'academic';
+  }
+
+  private mapStyleToDesignStyle(style: string): AISettings['designStyle'] {
+    const mapping = {
+      academic: 'academic' as const,
+      technical: 'modern' as const,
+      creative: 'colorful' as const,
+      professional: 'minimal' as const
+    };
+    return mapping[style as keyof typeof mapping] || 'modern';
   }
 
   private cleanAndStructureText(content: string): string {

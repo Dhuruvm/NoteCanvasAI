@@ -343,7 +343,7 @@ Create an engaging quiz question that helps the user learn and retain informatio
 Recent conversation:
 ${recentHistory}
 
-Previous questions asked: ${context.previousQuestions.slice(-5).join(", ")}
+Previous questions asked: ${context.previousQuestions ? context.previousQuestions.slice(-5).join(", ") : "None"}
 `;
   }
 
