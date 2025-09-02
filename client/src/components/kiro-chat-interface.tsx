@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { WorkflowStatus, createNoteGPTWorkflow, updateWorkflowStage, advanceWorkflow, type WorkflowStage } from './WorkflowStatus';
 import logoIcon from '@assets/Your_paragraph_text_20250902_153838_0000-removebg-preview_1756807918114.png';
 import { Button } from "@/components/ui/button";
 import { useDropzone } from 'react-dropzone';
@@ -100,6 +101,8 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [workflowStages, setWorkflowStages] = useState<WorkflowStage[]>([]);
+  const [showWorkflow, setShowWorkflow] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -542,8 +545,51 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
     
     setInputValue("");
     setIsTyping(true);
+    
+    // Initialize and show workflow
+    const initialWorkflow = createNoteGPTWorkflow();
+    setWorkflowStages(initialWorkflow);
+    setShowWorkflow(true);
 
     try {
+      // Stage 1: Thinking
+      setWorkflowStages(prev => updateWorkflowStage(prev, 'thinking', { status: 'active' }));
+      await delay(800);
+      
+      // Stage 2: Composing
+      setWorkflowStages(prev => {
+        let updated = updateWorkflowStage(prev, 'thinking', { status: 'complete' });
+        return updateWorkflowStage(updated, 'composing', { status: 'active' });
+      });
+      await delay(600);
+      
+      // Stage 3: Analyzing
+      setWorkflowStages(prev => {
+        let updated = updateWorkflowStage(prev, 'composing', { status: 'complete' });
+        return updateWorkflowStage(updated, 'analyzing', { status: 'active' });
+      });
+      await delay(400);
+      
+      // Stage 4: Summarizing with progress
+      setWorkflowStages(prev => {
+        let updated = updateWorkflowStage(prev, 'analyzing', { status: 'complete' });
+        return updateWorkflowStage(updated, 'summarizing', { status: 'active', progress: 0 });
+      });
+      
+      // Simulate progress
+      for (let progress = 20; progress <= 80; progress += 20) {
+        await delay(300);
+        setWorkflowStages(prev => 
+          updateWorkflowStage(prev, 'summarizing', { progress })
+        );
+      }
+      
+      // Stage 5: Preparing
+      setWorkflowStages(prev => {
+        let updated = updateWorkflowStage(prev, 'summarizing', { status: 'complete', progress: 100 });
+        return updateWorkflowStage(updated, 'preparing', { status: 'active' });
+      });
+      
       // Try to get AI-powered research response
       const response = await fetch('/api/research', {
         method: 'POST',
@@ -556,6 +602,16 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
 
       if (response.ok) {
         const result = await response.json();
+        
+        // Stage 6: Complete
+        setWorkflowStages(prev => {
+          let updated = updateWorkflowStage(prev, 'preparing', { status: 'complete' });
+          return updateWorkflowStage(updated, 'complete', { status: 'complete' });
+        });
+        
+        await delay(500); // Brief pause to show completion
+        setShowWorkflow(false); // Hide workflow after completion
+        
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
@@ -567,7 +623,16 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
         
         setMessages(prev => [...prev, assistantMessage]);
       } else {
-        // Fallback to basic explanation
+        // Handle API error with workflow
+        setWorkflowStages(prev => 
+          updateWorkflowStage(prev, 'preparing', {
+            status: 'error',
+            errorMessage: 'Model timed out — try again or use smaller input.'
+          })
+        );
+        await delay(1500); // Show error state
+        setShowWorkflow(false);
+        
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
@@ -579,6 +644,20 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
       }
     } catch (error) {
       console.error('Research error:', error);
+      
+      // Handle network/connection errors with workflow
+      const activeStage = workflowStages.find(s => s.status === 'active');
+      if (activeStage) {
+        setWorkflowStages(prev => 
+          updateWorkflowStage(prev, activeStage.id, {
+            status: 'error',
+            errorMessage: 'Connection failed — check your internet and try again.'
+          })
+        );
+        await delay(1500); // Show error state
+      }
+      setShowWorkflow(false);
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
@@ -1754,6 +1833,25 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
               </div>
             )}
             
+            {/* Workflow Status Display */}
+            {showWorkflow && (
+              <div className="message assistant mb-4">
+                <div className="message-content">
+                  <div className="assistant-header">
+                    <div className="assistant-avatar">
+                      <img 
+                        src={logoIcon} 
+                        alt="NoteGPT" 
+                        className="w-6 h-6 object-contain"
+                      />
+                    </div>
+                    <span className="assistant-name">NoteGPT</span>
+                  </div>
+                  <WorkflowStatus stages={workflowStages} className="mt-3" data-testid="workflow-status" />
+                </div>
+              </div>
+            )}
+
             {messages.map((message) => (
               <div key={message.id} className={`message ${message.type}`}>
                 <div className="message-content">
