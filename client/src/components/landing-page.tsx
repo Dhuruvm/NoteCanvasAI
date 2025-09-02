@@ -6,279 +6,349 @@ interface LandingPageProps {
 
 export function LandingPage({ onGetStarted }: LandingPageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
-  const letters = 'NOTEGPT'.split('');
-
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Anton:wght@400&family=Bebas+Neue:wght@400&family=Roboto+Condensed:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        .modern-landing-container {
+        .kiro-landing-container {
           min-height: 100vh;
           width: 100%;
-          background: #000000;
+          background: #0a0a0a;
+          position: relative;
+          overflow: hidden;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .kiro-nav {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 100;
+          padding: 1rem 2rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: rgba(10, 10, 10, 0.9);
+          backdrop-filter: blur(10px);
+        }
+
+        .kiro-logo {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1.2rem;
+          font-weight: 600;
+          color: #ffffff;
+        }
+
+        .kiro-logo-icon {
+          width: 24px;
+          height: 24px;
+          background: #ffffff;
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          position: relative;
-          overflow: hidden;
-          animation: modernBackgroundPulse 10s ease-in-out infinite;
+          font-size: 12px;
+          color: #0a0a0a;
         }
 
-        @keyframes modernBackgroundPulse {
-          0%, 100% { background: #000000; }
-          50% { background: #0a0a0a; }
+        .kiro-preview {
+          background: rgba(255, 255, 255, 0.1);
+          padding: 0.25rem 0.75rem;
+          border-radius: 1rem;
+          font-size: 0.8rem;
+          color: #ffffff;
+          margin-left: 0.5rem;
         }
 
-        .modern-content-container {
-          text-align: center;
-          z-index: 10;
+        .kiro-hamburger {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          cursor: pointer;
+          padding: 0.5rem;
+        }
+
+        .kiro-hamburger span {
+          width: 20px;
+          height: 2px;
+          background: #ffffff;
+          border-radius: 1px;
+          transition: all 0.3s ease;
+        }
+
+        .kiro-mobile-menu {
+          position: fixed;
+          top: 0;
+          right: 0;
+          width: 300px;
+          height: 100vh;
+          background: #0a0a0a;
+          transform: translateX(100%);
+          transition: transform 0.3s ease;
+          z-index: 200;
           padding: 2rem;
         }
 
-        .modern-logo-container {
-          margin-bottom: 3rem;
-          position: relative;
+        .kiro-mobile-menu.open {
+          transform: translateX(0);
         }
 
-        .modern-logo-letter {
-          font-family: 'Anton', 'Bebas Neue', 'Roboto Condensed', sans-serif;
-          font-size: clamp(4rem, 12vw, 8rem);
-          font-weight: 400;
+        .kiro-menu-close {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: none;
+          border: none;
           color: #ffffff;
-          display: inline-block;
-          letter-spacing: -0.05em;
-          position: relative;
+          font-size: 1.5rem;
           cursor: pointer;
-          transition: all 0.3s ease;
-          opacity: 0;
-          transform: translateY(50px);
-          
-          /* 3D Text Shadow Effect */
-          text-shadow: 
-            2px 2px 0px #333333,
-            4px 4px 0px #222222,
-            6px 6px 0px #111111,
-            8px 8px 20px rgba(0, 0, 0, 0.8);
         }
 
-        .modern-logo-letter.animate-in {
-          opacity: 1;
-          transform: translateY(0);
-          animation: modernLetterSlideIn 0.8s ease-out forwards;
+        .kiro-menu-items {
+          margin-top: 4rem;
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
         }
 
-        @keyframes modernLetterSlideIn {
-          0% {
-            opacity: 0;
-            transform: translateY(50px) scale(0.8);
-          }
-          70% {
-            transform: translateY(-10px) scale(1.1);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-
-        .modern-logo-letter:hover {
-          transform: scale(1.05) translateY(-5px);
-          color: #99AAB5;
-          text-shadow: 
-            2px 2px 0px #333333,
-            4px 4px 0px #222222,
-            6px 6px 0px #111111,
-            8px 8px 20px rgba(153, 170, 181, 0.5),
-            0 0 30px rgba(153, 170, 181, 0.8),
-            0 0 60px rgba(153, 170, 181, 0.6);
-        }
-
-        .modern-tagline {
-          font-family: 'Roboto Condensed', sans-serif;
-          font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-          font-weight: 700;
-          color: #99AAB5;
-          letter-spacing: 0.3em;
-          margin-bottom: 4rem;
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 0.8s ease;
-        }
-
-        .modern-tagline.animate-in {
-          opacity: 1;
-          transform: translateY(0);
-          animation: modernTaglineSlideIn 1s ease-out 0.8s forwards;
-        }
-
-        @keyframes modernTaglineSlideIn {
-          0% {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .modern-prototype-tag {
-          font-family: 'Roboto Condensed', sans-serif;
-          font-size: clamp(0.8rem, 2vw, 1rem);
-          font-weight: 700;
+        .kiro-menu-item {
           color: #ffffff;
-          letter-spacing: 0.3em;
-          margin-top: 1rem;
+          font-size: 1.1rem;
+          font-weight: 500;
+          text-decoration: none;
+          padding: 0.5rem 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .kiro-menu-item:hover {
+          color: #a855f7;
+        }
+
+        .kiro-main-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          padding: 2rem;
+          text-align: center;
+        }
+
+        .kiro-intro-text {
+          color: #888888;
+          font-size: 0.9rem;
+          margin-bottom: 2rem;
           opacity: 0;
           transform: translateY(20px);
-          transition: all 0.8s ease;
-          text-shadow: 2px 2px 0px #333333, 4px 4px 0px #222222;
+          animation: fadeInUp 1s ease-out 0.2s forwards;
         }
 
-        .modern-prototype-tag.animate-in {
-          opacity: 1;
-          transform: translateY(0);
-          animation: modernPrototypeSlideIn 1s ease-out 1s forwards;
-        }
-
-        @keyframes modernPrototypeSlideIn {
-          0% {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .modern-enter-button {
-          font-family: 'Roboto Condensed', sans-serif;
-          font-size: 1.1rem;
+        .kiro-main-title {
+          font-size: clamp(3rem, 8vw, 5rem);
           font-weight: 700;
           color: #ffffff;
-          background: #4f545c;
-          border: 2px solid #4f545c;
-          padding: 1rem 3rem;
-          letter-spacing: 0.2em;
-          cursor: pointer;
-          transition: all 0.3s ease;
+          line-height: 1.1;
+          margin-bottom: 2rem;
           opacity: 0;
           transform: translateY(30px);
-          position: relative;
-          overflow: hidden;
-          border-radius: 12px;
+          animation: fadeInUp 1s ease-out 0.4s forwards;
         }
 
-        .modern-enter-button.animate-in {
-          opacity: 1;
-          transform: translateY(0);
-          animation: modernButtonSlideIn 1s ease-out 1.2s forwards;
+        .kiro-subtitle {
+          font-size: clamp(1rem, 2.5vw, 1.3rem);
+          color: #888888;
+          line-height: 1.6;
+          max-width: 600px;
+          margin-bottom: 3rem;
+          opacity: 0;
+          transform: translateY(20px);
+          animation: fadeInUp 1s ease-out 0.6s forwards;
         }
 
-        @keyframes modernButtonSlideIn {
-          0% {
+        .kiro-buttons {
+          display: flex;
+          gap: 1rem;
+          flex-wrap: wrap;
+          justify-content: center;
+          opacity: 0;
+          transform: translateY(20px);
+          animation: fadeInUp 1s ease-out 0.8s forwards;
+        }
+
+        .kiro-btn-primary {
+          background: #a855f7;
+          color: #ffffff;
+          border: none;
+          padding: 1rem 2rem;
+          border-radius: 0.5rem;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-decoration: none;
+          display: inline-block;
+        }
+
+        .kiro-btn-primary:hover {
+          background: #9333ea;
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
+        }
+
+        .kiro-btn-secondary {
+          background: transparent;
+          color: #ffffff;
+          border: 1px solid #333333;
+          padding: 1rem 2rem;
+          border-radius: 0.5rem;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-decoration: none;
+          display: inline-block;
+        }
+
+        .kiro-btn-secondary:hover {
+          border-color: #555555;
+          background: rgba(255, 255, 255, 0.05);
+          transform: translateY(-2px);
+        }
+
+        .kiro-demo-section {
+          margin-top: 4rem;
+          padding: 2rem;
+          border: 1px solid #333333;
+          border-radius: 0.75rem;
+          background: rgba(255, 255, 255, 0.02);
+          opacity: 0;
+          transform: translateY(30px);
+          animation: fadeInUp 1s ease-out 1s forwards;
+        }
+
+        .kiro-demo-header {
+          color: #ffffff;
+          font-size: 0.9rem;
+          margin-bottom: 1rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .kiro-demo-indicator {
+          width: 8px;
+          height: 8px;
+          background: #10b981;
+          border-radius: 50%;
+        }
+
+        @keyframes fadeInUp {
+          from {
             opacity: 0;
             transform: translateY(30px);
           }
-          100% {
+          to {
             opacity: 1;
             transform: translateY(0);
           }
         }
 
-        .modern-enter-button:hover {
-          background: #5f646e;
-          border: 2px solid #5f646e;
-          transform: scale(1.05);
-          box-shadow: 
-            0 0 20px rgba(79, 84, 92, 0.5),
-            0 0 40px rgba(79, 84, 92, 0.3);
-        }
-
-        .modern-enter-button:active {
-          transform: scale(0.98);
-        }
-
-        /* Responsive Design */
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-          .modern-content-container {
+          .kiro-nav {
             padding: 1rem;
           }
           
-          .modern-logo-container {
-            margin-bottom: 2rem;
+          .kiro-main-content {
+            padding: 1rem;
           }
           
-          .modern-tagline {
-            margin-bottom: 3rem;
-            font-size: 0.8rem;
-            letter-spacing: 0.2em;
+          .kiro-buttons {
+            flex-direction: column;
+            align-items: center;
           }
           
-          .modern-enter-button {
-            padding: 0.8rem 2rem;
-            font-size: 1rem;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .modern-logo-letter {
-            letter-spacing: -0.02em;
+          .kiro-btn-primary,
+          .kiro-btn-secondary {
+            width: 200px;
           }
           
-          .modern-tagline {
-            letter-spacing: 0.15em;
-            margin-bottom: 2.5rem;
+          .kiro-demo-section {
+            margin-top: 2rem;
+            padding: 1rem;
           }
         }
       `}</style>
       
-      <div className="modern-landing-container">
-        {/* Main Content */}
-        <div className="modern-content-container">
-          {/* Animated Logo with Prototype Tag */}
-          <div className="modern-logo-container">
-            <div className="modern-title-text">
-              {letters.map((letter, index) => (
-                <span 
-                  key={index}
-                  className={`modern-logo-letter ${isLoaded ? 'animate-in' : ''}`}
-                  style={{ 
-                    animationDelay: `${index * 0.1}s`,
-                    textShadow: '4px 4px 0px #444, 8px 8px 0px #333, 12px 12px 0px #222'
-                  }}
-                >
-                  {letter}
-                </span>
-              ))}
-            </div>
-            
-            {/* Prototype Tag */}
-            <div className={`modern-prototype-tag ${isLoaded ? 'animate-in' : ''}`}>
-              PROTOTYPE.DEV BY DHURUV
-            </div>
+      <div className="kiro-landing-container">
+        {/* Navigation */}
+        <nav className="kiro-nav">
+          <div className="kiro-logo">
+            <div className="kiro-logo-icon">N</div>
+            NoteGPT
+            <span className="kiro-preview">PREVIEW</span>
           </div>
           
-          {/* Tagline */}
-          <div className={`modern-tagline ${isLoaded ? 'animate-in' : ''}`}>
-            DIG DEEPER. THINK SMARTER.
+          <div className="kiro-hamburger" onClick={() => setShowMenu(true)}>
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
-          
-          {/* Get Started Button */}
-          <button 
-            className={`modern-enter-button ${isLoaded ? 'animate-in' : ''}`}
-            onClick={onGetStarted}
-          >
-            GET STARTED
-          </button>
+        </nav>
+
+        {/* Mobile Menu */}
+        <div className={`kiro-mobile-menu ${showMenu ? 'open' : ''}`}>
+          <button className="kiro-menu-close" onClick={() => setShowMenu(false)}>×</button>
+          <div className="kiro-menu-items">
+            <a href="#" className="kiro-menu-item">CHANGELOG</a>
+            <a href="#" className="kiro-menu-item">PRICING</a>
+            <a href="#" className="kiro-menu-item">DOCS</a>
+            <a href="#" className="kiro-menu-item">RESOURCES ↓</a>
+          </div>
         </div>
+
+        {/* Main Content */}
+        <main className="kiro-main-content">
+          <div className="kiro-intro-text">
+            Introducing NoteGPT →
+          </div>
+          
+          <h1 className="kiro-main-title">
+            The AI IDE<br />
+            for prototype<br />
+            to production
+          </h1>
+          
+          <p className="kiro-subtitle">
+            NoteGPT helps you do your best work by bringing structure to AI coding with spec-driven development.
+          </p>
+          
+          <div className="kiro-buttons">
+            <button className="kiro-btn-primary" onClick={onGetStarted}>
+              Try Now
+            </button>
+            <button className="kiro-btn-secondary">
+              Watch Demo
+            </button>
+          </div>
+          
+          <div className="kiro-demo-section">
+            <div className="kiro-demo-header">
+              <div className="kiro-demo-indicator"></div>
+              Please create an email opt-in form and have it connected to the Hono backend!
+            </div>
+          </div>
+        </main>
       </div>
     </>
   );
