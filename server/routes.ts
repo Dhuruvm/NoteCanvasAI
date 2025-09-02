@@ -19,6 +19,7 @@ import { metricsCollector } from "./monitoring/metrics";
 import { jobProcessor } from "./queue/job-processor";
 import { enhancedApiRoutes } from "./api/enhanced-routes";
 import * as templateRoutes from "./api/template-routes";
+import { noteGPTIntegration } from "./services/notegpt-integration";
 import { noteGPTBeta } from "./ai/notegpt-beta-core";
 import { multimodalProcessor } from "./ai/multimodal-processor";
 import multer from "multer";
@@ -63,6 +64,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/templates/validate", templateRoutes.validateDocument);
   app.post("/api/templates/convert", templateRoutes.convertToDocument);
   app.get("/api/templates/health", templateRoutes.healthCheck);
+
+  // Integrated NoteGPT Workflow API
+  app.post("/api/notegpt/process", async (req, res) => {
+    try {
+      const { content, settings } = req.body;
+      const files = req.files ? Object.values(req.files).flat().map((f: any) => f.buffer) : [];
+      
+      const result = await noteGPTIntegration.processContent({
+        content,
+        files,
+        settings: settings || {
+          summaryStyle: 'academic',
+          detailLevel: 3,
+          includeExamples: true,
+          useMultipleModels: true,
+          designStyle: 'modern'
+        }
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error('NoteGPT processing error:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Processing failed'
+      });
+    }
+  });
+
+  app.post("/api/notegpt/generate", async (req, res) => {
+    try {
+      const { document, formats } = req.body;
+      const result = await noteGPTIntegration.generateDocument(document, formats || ['html']);
+      res.json(result);
+    } catch (error) {
+      console.error('Document generation error:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Generation failed'
+      });
+    }
+  });
+
+  app.post("/api/notegpt/chat", async (req, res) => {
+    try {
+      const { message, context, noteId } = req.body;
+      const result = await noteGPTIntegration.chatAboutContent(message, context, noteId);
+      res.json(result);
+    } catch (error) {
+      console.error('Chat error:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Chat failed'
+      });
+    }
+  });
+
+  app.get("/api/notegpt/health", async (req, res) => {
+    try {
+      const health = await noteGPTIntegration.healthCheck();
+      res.json(health);
+    } catch (error) {
+      res.status(500).json({
+        status: 'unhealthy',
+        error: error instanceof Error ? error.message : 'Health check failed'
+      });
+    }
+  });
 
   // Metrics endpoint for monitoring
   app.get("/api/metrics", async (req, res) => {
