@@ -1,0 +1,443 @@
+Nice — I’ll design a full architecture + “formula” (algorithms, schemas, prompts, implementation plan, libraries, and code sketches) for a free-model, Node.js-first, template-driven document engine that turns raw AI output into beautiful, production-quality notes / docs / PDFs for your NoteGPT IDE.
+
+I’ll cover:
+
+1. High-level architecture
+
+
+2. Core data model (JSON schema) that your LLM must emit
+
+
+3. The “layout & styling formula” (algorithms that transform content → layout)
+
+
+4. Template engine choices & integration flows (DOCX, HTML, PDF) with libraries and citations
+
+
+5. Prompting / model strategy (free/local models + RAG)
+
+
+6. Implementation roadmap + code sketches (Node.js)
+
+
+7. QA, evaluation, UX & deployment tips
+
+
+
+I include the best free Node libraries and official references where it matters. Quick citations for the main building blocks: Docxtemplater (templating DOCX), PDFMake, Puppeteer (HTML→PDF), and LlamaIndex.TS (RAG). 
+
+
+---
+
+1) High-level architecture (single-diagram summary)
+
+(Flow left → right)
+
+Ingest → Parse & Chunk → Index (vector DB) → RAG + LLM content generator → Content Normalizer (JSON) → Template Engine (HTML / DOCX / PDF) → Layout Engine (style renderer) → Export (PDF/DOCX/PPTX/MD) → User feedback & revision loop
+
+Modules (Node.js):
+
+Ingest: pdf-parse, tesseract.js.
+
+Indexing/RAG: LlamaIndex.TS, local LLM (Ollama / vLLM / llama.cpp) or cloud fallback. 
+
+Embeddings/Vectors: Transformers.js or local embeddings → Qdrant/Weaviate.
+
+Content Normalizer: your JSON schema validator + style heuristics.
+
+Template layer: Docxtemplater (DOCX), HTML templates (EJS / Handlebars / React), PDF renderer (Puppeteer) OR pdfmake for pure Node PDF render. 
+
+
+
+---
+
+2) Canonical content model (JSON) — this is the single source of truth the template engine consumes
+
+Have your LLM output a strict JSON structure. Example schema (shortened):
+
+{
+  "meta": {
+    "title":"string",
+    "author":"string",
+    "date":"YYYY-MM-DD",
+    "source":[{"type":"pdf","uri":"...","page":3}]
+  },
+  "outline": [
+    {"id":"h1", "level":1, "title":"Heading 1", "weight":0.95}
+  ],
+  "blocks": [
+    {
+      "id":"b1",
+      "type":"heading",
+      "level":1,
+      "text":"Summary",
+      "styleHints": {"align":"center"}
+    },
+    {
+      "id":"b2",
+      "type":"paragraph",
+      "text":"AI-generated summary paragraph...",
+      "importance":0.9,
+      "annotations":[
+        {"type":"highlight","span":[10,40],"color":"#FFD54F","note":"Key idea"}
+      ]
+    },
+    {
+      "id":"b3",
+      "type":"list",
+      "ordered":false,
+      "items":["item1","item2"]
+    },
+    {
+      "id":"b4",
+      "type":"image",
+      "mime":"image/png",
+      "data":"<base64>",
+      "caption":"Figure 1"
+    }
+  ],
+  "styles": {
+    "theme":"modern-card",
+    "palette":["#0B2140","#19E7FF","#F6F8FA"],
+    "fontPair":{"heading":"Inter","body":"Roboto"}
+  }
+}
+
+Why this helps:
+
+Templates only read blocks and styles.
+
+Deterministic rendering: templates can reliably map block types → layout components.
+
+Easy to add annotations, footnotes, citations.
+
+
+
+---
+
+3) The “Layout & Styling Formula” (algorithms)
+
+These are deterministic rules your engine runs to convert blocks → beautiful layout. Think of them as the math/heuristics behind the look.
+
+3.1 Block importance & density
+
+Each block.importance ∈ [0,1]. Compute layout weight:
+
+
+layoutWeight = importance * (1 + 0.5 * levelPenalty)
+levelPenalty = 1 / (1 + 0.5 * level)   // headings get more weight
+
+If layoutWeight > 0.8 → render as card with background and margin; else inline.
+
+
+3.2 Heading size formula (typography scale)
+
+Use modular scale based on base font size B (e.g., 14px) and scale factor r = 1.25:
+
+headingFontSize(level) = B * r^(max(0, 4 - level))
+
+H1 ~ Br^4, H2 ~ Br^3, etc.
+
+3.3 Line length & measure
+
+Target 55–75 characters per line. Given page width W and font size S, estimate characters-per-line C:
+
+C ≈ (W*0.5) / (0.6 * S)   // empiric constants for average glyph width
+
+If C < 55, reduce font size or switch to two-column layout.
+
+3.4 Color & contrast selection (accessibility)
+
+Input styles.palette → compute contrast ratios for body vs background; if contrast < 4.5:1 adjust with algorithm (shift color luminosity).
+
+For highlights, use complementary but muted colors and 60% opacity.
+
+
+3.5 Cardify / Chunk-to-card mapping
+
+If block has images or importance>0.7 or type=="quote", map to a card component:
+
+Card layout: thumbnail-left + content-right or full-width image above; types derive from aspect ratio.
+
+
+
+3.6 Automatic TOC & Citation rules
+
+TOC includes headings whose weight > 0.5.
+
+Inline citations: map block payload source → footnote numbering.
+
+
+3.7 Pagination rules
+
+Avoid orphan headings: if a heading would be last line on page, push next block to next page (if using Puppeteer or pdf engine, control with CSS break-inside: avoid).
+
+
+
+---
+
+4) Template engine choices & concrete flows (Node.js)
+
+You want multiple output targets. I give 3 robust flows and libraries:
+
+A — HTML → Puppeteer → PDF (best visual fidelity & design control)
+
+Template: React server component or Handlebars/EJS that takes JSON blocks and styles; produce modern HTML using Tailwind or CSS variables.
+
+Render: Puppeteer headless Chromium to print-to-PDF. Use CSS for page breaks, grid, card components, fonts. Best when you need exact look (Notion-like).
+
+Citation: Puppeteer HTML→PDF guides & pagination best practices. 
+
+
+Pros: pixel-perfect, flexible, full CSS.
+Cons: needs Chromium process, heavier.
+
+B — DOCX templating (Docxtemplater) → convert to PDF via LibreOffice / headless or third-party convert
+
+Template: .docx with placeholders and styles (corporate templates). Fill via docxtemplater with JSON. Then convert docx→pdf with libreoffice --headless --convert-to pdf or other converters. 
+
+
+Pros: office-standard, editable by users, good for reports.
+Cons: DOCX is not WYSIWYG for advanced web visual designs; conversion step required.
+
+C — Programmatic PDF (pdfmake) from JSON
+
+Build a Document Definition Object (ddo) from your blocks and styles and render with pdfmake. Good for purely server-side generation with predictable layouts. 
+
+
+Pros: lightweight, Node-only.
+Cons: less design flexibility vs HTML/CSS.
+
+
+---
+
+5) Prompting, models & RAG strategy (free/local-first)
+
+Model choices (Node-friendly & free)
+
+Local LLMs (via Ollama, vLLM, llama.cpp): use Llama 2 or other open checkpoints for content generation. Use LlamaIndex.TS to orchestrate RAG. 
+
+Embeddings: Transformers.js or local embedding models.
+
+Fallback cloud: OpenRouter / free-tier providers for heavy operations.
+
+
+RAG pipeline
+
+1. Ingest docs → chunk + embed → store to vector DB.
+
+
+2. On a user request, retrieve top-k passages via LlamaIndex.TS. 
+
+
+3. Pass retrieved context + instruction to LLM to generate structured JSON matching the schema above.
+
+
+
+Required LLM output format — strict prompt template
+
+Ask the model to return only valid JSON following the schema. Example prompt stub:
+
+You are NoteGPT. Input: (context chunks). Task: produce JSON with fields: meta, outline, blocks, styles.
+Return only JSON, valid and parseable.
+
+Example:
+{
+ "meta": {...},
+ "blocks":[{"id":"", "type":"paragraph", "text":"..."}],
+ "styles": {"theme":"modern-card","palette":["#..."]}
+}
+
+Always validate JSON on the server with a schema validator (Ajv) and fallback to a correction prompt if invalid.
+
+
+---
+
+6) Implementation roadmap + Node.js code sketches
+
+6.1 Ingest & chunk (Node)
+
+Libraries: pdf-parse, tesseract.js, jsdom for HTML.
+
+import pdf from 'pdf-parse';
+const buffer = fs.readFileSync('file.pdf');
+const data = await pdf(buffer);
+const text = data.text;
+// chunk into ~800 token chunks using tokenizer (or simple sentence splitter)
+
+6.2 Index (LlamaIndex.TS → Qdrant)
+
+Use LlamaIndex.TS to create indices and query. See LlamaIndex.TS docs for RAG usage. 
+
+6.3 Generate structured JSON from LLM
+
+Pseudo:
+
+const prompt = buildPrompt(retrieveResults, userQuery, schemaExample);
+const jsonText = await llm.chat(prompt); // via Ollama/vLLM/OpenAI-compatible
+const obj = JSON.parse(jsonText);
+validateWithAjv(obj);
+
+6.4 Render HTML via template + Puppeteer to PDF
+
+Template engine e.g., React/Next.js pre-render component NoteDocument.jsx that consumes JSON.
+
+Server-side render to static HTML (SSR) → Puppeteer convert.
+
+
+Minimal Puppeteer snippet:
+
+import puppeteer from 'puppeteer';
+const html = renderNoteHTML(noteJson); // your template renderer
+const browser = await puppeteer.launch({args:['--no-sandbox']});
+const page = await browser.newPage();
+await page.setContent(html, {waitUntil:'networkidle0'});
+await page.pdf({path:'note.pdf', format:'A4', printBackground:true});
+await browser.close();
+
+Follow Puppeteer tips to include CSS & fonts and manage pagination. 
+
+6.5 DOCX flow (Docxtemplater)
+
+Create a .docx template with placeholders for {{title}}, {{#each bullets}} etc.
+
+Fill with Docxtemplater then convert docx→pdf with LibreOffice headless or an external converter. 
+
+
+
+---
+
+7) Prompt engineering examples (structured JSON output)
+
+System prompt (concise):
+
+You are NoteGPT: a JSON-outputting assistant. Use the following schema exactly. Return only JSON. Provide 'blocks' with types: heading, paragraph, list, quote, image, table. Attach styleHints for any block.
+
+User prompt (example):
+
+Context: [RETRIEVED PASSAGES]
+Task: Create a "Study Notes" document with title, 3-level outline, summary, bullets, 2 annotated highlights, and references. Output must be valid JSON that matches the schema example. No extra commentary.
+
+
+---
+
+8) QA, metrics & iterative refinement
+
+Auto-checks:
+
+JSON schema validation (Ajv).
+
+Readability: Flesch Reading Ease per paragraph (compute score, prefer 50–70 for general audience).
+
+Visual check: ensure no page overflows (simulate rendering in Puppeteer headless and check page count heuristics).
+
+
+A/B testing:
+
+Store two style presets (e.g., Classic vs Modern). Generate both and track user preference metrics (download, share, annotate).
+
+
+
+---
+
+9) UX & developer features (for your IDE)
+
+Live preview: Render HTML preview from JSON in the IDE (fast client-side renderer) before final PDF render.
+
+Style picker: Allow user to choose theme from styles.theme (modern-card, classic-report, compact-notes).
+
+Editable DOCX export: Allow a DOCX template download so users can manually tweak final docs.
+
+One-click rephrase: Button that sends a revised instruction to the LLM (e.g., “Make this shorter / more formal / more visual”) and re-renders.
+
+
+
+---
+
+10) Deployment & cost notes
+
+Local-first & free: run LLMs locally (Ollama, vLLM) + Node web server + Qdrant local → effectively unlimited (bounded by hardware). 
+
+Puppeteer and LibreOffice are free but require server resources. For scale: run Puppeteer in a pool of workers (Docker), reuse browser instances, and queue jobs.
+
+
+
+---
+
+11) Starter checklist (what to build first — 8 steps)
+
+1. Ingest pipeline: pdf-parse + chunker.
+
+
+2. Index: local Qdrant + LlamaIndex.TS wiring for retrieval. 
+
+
+3. LLM generator: small local model via Ollama or llama.cpp to produce JSON.
+
+
+4. JSON validator + style heuristic module.
+
+
+5. HTML template + client preview (React or EJS).
+
+
+6. Puppeteer PDF renderer. 
+
+
+7. DOCX template with Docxtemplater for editable exports. 
+
+
+8. Feedback loop + small UI for style selection and re-generation.
+
+
+
+
+---
+
+12) Example JSON → HTML mapping (mini-snippet)
+
+<div class="doc" data-theme="{{styles.theme}}">
+  <header>
+    <h1>{{meta.title}}</h1>
+    <p class="meta">{{meta.author}} — {{meta.date}}</p>
+  </header>
+
+  {{#each blocks}}
+    {{#if (eq type "heading")}}
+      <h{{level}} class="heading">{{text}}</h{{level}}>
+    {{/if}}
+    {{#if (eq type "paragraph")}}
+      <p class="para">{{text}}</p>
+    {{/if}}
+    {{#if (eq type "list")}}
+      <ul>{{#each items}}<li>{{this}}</li>{{/each}}</ul>
+    {{/if}}
+  {{/each}}
+</div>
+
+Render with Handlebars/React to get dynamic preview and final HTML.
+
+
+---
+
+Closing & next steps
+
+I gave you:
+
+A full architecture, JSON schema, deterministic layout rules, library choices with citations, prompt examples, and implementation roadmap.
+
+If you want, I can immediately do one of the following (pick one) and I’ll produce runnable Node code right here:
+
+1. A starter repo scaffold (Next.js + API route to call a local LLM + LlamaIndex.TS + Puppeteer HTML→PDF sample).
+
+
+2. A JSON schema + Ajv validator + strict prompt template and a test prompt you can paste into your LLM.
+
+
+3. A HTML/CSS template (modern-card theme) + Puppeteer script that converts a sample JSON into a beautiful PDF (I’ll provide the HTML/CSS + Node script).
+
+
+
+
+Which one should I build for you now?
+

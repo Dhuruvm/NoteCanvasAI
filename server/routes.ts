@@ -18,6 +18,7 @@ import {
 import { metricsCollector } from "./monitoring/metrics";
 import { jobProcessor } from "./queue/job-processor";
 import { enhancedApiRoutes } from "./api/enhanced-routes";
+import * as templateRoutes from "./api/template-routes";
 import { noteGPTBeta } from "./ai/notegpt-beta-core";
 import { multimodalProcessor } from "./ai/multimodal-processor";
 import multer from "multer";
@@ -53,6 +54,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount enhanced API routes for NoteGPT Beta
   app.use("/api/v2", enhancedApiRoutes);
+
+  // Template Engine API Routes
+  app.post("/api/templates/preview", templateRoutes.generatePreview);
+  app.post("/api/templates/pdf", templateRoutes.generatePDF);
+  app.post("/api/templates/multi-format", templateRoutes.generateMultiFormat);
+  app.get("/api/templates/themes", templateRoutes.getThemes);
+  app.post("/api/templates/validate", templateRoutes.validateDocument);
+  app.post("/api/templates/convert", templateRoutes.convertToDocument);
+  app.get("/api/templates/health", templateRoutes.healthCheck);
 
   // Metrics endpoint for monitoring
   app.get("/api/metrics", async (req, res) => {
