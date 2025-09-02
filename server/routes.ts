@@ -25,6 +25,27 @@ import { multimodalProcessor } from "./ai/multimodal-processor";
 import multer from "multer";
 import { z } from "zod";
 
+// Fallback research response generator
+function generateFallbackResearchResponse(question: string): string {
+  const lowerQuestion = question.toLowerCase();
+  
+  // Detect topic areas and provide structured responses
+  if (lowerQuestion.includes('economy') || lowerQuestion.includes('economic')) {
+    return `## Economics Overview\n\n**Economics** is the social science that studies how individuals, businesses, governments, and societies make choices about allocating limited resources to satisfy unlimited wants and needs.\n\n### Key Concepts:\n• **Microeconomics** - Studies individual and business decision-making\n• **Macroeconomics** - Studies entire economies and large-scale economic factors\n• **Supply & Demand** - The fundamental forces that determine prices\n• **Market Structure** - How different types of markets operate\n\n### Core Principles:\n1. **Scarcity** - Resources are limited relative to wants\n2. **Opportunity Cost** - The value of the next best alternative forgone\n3. **Trade-offs** - Choosing one option means giving up another\n\n*To get more detailed research and current economic data, API keys need to be configured for full AI analysis.*`;
+  }
+  
+  if (lowerQuestion.includes('science') || lowerQuestion.includes('physics') || lowerQuestion.includes('chemistry') || lowerQuestion.includes('biology')) {
+    return `## Scientific Research on: ${question}\n\n**${question}** is an important topic in scientific study. Here's what I can share:\n\n### Research Approach:\n• **Methodology** - Scientific methods used to study this topic\n• **Current Understanding** - What we know based on research\n• **Applications** - How this knowledge is applied\n• **Future Directions** - Areas for continued research\n\n### Key Points:\n1. Scientific knowledge builds on evidence and experimentation\n2. Peer review ensures quality and accuracy\n3. New discoveries constantly expand our understanding\n\n*For detailed scientific literature review and current research papers, API keys are needed for full AI research capabilities.*`;
+  }
+  
+  if (lowerQuestion.includes('history') || lowerQuestion.includes('historical')) {
+    return `## Historical Analysis: ${question}\n\n**Historical Context** provides important insights into ${question}.\n\n### Research Framework:\n• **Primary Sources** - Direct historical evidence\n• **Secondary Analysis** - Scholarly interpretation\n• **Timeline** - Key events and developments\n• **Impact** - Long-term consequences and influence\n\n### Key Areas:\n1. **Causation** - What led to these events\n2. **Context** - The broader historical setting\n3. **Consequences** - Short and long-term effects\n4. **Lessons** - What we can learn today\n\n*For comprehensive historical research with access to scholarly databases and detailed analysis, full AI capabilities require API configuration.*`;
+  }
+  
+  // General response for other topics
+  return `## Research Topic: ${question}\n\n**Thank you for your research question!** I'd love to provide detailed analysis on "${question}".\n\n### What I can help with:\n• **Topic Analysis** - Breaking down complex subjects\n• **Research Structure** - Organizing information systematically\n• **Key Concepts** - Identifying important ideas\n• **Academic Context** - Understanding scholarly perspectives\n\n### For comprehensive research:\n1. **Upload documents** - I can analyze any PDFs or text files on this topic\n2. **Specific questions** - Ask about particular aspects you want to explore\n3. **Academic level** - Tell me if you need basic, intermediate, or advanced analysis\n\n*Full AI research capabilities with real-time data access, academic databases, and detailed analysis require API keys to be configured.*\n\n**Try uploading a document** about this topic and I can provide detailed analysis and discussion right away!`;
+}
+
 // Configure multer for file uploads
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -129,6 +150,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         status: 'unhealthy',
         error: error instanceof Error ? error.message : 'Health check failed'
+      });
+    }
+  });
+
+  // Research API endpoint for standalone questions
+  app.post("/api/research", async (req, res) => {
+    try {
+      const { question, userId } = req.body;
+      
+      if (!question || typeof question !== 'string') {
+        return res.status(400).json({ 
+          message: "Question is required and must be a string" 
+        });
+      }
+
+      // Use AI orchestrator for research if available
+      const context = {
+        userLevel: 'intermediate',
+        currentTopic: question.slice(0, 50),
+        noteContent: '', // No specific note content for research
+        userProgress: {
+          correctAnswers: 0,
+          totalQuestions: 0,
+          currentStreak: 0,
+          level: 1
+        }
+      } as ChatContext;
+
+      let response = '';
+      let metadata = { confidence: 0.8, suggestedFollowUp: '' };
+
+      try {
+        // Try to use AI services if available
+        const aiResponse = await chatAIService.generateResponse(question, context, []);
+        response = aiResponse.response;
+        metadata = { ...metadata, ...aiResponse.metadata };
+      } catch (aiError) {
+        console.warn('AI service unavailable, providing fallback response:', aiError);
+        // Provide intelligent fallback response
+        response = generateFallbackResearchResponse(question);
+      }
+
+      res.json({
+        response,
+        metadata,
+        messageType: 'research'
+      });
+
+    } catch (error) {
+      console.error('Research API error:', error);
+      res.status(500).json({ 
+        message: "Research request failed",
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

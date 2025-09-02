@@ -118,7 +118,7 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(initialSession || null);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [userId] = useState(() => `user_${Date.now()}`);
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [autopilot, setAutopilot] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -180,14 +180,7 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
       }
     } catch (error) {
       console.error('Failed to create chat session:', error);
-      // Initialize with welcome message if API fails
-      setMessages([{
-        id: '1',
-        type: 'assistant',
-        content: "👋 Welcome to NoteGPT! I'm your AI study companion. I can help you understand your content, answer questions, and quiz you to reinforce learning.\n\n**How to get started:**\n• Upload a document or paste text to begin\n• Ask questions about any topic\n• Request a quiz to test your knowledge\n• Get explanations for complex concepts\n\nWhat would you like to explore today?",
-        timestamp: new Date(),
-        messageType: 'text'
-      }]);
+      // Don't show welcome message - start with empty chat
     }
   };
 
@@ -365,42 +358,12 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
       setShowWelcome(false);
     }
 
-    // Auto-create session if needed for regular chat
-    if (!currentSession && inputValue.trim() && uploadedFiles.length === 0) {
-      await initializeChatSession();
-    }
-
     if (uploadedFiles.length > 0 || inputValue.length > 50) {
       // Process with AI if files or substantial text
       await processContent();
-    } else if (currentSession) {
-      // Send regular chat message
-      await sendChatMessage(inputValue);
-    } else {
-      // Fallback for when no session can be created
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        type: 'user',
-        content: inputValue,
-        timestamp: new Date(),
-        messageType: 'text'
-      };
-      
-      setMessages(prev => [...prev, userMessage]);
-      setInputValue("");
-      setIsTyping(true);
-      
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: 'assistant',
-          content: `Hello! I'm NoteGPT, your AI research and documentation assistant. I can help you:\n\n🔍 **Research topics** - Ask me about any subject and I'll provide detailed analysis\n📝 **Create structured notes** - Upload documents and I'll transform them into organized content\n💡 **Explain complex concepts** - Get clear explanations on difficult topics\n\nTo get started with full functionality, you can upload a document or ask me to research a specific topic. What would you like to explore today?`,
-          timestamp: new Date(),
-          messageType: 'text'
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-        setIsTyping(false);
-      }, 1000);
+    } else if (inputValue.trim()) {
+      // For any text input, try to research/answer it
+      await handleResearchQuestion(inputValue);
     }
   };
 
@@ -456,6 +419,35 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+  const generateIntelligentTitle = (userMessage: string): string => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // Extract key topics and generate meaningful titles
+    if (lowerMessage.includes('economy') || lowerMessage.includes('economic')) {
+      return 'Economics Discussion';
+    }
+    if (lowerMessage.includes('science') || lowerMessage.includes('physics') || lowerMessage.includes('chemistry') || lowerMessage.includes('biology')) {
+      return 'Scientific Research';
+    }
+    if (lowerMessage.includes('history') || lowerMessage.includes('historical')) {
+      return 'Historical Analysis';
+    }
+    if (lowerMessage.includes('math') || lowerMessage.includes('calculate') || lowerMessage.includes('equation')) {
+      return 'Mathematics Help';
+    }
+    if (lowerMessage.includes('code') || lowerMessage.includes('program') || lowerMessage.includes('software')) {
+      return 'Programming Support';
+    }
+    if (lowerMessage.includes('write') || lowerMessage.includes('essay') || lowerMessage.includes('report')) {
+      return 'Writing Assistance';
+    }
+    
+    // Extract first few words as title if no specific topic detected
+    const words = userMessage.split(' ').slice(0, 3);
+    const title = words.join(' ');
+    return title.length > 30 ? title.substring(0, 27) + '...' : title;
+  };
+
   const sendChatMessage = async (message: string) => {
     if (!currentSession) return;
 
@@ -505,6 +497,94 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
         content: "I'm having trouble processing your message right now. This might be because API keys aren't configured or there's a connectivity issue. Please try again, or upload content to start a new session.",
         timestamp: new Date(),
         messageType: 'text'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const startNewChat = () => {
+    // Clear current conversation
+    setMessages([]);
+    setCurrentSession(null);
+    setInputValue("");
+    
+    // Generate intelligent title based on conversation context
+    // This will be set when user starts asking questions
+    const newChatTitle = "New Chat";
+    
+    toast({
+      title: "New chat started",
+      description: "Ready to help with research, analysis, and questions!"
+    });
+  };
+
+
+
+  const handleResearchQuestion = async (question: string) => {
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: question,
+      timestamp: new Date(),
+      messageType: 'text'
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    
+    // Generate intelligent title for the conversation if it's the first message
+    if (messages.length === 0) {
+      const intelligentTitle = generateIntelligentTitle(question);
+      // Update any chat session with the intelligent title if needed
+      // For now, we'll just use it in the UI
+    }
+    
+    setInputValue("");
+    setIsTyping(true);
+
+    try {
+      // Try to get AI-powered research response
+      const response = await fetch('/api/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: question,
+          userId
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: result.response,
+          timestamp: new Date(),
+          messageType: 'research',
+          metadata: result.metadata
+        };
+        
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        // Fallback to basic explanation
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: `I'd love to help you research "${question}"! \n\nTo provide you with detailed research and analysis, I need API keys to be configured. In the meantime, here's what I can tell you:\n\n• I can help you research any topic in depth\n• I can analyze documents and create structured notes\n• I can explain complex concepts step by step\n\nTo get full functionality, please ask the administrator to configure the AI API keys, or you can upload a document for me to analyze and discuss with you!`,
+          timestamp: new Date(),
+          messageType: 'research'
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      }
+    } catch (error) {
+      console.error('Research error:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `I'd love to research "${question}" for you! However, I need API keys to be configured to provide detailed analysis. \n\n🔍 **What I can research:**\n• Any academic or professional topic\n• Complex concepts with detailed explanations\n• Current trends and historical context\n\n📝 **Alternative:** Upload a document about this topic and I can analyze it and discuss it with you right away!`,
+        timestamp: new Date(),
+        messageType: 'research'
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -1555,7 +1635,7 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
           </div>
 
           <nav className="sidebar-nav">
-            <div className="nav-item active" data-testid="nav-new-chat" onClick={() => noteId && initializeChatSession()}>
+            <div className="nav-item active" data-testid="nav-new-chat" onClick={startNewChat}>
               <Edit className="h-5 w-5" />
               <span>New chat</span>
             </div>
@@ -1605,7 +1685,10 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <h1 className="chat-title">NoteGPT</h1>
+              <h1 className="chat-title">
+                {messages.length > 0 && messages[0]?.content ? 
+                  generateIntelligentTitle(messages[0].content) : 'NoteGPT'}
+              </h1>
             </div>
             
             <div className="header-actions">
