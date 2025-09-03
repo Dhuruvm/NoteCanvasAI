@@ -2,6 +2,8 @@ import { GoogleGenAI } from "@google/genai";
 import { HfInference } from '@huggingface/inference';
 import type { ProcessedNote, AISettings } from "@shared/schema";
 import { cacheManager, CacheKeys } from "../cache/redis-client";
+import { ragService } from "../services/rag-service";
+import { semanticCache } from "../services/semantic-cache";
 import crypto from 'crypto';
 
 // AI Model Types
@@ -148,20 +150,45 @@ export class UnifiedAIOrchestrator {
     return candidates[0] || null;
   }
 
-  // Multi-Model Processing Pipeline
+  // Multi-Model Processing Pipeline with RAG and Semantic Caching
   async processWithMultipleModels(
     content: string,
     settings: AISettings,
     context: ProcessingContext
   ): Promise<AIResponse<ProcessedNote>> {
     const contentHash = this.generateContentHash(content + JSON.stringify(settings));
-    const cacheKey = CacheKeys.aiResponse(contentHash, 'multi-model');
+    const query = `${settings.summaryStyle}_${settings.detailLevel}_${content.substring(0, 200)}`;
 
-    // Check cache first
+    // Check semantic cache first
+    try {
+      const semanticCacheResult = await semanticCache.getSemanticCache(query, {
+        similarityThreshold: 0.85,
+        maxResults: 1,
+        includeExpired: false,
+        tagFilter: [settings.summaryStyle, 'processing']
+      });
+
+      if (semanticCacheResult) {
+        console.log('✅ Retrieved from semantic cache');
+        return {
+          data: semanticCacheResult.response,
+          model: 'semantic-cached',
+          tokens: 0,
+          processingTime: 0,
+          cached: true,
+          confidence: semanticCacheResult.metadata.confidence
+        };
+      }
+    } catch (error) {
+      console.warn('Semantic cache retrieval failed:', error);
+    }
+
+    // Check traditional cache
+    const cacheKey = CacheKeys.aiResponse(contentHash, 'multi-model');
     try {
       const cached = await cacheManager.get<ProcessedNote>(cacheKey);
       if (cached) {
-        console.log('✅ Retrieved from cache:', cacheKey);
+        console.log('✅ Retrieved from traditional cache:', cacheKey);
         return {
           data: cached,
           model: 'cached',
@@ -194,11 +221,27 @@ export class UnifiedAIOrchestrator {
       // Step 3: Merge results intelligently
       const finalResult = this.mergeAIResults(primaryResult, enhancements);
 
-      // Cache the result
+      // Cache the result in both traditional and semantic caches
       try {
         await cacheManager.set(cacheKey, finalResult, 7200); // 2 hours
       } catch (error) {
         console.warn('Cache storage failed:', error);
+      }
+
+      // Store in semantic cache
+      try {
+        await semanticCache.setSemanticCache(
+          query,
+          finalResult,
+          {
+            model: primaryModel.id,
+            confidence: this.calculateConfidence(finalResult),
+            tags: [settings.summaryStyle, 'processing', primaryModel.provider]
+          },
+          7200
+        );
+      } catch (error) {
+        console.warn('Semantic cache storage failed:', error);
       }
 
       const processingTime = Date.now() - startTime;
@@ -576,6 +619,130 @@ Detail: ${settings.detailLevel}/5`;
       model: model.id,
       data: [] // Placeholder for questions
     };
+  }
+
+  /**
+   * Process content with RAG enhancement
+   */
+  async processWithRAG(
+    content: string,
+    settings: AISettings,
+    context: ProcessingContext,
+    noteId?: number
+  ): Promise<AIResponse<ProcessedNote>> {
+    console.log('🤖 Processing with RAG enhancement...');
+
+    try {
+      if (noteId) {
+        // Use existing RAG context for this note
+        const ragResult = await ragService.processContentWithRAG(content, settings, {
+          useRAG: true,
+          maxContextTokens: 2000,
+          similarityThreshold: 0.3,
+          rerank: true,
+          includeOriginalContent: false,
+          enhanceWithWebResearch: false
+        });
+
+        return {
+          data: ragResult,
+          model: 'rag-enhanced',
+          tokens: this.estimateTokens(content),
+          processingTime: 0,
+          cached: false,
+          confidence: 0.9
+        };
+      } else {
+        // Create temporary RAG context
+        return await ragService.processContentWithRAG(content, settings, {
+          useRAG: true,
+          maxContextTokens: 2000,
+          similarityThreshold: 0.3,
+          rerank: true,
+          includeOriginalContent: false,
+          enhanceWithWebResearch: false
+        }).then(result => ({
+          data: result,
+          model: 'rag-enhanced',
+          tokens: this.estimateTokens(content),
+          processingTime: 0,
+          cached: false,
+          confidence: 0.9
+        }));
+      }
+    } catch (error) {
+      console.error('RAG processing failed, falling back to standard processing:', error);
+      return await this.processWithMultipleModels(content, settings, context);
+    }
+  }
+
+  /**
+   * Answer questions using RAG
+   */
+  async answerQuestionWithRAG(
+    noteId: number,
+    question: string,
+    context: ProcessingContext
+  ): Promise<{
+    answer: string;
+    sources: any[];
+    confidence: number;
+    processingTime: number;
+  }> {
+    try {
+      const result = await ragService.answerQuestion(noteId, question, {
+        useRAG: true,
+        maxContextTokens: 1500,
+        similarityThreshold: 0.4,
+        rerank: true,
+        includeOriginalContent: true,
+        enhanceWithWebResearch: false
+      });
+
+      return {
+        answer: result.answer,
+        sources: result.sources,
+        confidence: result.confidence,
+        processingTime: result.processingTime
+      };
+    } catch (error) {
+      console.error('RAG question answering failed:', error);
+      
+      return {
+        answer: "I'm sorry, I encountered an error while processing your question. Please try rephrasing it.",
+        sources: [],
+        confidence: 0.1,
+        processingTime: 0
+      };
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  async getCacheStats(): Promise<{
+    traditional: any;
+    semantic: any;
+  }> {
+    try {
+      const [semanticStats] = await Promise.all([
+        semanticCache.getCacheStats()
+      ]);
+
+      return {
+        traditional: {
+          // Traditional cache stats would go here
+          status: 'active'
+        },
+        semantic: semanticStats
+      };
+    } catch (error) {
+      console.error('Failed to get cache stats:', error);
+      return {
+        traditional: { status: 'error' },
+        semantic: { status: 'error' }
+      };
+    }
   }
 }
 

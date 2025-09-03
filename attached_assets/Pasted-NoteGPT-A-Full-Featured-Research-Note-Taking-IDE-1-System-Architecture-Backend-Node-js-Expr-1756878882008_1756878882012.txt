@@ -1,0 +1,73 @@
+NoteGPT: A Full-Featured Research & Note-Taking IDE
+
+1. System Architecture
+
+Backend (Node.js + Express): The core server is built in Node.js (e.g. using Express.js) with REST or GraphQL APIs. Express is a minimalist web framework simplifying server code (e.g. npm install express; const app = express(); app.listen(port)). The backend handles file I/O, AI calls, search indexing, and export workflows.
+
+Frontend (React): A React-based single-page application provides the UI. It communicates with the Node backend via HTTP/WS. The React app manages user interaction (uploading PDFs/DOCs, displaying notes, search UI, etc.) and renders rich text output (HTML/CSS). State management (e.g. Redux or Context API) can coordinate document state, search results, and AI query status.
+
+AI Integration (Gemini + Hugging Face): The backend calls Gemini via Google’s GenAI API (using the official Node.js client generativeai). Google provides a JavaScript client library for Gemini (e.g. google-generativeai.configure({api_key})). For Hugging Face, we use JS libraries: the @huggingface/inference client to call HF hosted models, and/or run models locally via Transformers.js (which “can run inference on the server” in Node.js). We may also use @huggingface/hub for model/data management and @huggingface/jinja (JS Jinja templating) for generating templated content.
+
+Document I/O: For PDF/DOCX input, use parsers like officeparser (Node.js) which “parses text out of any office file” including DOCX and PDF.  For DOCX → HTML/text, use mammoth (converts .docx to semantic HTML). Markdown can be parsed with libraries such as markdown-it or remark. For OCR on images or scanned PDFs, use tesseract.js to extract text.
+
+Search (Local & Semantic):
+
+Local full-text search: Use a client-side search index like Lunr.js. Lunr is a lightweight full-text search library that “indexes JSON documents and provides a simple search interface” in the browser. Documents’ text can be indexed on the front-end so users can do fast local search (no network calls).
+
+Semantic search/RAG: Compute embeddings of document chunks (via an embedding model from Hugging Face or Gemini). Store vectors in a vector database (e.g. Qdrant or Weaviate) for k-NN retrieval. For example, Qdrant “offers a JavaScript SDK, integrating seamlessly with Node.js projects” to support semantic search. This allows NoteGPT to retrieve relevant paragraphs when answering questions or finding references.
+
+
+Template Engine (DOCX/HTML/PDF): Support multi-format output via templating. For DOCX output, use a library like docx-templates which lets you define a .docx template and inject JSON data (e.g. note sections) into it. For HTML output, use a templating system (e.g. EJS, Handlebars, or a React SSR template). PDF export can be done either by styling HTML and printing to PDF via headless browser, or by converting DOCX to PDF.
+
+Export Workflows: After rendering notes:
+
+Headless Browser: Use Puppeteer (or Playwright) to open the generated HTML/CSS and print to PDF. Puppeteer is a Node library controlling Chrome and “can generate … PDFs of pages”.
+
+LibreOffice CLI: For DOCX→PDF (and other office formats), use libreoffice-convert (NPM) which wraps the LibreOffice headless CLI. This “fast node.js module” can convert DOCX to PDF or other formats with a simple API. Alternatively, call LibreOffice directly (e.g. libreoffice --headless --convert-to pdf).
+
+Other Formats: Could also export notes as Markdown or plain text by serializing the document JSON.
+
+
+
+2. Prompt & Generation Pipeline
+
+Gemini Prompt Design: Craft clear, instruction-based prompts for Gemini. For example, for summarization use prompts like “Summarize the following text, highlighting key points: …”. For outlining or structured notes, instruct Gemini to output JSON or bullet points (e.g. “Create an outline in JSON with titles and bullet lists for this document.”). Use Gemini’s function-calling/controlled generation features (it supports parameters to control format). For Q&A, feed Gemini the relevant text chunk(s) as context and ask a specific question. Gemini’s massive 1M-token context window means it can often handle large inputs without manual chunking.
+
+Structured Output Schemas: Define JSON schemas to represent note documents. For instance, a schema might be { sections: [{ title: string, content: [ {type: "paragraph"|"bullet"|"quote"|"image", text?: string, items?: string[]} ] }] }. Prompt Gemini to follow this schema. A schema ensures the backend can easily render the output into HTML/DOCX. (NVIDIA and LangChain docs discuss LLM JSON output via schemas, and similar techniques can be used here.)
+
+Hugging Face Tasks: Use HF models to augment Gemini: e.g. a “style adaptation” pipeline (like a fine-tuned T5) can rephrase text into a formal tone or specific template style. For multilingual correction or translation, call HF’s translation models (e.g. MarianMT) to translate or polish non-English text. For layout embedding or PDF parsing, use document vision models: e.g. Hugging Face’s LayoutLM can analyze document structure. HF’s inference API allows calling these pipelines from Node (using @huggingface/inference) or using Transformers.js for local inference.
+
+Chunking & Long-Context: For very long inputs, split content into overlapping chunks (~1k tokens each, overlapping by e.g. 50-100 tokens). Even though Gemini supports huge context, smaller HF models or the embedding steps may need chunking. Ensure chunks align with semantic breaks (paragraphs or sections). Store each chunk’s embedding/vector for retrieval. During generation, include relevant chunks (via RAG) or sequentially process chunks and stitch results. Good chunking ensures each piece “contains meaningful information” without losing context.
+
+
+3. Algorithms & Heuristics
+
+Content Chunking & Embedding: Break source documents into logical segments (by heading or paragraph). Compute embeddings (e.g. using a sentence-transformer or HF embedding model) for each segment. Store these in the vector store (e.g. Qdrant). At query time, embed the query and retrieve top-N similar chunks (semantic search). This “chunking” is crucial so that embeddings fit model context and relevant info isn’t missed.
+
+Layout Rules (Note Formatting): Define consistent note structure rules. For example: use H1 for main topics, H2/H3 for subheadings; bullet (- or •) lists for key points; blockquotes for quotes/citations; numbered lists for procedures; and images with captions. Apply Markdown or HTML semantics accordingly. This makes output clean and navigable. E.g. if Gemini outputs JSON, render bullets and headers in the chosen format.
+
+Styling & Theme: Apply a theme engine for presentation. Use CSS variables or a design system to enforce a typography scale (e.g. base font 16px, headings 1.5×, 2× sizes) and color palette. Libraries like Tailwind CSS or Material-UI (MUI) can enforce consistent styling. For example, MUI defines a type scale for headings. Ensure generated documents follow the same style (fonts, margins, line heights) by using shared CSS or templates across formats (print CSS for PDF, or DOCX styles).
+
+
+4. Combined Inference Pipeline
+
+Model Roles: Generally, use Gemini for heavy-lifting (long-context summarization, complex reasoning, code analysis) thanks to its 1M-token window. Use lightweight or specialized HF models for targeted tasks: e.g. a fast summarizer, grammar/corrections, or language-specific generation (if cost-sensitive or offline capability needed). The system can fall back or cascade: e.g. if Gemini API fails or is slow, call an HF text-generation endpoint or a smaller open model as backup.
+
+Response Fusion & Caching: Cache AI outputs whenever possible to save cost and latency. As shown by “GPT Semantic Cache,” semantic caching (storing query+response pairs keyed by query embedding) can “significantly” reduce API calls and speed up responses. For example, if the same question or doc summary is requested again, retrieve the cached answer instead of re-calling Gemini. For hybrid fusion, one could also ensemble: e.g. have Gemini outline a document and an HF model fill in details, then merge results.
+
+Latency & Cost Optimization: Invoke models asynchronously and use request batching where possible. Monitor token usage: using Gemini’s large context can be more cost-effective if it avoids multiple calls. But for short tasks, use HF’s cheaper models. Caching (in Redis or in-memory) ensures frequent queries are fast. Also, trim prompts to essentials (e.g. use chunked relevant context only) to minimize token count. Maintain a connection pool for HTTP/SDK calls to reduce overhead.
+
+
+5. Optional Enhancements
+
+Citation/Reference Extraction: Implement a tool to extract references (e.g. detect “[12], (Smith et al., 2020)” patterns or DOIs). You could use a specialized model (via HF) to parse citations or integrate GROBID (Java) via a microservice. Once extracted, pass references back to Gemini to format a bibliography.
+
+Multilingual Support: Gemini Pro is known to handle many languages well – it “excels in widely spoken languages” and even “shows promising performance” on low-resource languages. Combined with HF translation models, NoteGPT could allow notes in multiple languages. For example, detect input language and use Gemini to generate the note in that language, or translate Gemini’s English output via Marian/NLLB models.
+
+Vector DB RAG (Qdrant/Weaviate): Use a vector store for Retrieval-Augmented Generation. As discussed, Qdrant offers a Node SDK. Alternatively, Weaviate has a JavaScript client (see Weaviate docs) for integrating semantic search. The system can automatically index new notes/documents in the vector DB and update embeddings. RAG is used whenever answering user queries or suggesting related content by finding relevant chunks in the indexed corpus.
+
+
+Tools & Libraries: Node.js (Express), React (CRA or Next.js), Google @google-cloud/generative-ai or google-generativeai SDK for Gemini, @huggingface/inference and transformers.js for HF models, officeparser/mammoth for documents, lunr for local search, puppeteer or playwright for PDF printing, libreoffice-convert, docx-templates, Tesseract.js (OCR), Redis (caching), and vector DB clients (@qdrant/qdrant-js, weaviate-client). These open-source packages, combined with Gemini and HF models, form the unified NoteGPT backend pipeline.
+
+Sources: Official docs and libraries (Hugging Face tutorials, Gemini API guides, and npm package docs), as well as recent research on LLM caching and multilingual performance.
+

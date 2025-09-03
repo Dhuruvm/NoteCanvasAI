@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { summarizeContentWithGemini } from "./services/gemini";
 import { aiOrchestrator } from "./ai/unified-ai-orchestrator";
+import { ragService } from "./services/rag-service";
+import { vectorDatabase } from "./services/vector-database";
+import { semanticCache } from "./services/semantic-cache";
 import { cacheManager, CacheKeys } from "./cache/redis-client";
 import { generateNotePDF, extractTextFromPDF } from "./services/pdf";
 import { generateAdvancedPDF } from "./services/advanced-pdf";
@@ -22,6 +25,7 @@ import * as templateRoutes from "./api/template-routes";
 import { noteGPTIntegration } from "./services/notegpt-integration";
 import { noteGPTBeta } from "./ai/notegpt-beta-core";
 import { multimodalProcessor } from "./ai/multimodal-processor";
+import { registerRAGRoutes } from "./routes/rag-routes";
 import multer from "multer";
 import { z } from "zod";
 
@@ -56,6 +60,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount enhanced API routes for NoteGPT Beta
   app.use("/api/v2", enhancedApiRoutes);
+  
+  // Mount RAG-specific routes
+  registerRAGRoutes(app);
 
   // Template Engine API Routes
   app.post("/api/templates/preview", templateRoutes.generatePreview);
@@ -134,10 +141,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Research API endpoint for standalone questions
+  // Enhanced RAG-powered research API endpoint
   app.post("/api/research", async (req, res) => {
     try {
-      const { question, userId } = req.body;
+      const { question, userId, useRAG = false, noteId } = req.body;
       
       if (!question || typeof question !== 'string') {
         return res.status(400).json({ 
@@ -145,36 +152,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Use AI orchestrator for research if available
-      const context = {
-        userLevel: 'intermediate',
-        currentTopic: question.slice(0, 50),
-        noteContent: '', // No specific note content for research
-        userProgress: {
-          correctAnswers: 0,
-          totalQuestions: 0,
-          currentStreak: 0,
-          level: 1
-        }
-      } as ChatContext;
-
       let response = '';
-      let metadata = { confidence: 0.8, suggestedFollowUp: '' };
+      let metadata: { confidence: number; suggestedFollowUp: string; sources: any[] } = { 
+        confidence: 0.8, 
+        suggestedFollowUp: '', 
+        sources: [] 
+      };
 
-      try {
-        // Try to use AI services if available
-        const aiResponse = await chatAIService.generateResponse(question, context, []);
-        response = aiResponse.response;
-        metadata = { ...metadata, ...aiResponse.metadata };
-      } catch (aiError) {
-        console.error('AI service error:', aiError);
-        throw aiError;
+      if (useRAG && noteId) {
+        // Use RAG for enhanced research
+        try {
+          const ragResult = await aiOrchestrator.answerQuestionWithRAG(
+            noteId,
+            question,
+            {
+              contentType: 'text',
+              contentLength: question.length,
+              priority: 'high',
+              userTier: 'pro',
+              maxCost: 1.0,
+              timeoutMs: 25000
+            }
+          );
+
+          response = ragResult.answer;
+          metadata = {
+            confidence: ragResult.confidence,
+            suggestedFollowUp: 'Would you like to explore any specific aspects in more detail?',
+            sources: ragResult.sources.map(source => ({
+              content: source.chunk.content.substring(0, 200) + '...',
+              similarity: source.similarity,
+              type: source.chunk.type
+            }))
+          };
+
+        } catch (ragError) {
+          console.error('RAG research error, falling back to standard:', ragError);
+          // Fall through to standard AI service
+        }
+      }
+
+      if (!response) {
+        // Use standard AI service
+        const context = {
+          userLevel: 'intermediate',
+          currentTopic: question.slice(0, 50),
+          noteContent: '', // No specific note content for research
+          previousQuestions: [],
+          userProgress: {
+            correctAnswers: 0,
+            totalQuestions: 0,
+            currentStreak: 0,
+            points: 0,
+            level: 1
+          }
+        } as ChatContext;
+
+        try {
+          const aiResponse = await chatAIService.generateResponse(question, context, []);
+          response = aiResponse.response;
+          metadata = { ...metadata, ...aiResponse.metadata };
+        } catch (aiError) {
+          console.error('AI service error:', aiError);
+          throw aiError;
+        }
       }
 
       res.json({
         response,
         metadata,
-        messageType: 'research'
+        messageType: 'research',
+        enhanced: !!metadata.sources.length
       });
 
     } catch (error) {
@@ -199,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Upload and process PDF
+  // Enhanced upload and process PDF with RAG initialization
   app.post("/api/upload", upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
@@ -236,6 +284,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         templateId: req.body.templateId || "academic",
       });
 
+      // Initialize RAG context for the document
+      try {
+        const ragContext = await ragService.initializeDocumentContext(note.id, content, {
+          summaryStyle: req.body.templateId || "academic" as any,
+          detailLevel: 3,
+          includeExamples: true,
+          useMultipleModels: true,
+          designStyle: "modern"
+        });
+        
+        console.log(`✅ RAG context initialized for note ${note.id}`);
+      } catch (ragError) {
+        console.warn('RAG context initialization failed, continuing with standard processing:', ragError);
+      }
+
       // Queue AI processing job for uploaded files
       await jobProcessor.queueAIProcessing({
         noteId: note.id,
@@ -243,14 +306,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         settings: {
           summaryStyle: req.body.templateId || "academic",
           detailLevel: 3,
-          includeExamples: true
+          includeExamples: true,
+          useMultipleModels: true
         },
         pdfBuffer: req.file.mimetype === 'application/pdf' ? req.file.buffer : undefined,
         priority: 'normal',
         userId: req.headers['user-id']?.toString()
       });
 
-      res.json({ noteId: note.id, message: "File uploaded successfully" });
+      res.json({ 
+        noteId: note.id, 
+        message: "File uploaded and RAG context initialized successfully",
+        ragEnabled: true
+      });
     } catch (error) {
       console.error("Upload error:", error);
       res.status(500).json({ message: error instanceof Error ? error.message : "Upload failed" });

@@ -60,10 +60,19 @@ interface Message {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  messageType?: "text" | "question" | "answer" | "explanation" | "research";
+  messageType?: "text" | "question" | "answer" | "explanation" | "research" | "rag-enhanced";
   metadata?: any;
   documentData?: any;
   isGeneratingDocument?: boolean;
+  sources?: Array<{
+    content: string;
+    type: string;
+    similarity: number;
+    significance?: number;
+  }>;
+  confidence?: number;
+  processingTime?: number;
+  ragEnhanced?: boolean;
 }
 
 interface ChatSession {
@@ -123,13 +132,46 @@ export function KiroChatInterface({ noteId, initialSession }: KiroChatInterfaceP
   const [userId] = useState(() => `user_${Date.now()}`);
   const [showWelcome, setShowWelcome] = useState(false);
   const [autopilot, setAutopilot] = useState(true);
+  const [ragEnabled, setRagEnabled] = useState(false);
+  const [showSources, setShowSources] = useState(true);
+  const [documentStats, setDocumentStats] = useState<{
+    totalChunks: number;
+    embeddingDimension: number;
+    avgChunkSize: number;
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
+  // Check if RAG is enabled for the current note
+  const checkRAGStatus = async (noteId: number) => {
+    try {
+      const response = await fetch(`/api/rag/stats/${noteId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setRagEnabled(data.success);
+        if (data.success && data.stats) {
+          setDocumentStats({
+            totalChunks: data.stats.totalChunks,
+            embeddingDimension: data.stats.embeddingDimension,
+            avgChunkSize: data.stats.averageChunkSize
+          });
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to check RAG status:', error);
+    }
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    if (noteId) {
+      checkRAGStatus(noteId);
+    }
+  }, [noteId]);
 
   // Initialize chat session
   useEffect(() => {
